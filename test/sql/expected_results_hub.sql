@@ -1,0 +1,1 @@
+INSERT INTO dv.h_order (h_order_hashkey,r_timestamp,r_source,order_id) SELECT DISTINCT h_order_hashkey,r_timestamp,r_source,order_id FROM dv_stg.orders_20190806_000000 AS staging WHERE NOT EXISTS(SELECT 1 FROM dv.h_order AS hub WHERE hub.order_id = staging.order_id)
