@@ -17,7 +17,7 @@ class DrivingKeyField:
 
     def __str__(self) -> str:
         """
-        Defines the representation of a DrivingKeyField object as a string.
+        Define the representation of a DrivingKeyField object as a string.
         This helps the tracking of logging events per entity.
 
         Returns:

@@ -60,7 +60,7 @@ def test_set_field_roles(hs_customer):
 
 def test_parent_table_name(hs_customer):
     """
-    Checks if parent_table_name is being correctly calculated.
+    Check if parent_table_name is being correctly calculated.
 
     Args:
         hs_customer (Satellite): hs_customer fixture value (defined in conftest.py).

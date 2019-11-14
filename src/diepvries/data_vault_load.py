@@ -1,11 +1,12 @@
 import logging
 from datetime import datetime
+from functools import lru_cache
 from typing import List
 
-from more_itertools import unique_everseen
+from ordered_set import OrderedSet
 from pytz import timezone
 
-from . import FieldRole, FixedPrefixLoggerAdapter, TEMPLATES_DIR, METADATA_FIELDS
+from . import FieldRole, FixedPrefixLoggerAdapter, METADATA_FIELDS, TEMPLATES_DIR
 from .data_vault_field import DataVaultField
 from .data_vault_table import DataVaultTable
 from .hub import Hub
@@ -56,7 +57,7 @@ class DataVaultLoad:
         self.staging_schema = staging_schema
         self.staging_table = staging_table
 
-        # Checks if extract_start_timestamp is timezone-aware.
+        # Check if extract_start_timestamp is timezone-aware.
         if extract_start_timestamp.tzinfo is None:
             raise ValueError(
                 "extract_start_timestamp should be timezone-aware (timezone=UTC)"
@@ -74,7 +75,7 @@ class DataVaultLoad:
 
     def __str__(self) -> str:
         """
-        Defines the representation of a DataVaultLoad object as a string.
+        Define the representation of a DataVaultLoad object as a string.
         This helps with the tracking of logging events per entity.
 
         Returns:
@@ -85,7 +86,7 @@ class DataVaultLoad:
     @property
     def target_tables(self):
         """
-        Gets _target_tables (defines in target_tables.setter).
+        Get _target_tables (defined in target_tables.setter).
 
         Returns:
             List[DataVaultTable]: List of target tables.
@@ -95,11 +96,11 @@ class DataVaultLoad:
     @target_tables.setter
     def target_tables(self, target_tables):
         """
-        Performs the following actions:
-            1. Sorts target_tables by loading order and name.
-            2. Defines staging_table and staging schema for all target_tables: physical name of the staging
-                table, including extract_start_timestamp as suffix.
-            3. Checks if:
+        Perform the following actions:
+            1. Sort target_tables by loading order and name.
+            2. Define staging_table and staging schema for all target_tables: physical name of the
+                staging table, including extract_start_timestamp as suffix.
+            3. Check if:
                 - Table has a parent table - applicable for satellites only.
                 - All parent hub names exist in target_tables - applicable for links only.
         Args:
@@ -143,7 +144,7 @@ class DataVaultLoad:
     @staging_table.setter
     def staging_table(self, staging_table):
         """
-        Sets the name of the staging table in the database.
+        Set the name of the staging table in the database.
         """
         self._staging_table = staging_table
 
@@ -161,52 +162,50 @@ class DataVaultLoad:
         fields_dml = []
         fields_ddl = []
 
-        for table in self.target_tables:
-            fields_dml.extend(
-                [
-                    self._get_staging_dml_expression(field, table)
-                    for field in table.fields
-                    if field.name != METADATA_FIELDS["record_end_timestamp"]
-                    and field.role != FieldRole.HASHKEY_PARENT
-                ]
+        # Produce the list of fields that should exist in the staging table.
+        # As common field names can appear in multiple target tables we cannot have duplicated field
+        # names in the staging table, it's assured that each field is only considered once.
+        staging_fields = OrderedSet(
+            [
+                field
+                for table in self.target_tables
+                for field in table.fields
+                # Record end timestamp is calculated during Data Vault model load (not needed in the
+                # staging table).
+                if field.name != METADATA_FIELDS["record_end_timestamp"]
+                # Fields with HASHKEY_PARENT role are not needed in the staging table (the same
+                # field will exist with role = HASHKEY in the parent hub).
+                and field.role != FieldRole.HASHKEY_PARENT
+            ]
+        )
+
+        # Iterate over all staging fields and produces the DML and DDL expressions
+        # that should be used to create the staging table.
+        for field in staging_fields:
+            fields_dml.append(
+                self._get_staging_dml_expression(
+                    field, self._get_target_table(field.parent_table_name)
+                )
             )
-            fields_ddl.extend(
-                [
-                    field.ddl_in_staging
-                    for field in table.fields
-                    if field.name != METADATA_FIELDS["record_end_timestamp"]
-                    and field.role != FieldRole.HASHKEY_PARENT
-                ]
-            )
+            fields_ddl.append(field.ddl_in_staging)
 
-            # Deduplicate fields DML/DDL expressions (keeping order).
-            deduplicated_fields_dml = unique_everseen(fields_dml)
-            deduplicated_fields_ddl = unique_everseen(fields_ddl)
+        query_args = {
+            "staging_schema": self.staging_schema,
+            "staging_table": self.staging_table,
+            "fields_dml": ", ".join(fields_dml),
+            "fields_ddl": ", ".join(fields_ddl),
+            "extract_schema_name": self.extract_schema,
+            "extract_table_name": self.extract_table,
+        }
 
-            # Converts fields DML/SQL expressions list to a comma separated string
-            # (SQL field separator).
-            fields_dml_sql = ", ".join(deduplicated_fields_dml)
-            fields_ddl_sql = ", ".join(deduplicated_fields_ddl)
+        staging_table_create_sql = (
+            (TEMPLATES_DIR / "staging_table_ddl.sql").read_text().format(**query_args)
+        )
 
-            query_args = {
-                "staging_schema": self.staging_schema,
-                "staging_table": self.staging_table,
-                "fields_dml": fields_dml_sql,
-                "fields_ddl": fields_ddl_sql,
-                "extract_schema_name": self.extract_schema,
-                "extract_table_name": self.extract_table,
-            }
-
-            staging_table_create_sql = (
-                (TEMPLATES_DIR / "staging_table_ddl.sql")
-                .read_text()
-                .format(**query_args)
-            )
-
-            self._logger.info(
-                "Loading SQL for staging table (%s) generated.", self.staging_table
-            )
-            self._logger.debug("\n(%s)", staging_table_create_sql)
+        self._logger.info(
+            "Loading SQL for staging table (%s) generated.", self.staging_table
+        )
+        self._logger.debug("\n(%s)", staging_table_create_sql)
 
         return staging_table_create_sql
 
@@ -229,7 +228,7 @@ class DataVaultLoad:
         self, field: DataVaultField, table: DataVaultTable
     ) -> str:
         """
-        Calculates the SQL expression that should be used to represent the field passed as argument
+        Calculate the SQL expression that should be used to represent the field passed as argument
         in the staging table SQL script.
 
         Args:
@@ -266,9 +265,10 @@ class DataVaultLoad:
 
         return sql_expression
 
+    @lru_cache(1)
     def _get_target_table(self, target_table_name: str) -> DataVaultTable:
         """
-        Gets a DataVaultTable object from self.target_tables, given its name as argument.
+        Get a DataVaultTable object from self.target_tables, given its name as argument.
 
         Args:
             target_table_name (str): Name of the table to be returned.

@@ -24,9 +24,9 @@ class DataVaultTable(ABC):
         subclasses: Hub, Link and Satellite.
 
         Besides setting each __init__ argument as class attributes, it also performs the following actions:
-        - Calculates fields_by_name: dictionary with each DataVaultField as values and its name as key;
-        - Calculates fields_by_role: dictionary with a list of DataVaultField as values and its role as key;
-        - Checks if table structure is valid: in this class, only generic checks (applicable to all DataVaultTable
+        - Calculate fields_by_name: dictionary with each DataVaultField as values and its name as key;
+        - Calculate fields_by_role: dictionary with a list of DataVaultField as values and its role as key;
+        - Check if table structure is valid: in this class, only generic checks (applicable to all DataVaultTable
         subclasses). Each subclass will call super()._validate before starting each specific test (only applicable
         to instances of the subclass).
 
@@ -39,7 +39,7 @@ class DataVaultTable(ABC):
         self.name = name.lower()
         self.fields = fields
 
-        # Checks if table structure is valid. Each subclass has its own implementation (with its specific tests +
+        # Check if table structure is valid. Each subclass has its own implementation (with its specific tests +
         # the tests performed in this abstract class).
         self._validate()
 
@@ -53,7 +53,7 @@ class DataVaultTable(ABC):
 
     def __str__(self) -> str:
         """
-        Defines the representation of a DataVaultTable object as a string.
+        Define the representation of a DataVaultTable object as a string.
         This helps the tracking of logging events per entity.
 
         Returns:
@@ -144,7 +144,7 @@ class DataVaultTable(ABC):
     @property
     def sql_placeholders(self) -> Dict[str, str]:
         """
-        Calculates common placeholders needed to generate SQL for all DataVaultTable.
+        Calculate common placeholders needed to generate SQL for all DataVaultTable.
 
         Returns:
             Dict[str, str]: Common placeholders to be used in all DataVaultTable SQL scripts.
@@ -164,7 +164,7 @@ class DataVaultTable(ABC):
 
     def _validate(self):
         """
-        Performs the following checks (common to all DataVaultTable subclasses):
+        Perform the following checks (common to all DataVaultTable subclasses):
         1. Table has one start_timestamp field - name defined in METADATA_FIELDS.
         2. Table has one source field - name defined in METADATA_FIELDS.
 

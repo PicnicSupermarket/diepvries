@@ -6,7 +6,7 @@ from pathlib import Path
 
 class FieldRole(Enum):
     """
-    Defines the possible roles for each field in a Data Vault model.
+    Define the possible roles for each field in a Data Vault model.
     """
 
     HASHKEY = "hashkey"
@@ -21,7 +21,7 @@ class FieldRole(Enum):
 
 class TableType(Enum):
     """
-    Defines the possible types of table in a Data Vault model.
+    Define the possible types of table in a Data Vault model.
     """
 
     HUB = "hub"

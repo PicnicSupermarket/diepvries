@@ -1,42 +1,51 @@
-from dataclasses import dataclass
-
 from . import (
+    FIELD_PREFIX,
+    FIELD_SUFFIX,
     FieldRole,
     METADATA_FIELDS,
-    TableType,
-    FIELD_SUFFIX,
-    FIELD_PREFIX,
     TABLE_PREFIXES,
+    TableType,
 )
 
 
-@dataclass
 class DataVaultField:
     """
     Class that represents a field in a Data Vault model.
     """
 
-    #: Name of parent table in the database.
-    parent_table_name: str
-    #: Column name in the database.
-    name: str
-    #: Column datatype in the database.
-    datatype: str
-    #: Column position in the database.
-    position: int
-    #: Column is mandatory in the database.
-    is_mandatory: bool
+    def __init__(
+        self,
+        parent_table_name: str,
+        name: str,
+        datatype: str,
+        position: int,
+        is_mandatory: bool,
+    ):
+        """
+        Instantiate a DataVaultField object and converts both name and parent_table_name to lower case.
 
-    def __post_init__(self):
+        Args:
+            parent_table_name (str): Name of parent table in the database.
+            name (str): Column name in the database.
+            datatype (str): Column datatype in the database.
+            position (int): Column position in the database.
+            is_mandatory (bool): Column is mandatory in the database.
         """
-        Converts name and parent_table_name to lower case.
-        """
-        self.name = self.name.lower()
-        self.parent_table_name = self.parent_table_name.lower()
+        self.parent_table_name = parent_table_name.lower()
+        self.name = name.lower()
+        self.datatype = datatype
+        self.position = position
+        self.is_mandatory = is_mandatory
+
+    def __hash__(self):
+        return hash(self.name_in_staging)
+
+    def __eq__(self, other):
+        return self.name_in_staging == other.name_in_staging
 
     def __str__(self) -> str:
         """
-        Defines the representation of a DataVaultField object as a string.
+        Define the representation of a DataVaultField object as a string.
         This helps the tracking of logging events per entity.
 
         Returns:
@@ -47,7 +56,7 @@ class DataVaultField:
     @property
     def suffix(self) -> str:
         """
-        Gets field suffix.
+        Get field suffix.
 
         Returns:
             str: Field suffix.
@@ -57,7 +66,7 @@ class DataVaultField:
     @property
     def prefix(self) -> str:
         """
-        Gets field prefix.
+        Get field prefix.
 
         Returns:
             str: Field prefix.
@@ -67,7 +76,7 @@ class DataVaultField:
     @property
     def parent_table_type(self) -> TableType:
         """
-        Defines parent table type, based on table prefix.
+        Define parent table type, based on table prefix.
 
         Returns:
             TableType: Table type (HUB, LINK or SATELLITE).
@@ -85,7 +94,7 @@ class DataVaultField:
     @property
     def name_in_staging(self) -> str:
         """
-        Defines the name that this field should have, whenever created in a staging table.
+        Define the name that this field should have, whenever created in a staging table.
 
         In most cases this function will return self.name, but for hashdiffs the name
         is <parent_table_name>_hashdiff (every Satellite has one hashdiff field, named s_hashdiff).
@@ -105,7 +114,7 @@ class DataVaultField:
     @property
     def ddl_in_staging(self) -> str:
         """
-        Calculates the DDL expression that should be used while creating this
+        Calculate the DDL expression that should be used while creating this
         field in the staging table.
 
         Returns:
@@ -116,7 +125,7 @@ class DataVaultField:
     @property
     def role(self) -> FieldRole:
         """
-        Calculates the role of the field in a Data Vault model (check FieldRole enum).
+        Calculate the role of the field in a Data Vault model (check FieldRole enum).
 
         Returns:
             FieldRole: Field role in a Data Vault model.

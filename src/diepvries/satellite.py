@@ -27,7 +27,7 @@ class Satellite(DataVaultTable):
         driving_keys: List[DrivingKeyField] = None,
     ):
         """
-        Instantiates a Satellite.
+        Instantiate a Satellite.
 
         Satellite: Data Vault table that contains all properties of a link or a satellite.
         The data in this table is totally historized. Each row has a start and end timestamp.
@@ -54,7 +54,7 @@ class Satellite(DataVaultTable):
             schema (str): Data Vault schema name.
             name (str): Satellite name.
             fields (List[DataVaultField]): List of fields that this Hub holds.
-            driving_keys (List[DrivingKeyField]): Defines the set of link (parent table) fields
+            driving_keys (List[DrivingKeyField]): Define the set of link (parent table) fields
                 that should be used as driving keys (in the example presented above, the driving
                 key would be the h_customer_hashkey). Only applicable for effectivity satellites.
         """
@@ -65,7 +65,7 @@ class Satellite(DataVaultTable):
     @property
     def loading_order(self) -> int:
         """
-        Gets loading order (satellites are the third and last tables to be loaded).
+        Get loading order (satellites are the third and last tables to be loaded).
 
         Returns:
             int: Table loading order.
@@ -74,7 +74,7 @@ class Satellite(DataVaultTable):
 
     def _validate(self):
         """
-        Performs Satellite specific checks (besides common ones - check parent class):
+        Perform Satellite specific checks (besides common ones - check parent class):
         1. Table has one hashkey for parent table (hub or link);
         2. Table has one end timestamp field (r_timestamp_end);
         3. Table has one hashdiff field (s_hashdiff).
@@ -121,7 +121,7 @@ class Satellite(DataVaultTable):
     @property
     def parent_table_name(self) -> str:
         """
-        Gets the name of current table's parent, following this rule:
+        Get the name of current table's parent, following this rule:
         - Name of table's hashkey field, without the suffix.
 
         Returns:
@@ -253,7 +253,7 @@ class Satellite(DataVaultTable):
     @property
     def satellite_common_sql_placeholders(self) -> Dict[str, str]:
         """
-        Calculates common placeholders needed to generate SQL for all Satellites.
+        Calculate common placeholders needed to generate SQL for all Satellites.
 
         As satellites can either be effectivity or regular satellites, the load can be done
         using one of two different template SQL files.
@@ -310,7 +310,7 @@ class Satellite(DataVaultTable):
     @property
     def effectivity_satellite_sql_placeholders(self) -> Dict[str, str]:
         """
-        Calculates effectivity satellite specific placeholders, needed to generate SQL.
+        Calculate effectivity satellite specific placeholders, needed to generate SQL.
 
         Returns:
             Dict[str, str]: Effectivity satellite specific placeholders,

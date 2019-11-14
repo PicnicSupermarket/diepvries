@@ -7,7 +7,7 @@ class Hub(DataVaultTable):
     @property
     def prefix(self):
         """
-        Gets table prefix.
+        Get table prefix.
 
         Returns:
             str: Table prefix.
@@ -18,7 +18,7 @@ class Hub(DataVaultTable):
     @property
     def loading_order(self) -> int:
         """
-        Gets loading order (hubs are the first tables to be loaded).
+        Get loading order (hubs are the first tables to be loaded).
 
         Returns:
             int: Table loading order.
@@ -28,7 +28,7 @@ class Hub(DataVaultTable):
     @property
     def entity_name(self) -> str:
         """
-        Gets entity name for current Hub.
+        Get entity name for current Hub.
 
         Entity name corresponds to the name of the table, without the prefix.
 
@@ -39,7 +39,7 @@ class Hub(DataVaultTable):
 
     def _validate(self):
         """
-        Performs Hub specific checks (besides common ones - check parent class):
+        Perform Hub specific checks (besides common ones - check parent class):
         1. Table has one field with role = FieldRole.HASHKEY;
         3. Table has one field with role = FieldRole.BUSINESS_KEY;
 

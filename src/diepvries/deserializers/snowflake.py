@@ -87,7 +87,7 @@ class SnowflakeDeserializer:
 
     def __str__(self) -> str:
         """
-        Defines the representation of a SnowflakeDeserializer object as a string.
+        Define the representation of a SnowflakeDeserializer object as a string.
         This helps the tracking of logging events per entity.
 
         Returns:
@@ -98,7 +98,7 @@ class SnowflakeDeserializer:
     @property
     def target_tables(self) -> List[str]:
         """
-        Gets target table names list. Needed because we want to lower case the table names
+        Get target table names list. Needed because we want to lower case the table names
         in property setter.
 
         Returns:
@@ -109,7 +109,7 @@ class SnowflakeDeserializer:
     @target_tables.setter
     def target_tables(self, target_tables: List[str]):
         """
-        Lowers the case of all table names in target_tables.
+        Lower the case of all table names in target_tables.
 
         Args:
             target_tables (List[str]): Target table names list, in lower case.
@@ -124,7 +124,7 @@ class SnowflakeDeserializer:
     @lru_cache(1)
     def fields(self) -> List[DataVaultField]:
         """
-        Deserializes all fields present in self.target_tables.
+        Deserialize all fields present in self.target_tables.
 
         This deserialization will be done using Snowflake metadata system views.
 
@@ -168,7 +168,7 @@ class SnowflakeDeserializer:
     @property
     def deserialized_target_tables(self) -> List[DataVaultTable]:
         """
-        Deserializes all target tables passed as argument during instance creation (__init__ method).
+        Deserialize all target tables passed as argument during instance creation (__init__ method).
 
         Returns:
             List[DataVaultTable]: List of deserialized target tables.

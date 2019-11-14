@@ -9,7 +9,7 @@ class Link(DataVaultTable):
     @property
     def loading_order(self) -> int:
         """
-        Gets loading order (links are the second tables to be loaded).
+        Get loading order (links are the second tables to be loaded).
 
         Returns:
             int: Table loading order.
@@ -18,7 +18,7 @@ class Link(DataVaultTable):
 
     def _validate(self):
         """
-        Performs Link specific checks (besides common ones - check parent class):
+        Perform Link specific checks (besides common ones - check parent class):
         1. Table has one field with role = FieldRole.HASHKEY;
         2. Field with role = FieldRole.HASHKEY is placed in the first column of the table;
         3. Table has at least two business keys for connected hubs;
@@ -99,7 +99,7 @@ class Link(DataVaultTable):
     @property
     def parent_hub_names(self) -> List[str]:
         """
-        Gets a list of parent hub names.
+        Get a list of parent hub names.
 
         Returns:
             List[str]: Parent hub names.

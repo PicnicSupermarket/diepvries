@@ -47,7 +47,7 @@ def test_hashkey_sql(l_order_customer):
 
 def test_parent_hub_names(l_order_customer):
     """
-    Checks if the names of the parent hubs were correctly attributed in
+    Check if the names of the parent hubs were correctly attributed in
     Link class (l_order_customer_hashkey).
 
     Args:
