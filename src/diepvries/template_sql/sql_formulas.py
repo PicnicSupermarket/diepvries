@@ -35,6 +35,9 @@ END_OF_TIME_SQL_TEMPLATE = (
     f"CAST('{END_OF_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ')}' AS TIMESTAMP)"
 )
 
+# SQL expression to be used in Hub and Link SQL templates.
+FIELDS_AGGREGATION_SQL_TEMPLATE = "MIN({field}) AS {field}"
+
 # Formula used to calculate HASHDIFF fields. {hashdiff_expression} is the concatenation
 # between all business keys plus descriptive_field delimited by HASH_DELIMITER.
 # The REGEXP_REPLACE function is needed in order to avoid changes in hashdiffs

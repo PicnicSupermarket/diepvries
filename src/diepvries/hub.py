@@ -1,6 +1,10 @@
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
-from .template_sql.sql_formulas import format_fields_for_join
+from .template_sql.sql_formulas import (
+    FIELDS_AGGREGATION_SQL_TEMPLATE,
+    format_fields_for_join,
+    format_fields_for_select,
+)
 
 
 class Hub(DataVaultTable):
@@ -76,6 +80,10 @@ class Hub(DataVaultTable):
          Returns:
              str: SQL query to load target hub.
          """
+        hashkey = next(
+            hashkey for hashkey in self.fields_by_role.get(FieldRole.HASHKEY)
+        )
+
         business_keys = format_fields_for_join(
             fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY),
             table_1_alias="hub",
@@ -83,11 +91,28 @@ class Hub(DataVaultTable):
         )
         business_key_condition = "AND".join(business_keys)
 
+        non_hashkey_fields = [
+            field for field in self.fields if field.role != FieldRole.HASHKEY
+        ]
+        non_hashkey_fields_sql = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields)
+        )
+
+        non_hashkey_fields_aggregation = [
+            FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+            for field in format_fields_for_select(fields=non_hashkey_fields)
+        ]
+        non_hashkey_fields_aggregation_sql = ",".join(non_hashkey_fields_aggregation)
+
         sql_load_statement = (
             (TEMPLATES_DIR / "hub_dml.sql")
             .read_text()
             .format(
-                **self.sql_placeholders, business_key_condition=business_key_condition
+                **self.sql_placeholders,
+                hashkey_field=hashkey.name,
+                non_hashkey_fields=non_hashkey_fields_sql,
+                non_hashkey_fields_aggregation=non_hashkey_fields_aggregation_sql,
+                business_key_condition=business_key_condition,
             )
         )
 

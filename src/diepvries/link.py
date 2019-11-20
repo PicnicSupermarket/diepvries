@@ -2,7 +2,11 @@ from typing import List
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
-from .template_sql.sql_formulas import format_fields_for_join
+from .template_sql.sql_formulas import (
+    FIELDS_AGGREGATION_SQL_TEMPLATE,
+    format_fields_for_join,
+    format_fields_for_select,
+)
 
 
 class Link(DataVaultTable):
@@ -81,17 +85,39 @@ class Link(DataVaultTable):
         Returns:
             str: SQL query to load target link.
         """
-        hashkeys = format_fields_for_join(
-            fields=self.fields_by_role.get(FieldRole.HASHKEY),
-            table_1_alias="lnk",
-            table_2_alias="staging",
+        hashkey = next(
+            hashkey for hashkey in self.fields_by_role.get(FieldRole.HASHKEY)
         )
-        hashkey_condition = "AND".join(hashkeys)
+
+        hashkey_parents = self.fields_by_role.get(FieldRole.HASHKEY_PARENT)
+        hashkey_parents_sql = format_fields_for_join(
+            fields=hashkey_parents, table_1_alias="link", table_2_alias="staging",
+        )
+        hashkey_condition = " AND ".join(hashkey_parents_sql)
+
+        non_hashkey_fields = [
+            field for field in self.fields if field.role != FieldRole.HASHKEY
+        ]
+        non_hashkey_fields_sql = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields)
+        )
+
+        non_hashkey_fields_aggregation = [
+            FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+            for field in format_fields_for_select(fields=non_hashkey_fields)
+        ]
+        non_hashkey_fields_aggregation_sql = ",".join(non_hashkey_fields_aggregation)
 
         sql_load_statement = (
             (TEMPLATES_DIR / "link_dml.sql")
             .read_text()
-            .format(**self.sql_placeholders, hashkey_condition=hashkey_condition)
+            .format(
+                **self.sql_placeholders,
+                hashkey_field=hashkey.name,
+                non_hashkey_fields=non_hashkey_fields_sql,
+                non_hashkey_fields_aggregation=non_hashkey_fields_aggregation_sql,
+                hashkey_condition=hashkey_condition,
+            )
         )
 
         self._logger.info("Loading SQL for link (%s) generated.", self.name)

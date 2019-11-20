@@ -155,11 +155,9 @@ class DataVaultTable(ABC):
             Dict[str, str]: Common placeholders to be used in all DataVaultTable SQL
                 scripts.
         """
-        fields = ",".join(format_fields_for_select(fields=self.fields))
         query_args = {
             "target_schema": self.schema,
             "data_vault_table": self.name,
-            "fields": fields,
             "staging_schema": self.staging_schema,
             "staging_table": self.staging_table,
             "record_start_timestamp": METADATA_FIELDS["record_start_timestamp"],

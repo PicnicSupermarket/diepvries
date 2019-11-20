@@ -299,8 +299,10 @@ class Satellite(DataVaultTable):
         descriptive_fields_sql = (
             f",{descriptive_fields_sql}" if descriptive_fields_sql else ""
         )
+        fields = ",".join(format_fields_for_select(fields=self.fields))
 
         query_args = {
+            "fields": fields,
             "hashkey_field": hashkey,
             "hashdiff_field": hashdiff.name,
             "staging_hashdiff_field": hashdiff.name_in_staging,
