@@ -1,4 +1,5 @@
 from picnic.data_vault import FieldRole
+
 from .conftest import clean_sql
 
 
@@ -8,11 +9,13 @@ def test_effectivity_satellite_sql(test_path, data_vault_load):
     effectivity satellite) with the expected results.
 
     This test has to receive data_vault_load fixture and not ls_order_customer_eff
-    as it needs the parent_table defined and this definition occurs in data_vault_load constructor.
+    as it needs the parent_table defined and this definition occurs in data_vault_load
+    constructor.
 
     Args:
         test_path (Path): test_path fixture value (defined in conftest.py).
-        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in conftest.py).
+        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in
+            conftest.py).
     """
     effectivity_satellite = next(
         table
@@ -70,13 +73,15 @@ def test_parent_table_name(hs_customer):
 
 def test_hashdiff_sql(data_vault_load):
     """
-    Compares SQL generated in Satellite class (for hs_customer hashdiff) with expected values.
+    Compares SQL generated in Satellite class (for hs_customer hashdiff) with expected
+    values.
 
     This test has to receive data_vault_load fixture and not hs_customer as it needs the
     parent_table defined and this definition occurs in data_vault_load constructor.
 
     Args:
-        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in conftest.py).
+        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in
+            conftest.py).
     """
     satellite = next(
         table for table in data_vault_load.target_tables if table.name == "hs_customer"
@@ -86,8 +91,8 @@ def test_hashdiff_sql(data_vault_load):
         "COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_date AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_decimal AS VARCHAR), ''), "
+        "COALESCE(CAST(CAST(test_integer AS FLOAT) AS VARCHAR), '')||'|~~|'||"
+        "COALESCE(CAST(CAST(test_decimal AS FLOAT) AS VARCHAR), ''), "
         "'(\\\|~~\\\|){1,}$', '')) AS hs_customer_hashdiff"
     )
 

@@ -1,6 +1,6 @@
-from typing import List, Dict
+from typing import Dict, List
 
-from . import HASH_DELIMITER, TEMPLATES_DIR, FieldRole, FIELD_SUFFIX, METADATA_FIELDS
+from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
 from .data_vault_field import DataVaultField
 from .data_vault_table import DataVaultTable
 from .driving_key_field import DrivingKeyField
@@ -10,15 +10,13 @@ from .template_sql.sql_formulas import (
     DESCRIPTIVE_FIELD_SQL_TEMPLATE,
     END_OF_TIME_SQL_TEMPLATE,
     HASHDIFF_SQL_TEMPLATE,
+    RECORD_END_TIMESTAMP_SQL_TEMPLATE,
     format_fields_for_join,
     format_fields_for_select,
-    RECORD_END_TIMESTAMP_SQL_TEMPLATE,
 )
 
 
 class Satellite(DataVaultTable):
-    _parent_table = None
-
     def __init__(
         self,
         schema: str,
@@ -29,34 +27,36 @@ class Satellite(DataVaultTable):
         """
         Instantiate a Satellite.
 
-        Satellite: Data Vault table that contains all properties of a link or a satellite.
-        The data in this table is totally historized. Each row has a start and end timestamp.
-        There are no deletes in this type of tables, if something changes, a new record is inserted
-        and the start and end timestamps adjusted accordingly.
+        Satellite: Data Vault table that contains all properties of a link or a
+        satellite. The data in this table is totally historized. Each row has a start
+        and end timestamp. There are no deletes in this type of tables, if something
+        changes, a new record is inserted and the start and end timestamps adjusted
+        accordingly.
 
         Example: Customer Satellite will hold all customer properties: name,
         date of registration, address, etc...
 
-        In case we are dealing with a link satellite, we might need an effectivity satellite.
-        An effectivity satellite is a special type of satellite with the purpose of keeping
-        "versions open" based on a subset of fields in the link.
+        In case we are dealing with a link satellite, we might need an effectivity
+        satellite. An effectivity satellite is a special type of satellite with the
+        purpose of keeping "versions open" based on a subset of fields in the link.
 
-        Example: we have a link between a Customer, and a Contact and we want to keep only
-        one contact version per customer at a given point in time. This means that, if a customer
-        changes contacts, we only keep the latest relationship between a Customer and its
-        Contact as an active relationship. For this specific example, Hub Customer's hashkey would be
-        our driving key.
+        Example: we have a link between a Customer, and a Contact and we want to keep
+        only one contact version per customer at a given point in time. This means that,
+        if a customer changes contacts, we only keep the latest relationship between a
+        Customer and its Contact as an active relationship. For this specific example,
+        Hub Customer's hashkey would be our driving key.
 
-        The distinction between a regular and an effectivity satellite is made based on the existence
-        of driving keys.
+        The distinction between a regular and an effectivity satellite is made based on
+        the existence of driving keys.
 
         Args:
             schema (str): Data Vault schema name.
             name (str): Satellite name.
             fields (List[DataVaultField]): List of fields that this Hub holds.
-            driving_keys (List[DrivingKeyField]): Define the set of link (parent table) fields
-                that should be used as driving keys (in the example presented above, the driving
-                key would be the h_customer_hashkey). Only applicable for effectivity satellites.
+            driving_keys (List[DrivingKeyField]): Define the set of link (parent table)
+                fields that should be used as driving keys (in the example presented
+                above, the driving key would be the h_customer_hashkey). Only applicable
+                for effectivity satellites.
         """
         super().__init__(schema, name, fields)
         self.driving_keys = driving_keys
@@ -89,7 +89,8 @@ class Satellite(DataVaultTable):
 
         if not self.fields_by_name.get(METADATA_FIELDS["record_end_timestamp"]):
             raise RuntimeError(
-                f"'{self.name}': No field named '{METADATA_FIELDS['record_end_timestamp']}' found"
+                f"'{self.name}': No field named "
+                f"'{METADATA_FIELDS['record_end_timestamp']}' found"
             )
 
         hashdiff_name = f"s_{FIELD_SUFFIX[FieldRole.HASHDIFF]}"
@@ -102,7 +103,8 @@ class Satellite(DataVaultTable):
         Generate the SQL query to populate current satellite.
 
         This method is prepared to load both regular and effectivity satellites.
-        The distinction between both is made based on the existence of driving key fields.
+        The distinction between both is made based on the existence of driving key
+        fields.
 
         All needed placeholders are calculated, in order to match template SQL:
          - If regular satellite: check template_sql.satellite_dml.sql;
@@ -204,8 +206,8 @@ class Satellite(DataVaultTable):
         The hashdiff formula is the following:
             - MD5(business_key_1 + |~~| + business_key_n + |~~| + child_key_1 + |~~|
         descriptive_field_1). To assure that a hashdiff does not change if a new field
-        is added to the table, we assure that all |~~| character sequence in the end of the
-        string is removed.
+        is added to the table, we assure that all |~~| character sequence in the end
+        of the string is removed.
 
         Returns:
             str: Hashdiff SQL expression.
@@ -216,19 +218,22 @@ class Satellite(DataVaultTable):
         business_keys_sql = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role.get(FieldRole.BUSINESS_KEY)
+                fields=self.parent_table.fields_by_role.get(FieldRole.BUSINESS_KEY),
+                used_for_hashing=True,
             )
         ]
         child_keys_sql = [
             CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
             for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY]
+                fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY],
+                used_for_hashing=True,
             )
         ]
         descriptive_fields_sql = [
             DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.DESCRIPTIVE)
+                fields=self.fields_by_role.get(FieldRole.DESCRIPTIVE),
+                used_for_hashing=True,
             )
         ]
         fields_for_hashdiff = business_keys_sql
@@ -255,9 +260,10 @@ class Satellite(DataVaultTable):
         """
         Calculate common placeholders needed to generate SQL for all Satellites.
 
-        As satellites can either be effectivity or regular satellites, the load can be done
-        using one of two different template SQL files.
-        In this function we calculate the placeholders that are common between both template SQL.
+        As satellites can either be effectivity or regular satellites, the load can be
+        done using one of two different template SQL files.
+        In this function we calculate the placeholders that are common between both
+        template SQL.
 
         Returns:
             Dict[str, str]: Common placeholders to use in all Satellite SQL scripts.

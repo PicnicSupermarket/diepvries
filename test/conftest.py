@@ -4,13 +4,14 @@ from pathlib import Path
 
 import pytest
 import yaml
-
+from picnic.data_vault import FieldDataType
 from picnic.data_vault.data_vault_field import DataVaultField
 from picnic.data_vault.data_vault_load import DataVaultLoad
 from picnic.data_vault.driving_key_field import DrivingKeyField
 from picnic.data_vault.hub import Hub
 from picnic.data_vault.link import Link
 from picnic.data_vault.satellite import Satellite
+
 
 # Regex used to remove comments in SQL queries.
 COMMENT_REGEX = re.compile(r"/\*{1}[^\/\*]+\*\/")
@@ -62,7 +63,7 @@ def process_configuration(test_path):
         List[Dict[str, str]]: configuration yaml file content.
     """
     process_configuration_text = (test_path / "test_process_config.yml").read_text()
-    process_configuration_file = yaml.load(process_configuration_text)
+    process_configuration_file = yaml.safe_load(process_configuration_text)
 
     return process_configuration_file
 
@@ -73,7 +74,8 @@ def h_customer(process_configuration, staging_table):
     Define h_customer test hub for full test suite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
         staging_table (str): staging table physical name fixture value.
 
     Returns:
@@ -83,28 +85,29 @@ def h_customer(process_configuration, staging_table):
         DataVaultField(
             parent_table_name="h_customer",
             name="h_customer_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="h_customer",
             name="r_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="h_customer",
             name="r_source",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="h_customer",
             name="customer_id",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
@@ -124,7 +127,8 @@ def h_order(process_configuration, staging_table):
     Define h_order test hub for full test suite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
         staging_table (str): staging table physical name fixture value.
 
     Returns:
@@ -134,28 +138,29 @@ def h_order(process_configuration, staging_table):
         DataVaultField(
             parent_table_name="h_order",
             name="h_order_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="h_order",
             name="r_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="h_order",
             name="r_source",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="h_order",
             name="order_id",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
@@ -174,7 +179,8 @@ def l_order_customer(process_configuration, staging_table):
     Define l_order_customer test link for full test suite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
         staging_table (str): staging table physical name fixture value.
 
     Returns:
@@ -184,63 +190,66 @@ def l_order_customer(process_configuration, staging_table):
         DataVaultField(
             parent_table_name="l_order_customer",
             name="l_order_customer_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="h_order_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=2,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="h_customer_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="order_id",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="customer_id",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="ck_test_string",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="ck_test_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=7,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="r_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="l_order_customer",
             name="r_source",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=9,
             is_mandatory=True,
         ),
@@ -259,7 +268,8 @@ def hs_customer(process_configuration, staging_table):
     Define hs_customer test satellite for full test suite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
         staging_table (str): staging table physical name fixture value.
 
     Returns:
@@ -269,72 +279,78 @@ def hs_customer(process_configuration, staging_table):
         DataVaultField(
             parent_table_name="hs_customer",
             name="h_customer_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="s_hashdiff",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=2,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="r_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="r_timestamp_end",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="r_source",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="test_string",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=False,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="test_date",
-            datatype="date",
+            data_type=FieldDataType.DATE,
             position=7,
             is_mandatory=False,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="test_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=False,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="test_integer",
-            datatype="number",
+            data_type=FieldDataType.NUMBER,
             position=9,
             is_mandatory=False,
+            precision=38,
+            scale=0,
         ),
         DataVaultField(
             parent_table_name="hs_customer",
             name="test_decimal",
-            datatype="number",
+            data_type=FieldDataType.NUMBER,
             position=10,
             is_mandatory=False,
+            precision=18,
+            scale=8,
         ),
     ]
     hs_customer = Satellite(
@@ -351,7 +367,8 @@ def ls_order_customer_eff(process_configuration, staging_table, l_order_customer
     Define ls_order_customer_eff test (effectivity) satellite for full test suite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
         staging_table (str): staging table physical name fixture value.
 
     Returns:
@@ -361,42 +378,44 @@ def ls_order_customer_eff(process_configuration, staging_table, l_order_customer
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="l_order_customer_hashkey",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="s_hashdiff",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=2,
             is_mandatory=True,
+            length=32,
         ),
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="r_timestamp",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="r_timestamp_end",
-            datatype="timestamp_ntz",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="r_source",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
         DataVaultField(
             parent_table_name="ls_order_customer_eff",
             name="dummy_descriptive_field",
-            datatype="text",
+            data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=True,
         ),
@@ -434,8 +453,10 @@ def data_vault_load(
     (using fixture values defined above).
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture value.
-        extract_start_timestamp (datetime.datetime): extraction start timestamp fixture value.
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
+        extract_start_timestamp (datetime.datetime): extraction start timestamp
+            fixture value.
         h_customer (Hub): deserialized h_customer.
         h_order (Hub): deserialized h_order.
         l_order_customer (Link): deserialized l_order_customer.

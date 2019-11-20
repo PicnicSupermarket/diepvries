@@ -1,5 +1,4 @@
 from picnic.data_vault import FieldRole
-from .conftest import clean_sql
 
 
 def test_set_field_roles(l_order_customer):
@@ -7,7 +6,8 @@ def test_set_field_roles(l_order_customer):
     Compare field_roles attributed to l_order_customer fields with expected results.
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in conftest.py).
+        l_order_customer (Link): l_order_customer fixture value (defined in
+            conftest.py).
     """
     expected_roles = [
         {"field": "r_source", "role": FieldRole.METADATA},
@@ -32,10 +32,12 @@ def test_set_field_roles(l_order_customer):
 
 def test_hashkey_sql(l_order_customer):
     """
-    Compares SQL generated in Link class (for l_order_customer_hashkey) with expected values.
+    Compares SQL generated in Link class (for l_order_customer_hashkey) with expected
+    values.
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in conftest.py).
+        l_order_customer (Link): l_order_customer fixture value (defined in
+            conftest.py).
     """
     expected_sql = (
         "MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, "
@@ -51,7 +53,8 @@ def test_parent_hub_names(l_order_customer):
     Link class (l_order_customer_hashkey).
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in conftest.py).
+        l_order_customer (Link): l_order_customer fixture value (defined in
+            conftest.py).
     """
     expected_parent_hub_names = ["h_order", "h_customer"]
     for parent_hub in l_order_customer.parent_hub_names:

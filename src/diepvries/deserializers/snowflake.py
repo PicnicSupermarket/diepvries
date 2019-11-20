@@ -1,17 +1,17 @@
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from functools import lru_cache
 from typing import List
 
 import snowflake.connector as database_connection
 
-from . import DESERIALIZERS_DIR
 from .. import (
+    FIELD_SUFFIX,
+    TABLE_PREFIXES,
+    FieldDataType,
+    FieldRole,
     FixedPrefixLoggerAdapter,
     TableType,
-    FIELD_SUFFIX,
-    FieldRole,
-    TABLE_PREFIXES,
 )
 from ..data_vault_field import DataVaultField
 from ..data_vault_table import DataVaultTable
@@ -19,6 +19,7 @@ from ..driving_key_field import DrivingKeyField
 from ..hub import Hub
 from ..link import Link
 from ..satellite import Satellite
+from . import DESERIALIZERS_DIR
 
 
 @dataclass
@@ -57,19 +58,19 @@ class SnowflakeDeserializer:
         """
         SnowflakeDeserializer instantiation.
 
-        Besides setting __init__ arguments as class attributes, it also creates a Snowflake database
-        connection.
+        Besides setting __init__ arguments as class attributes, it also creates a
+        Snowflake database connection.
 
-        Both target_tables and fields have their own setters (check @target_tables.setter and
-        @fields.setter for more detail).
+        Both target_tables and fields have their own setters (check
+        @target_tables.setter and @fields.setter for more detail).
 
         Args:
             target_schema (str): Schema where the Data Vault model is stored.
             target_tables (List[str]): Names of the tables that should be deserialized.
-            database_configuration (DatabaseConfiguration): Holds all properties needed to create a Snowflake
-                database connection.
-            driving_keys (List[DrivingKeyField]): List of fields that should be used as driving keys in
-                current model's effectivity satellites (if applicable).
+            database_configuration (DatabaseConfiguration): Holds all properties needed
+                to create a Snowflake database connection.
+            driving_keys (List[DrivingKeyField]): List of fields that should be used as
+                driving keys in current model's effectivity satellites (if applicable).
         """
         self.target_schema = target_schema
         self.target_tables = target_tables
@@ -93,13 +94,16 @@ class SnowflakeDeserializer:
         Returns:
             str: Logger string format.
         """
-        return f"{type(self).__name__}: database={self.database_name}, target_tables={';'.join(self.target_tables)}"
+        return (
+            f"{type(self).__name__}: database={self.database_name}, "
+            f"target_tables={';'.join(self.target_tables)}"
+        )
 
     @property
     def target_tables(self) -> List[str]:
         """
-        Get target table names list. Needed because we want to lower case the table names
-        in property setter.
+        Get target table names list. Needed because we want to lower case the table
+        names in property setter.
 
         Returns:
             List[str]: List of target tables names to deserialize.
@@ -128,8 +132,9 @@ class SnowflakeDeserializer:
 
         This deserialization will be done using Snowflake metadata system views.
 
-        In order to assure that only one access to the database is done on each deserialization
-        process execution, this method is executed only once (in __init__).
+        In order to assure that only one access to the database is done on each
+        deserialization process execution, this method is executed only once
+        (in __init__).
 
         Returns:
             List[DataVaultField]: List of deserialized fields.
@@ -150,25 +155,30 @@ class SnowflakeDeserializer:
             .format(**query_args)
         )
         with self.database_connection.cursor() as cursor:
-            # Get model properties from database metadata (for all target tables passed as argument).
+            # Get model properties from database metadata (for all target tables passed
+            # as argument).
             fields = []
             cursor.execute(model_metadata_sql)
             for field_definition in cursor:
-                field = DataVaultField(
-                    parent_table_name=field_definition[0],
-                    name=field_definition[1],
-                    datatype=field_definition[2],
-                    position=field_definition[3],
-                    is_mandatory=field_definition[4],
-                )
-                fields.append(field)
+                field_properties = {
+                    "parent_table_name": field_definition[0],
+                    "name": field_definition[1],
+                    "data_type": FieldDataType(field_definition[2]),
+                    "position": field_definition[3],
+                    "is_mandatory": field_definition[4],
+                    "precision": field_definition[5],
+                    "scale": field_definition[6],
+                    "length": field_definition[7],
+                }
+                fields.append(DataVaultField(**field_properties))
 
         return fields
 
     @property
     def deserialized_target_tables(self) -> List[DataVaultTable]:
         """
-        Deserialize all target tables passed as argument during instance creation (__init__ method).
+        Deserialize all target tables passed as argument during instance creation
+        (__init__ method).
 
         Returns:
             List[DataVaultTable]: List of deserialized target tables.
@@ -187,8 +197,9 @@ class SnowflakeDeserializer:
                     f"'{table}': Table name is not valid. No separator detected ('_')"
                 )
 
-            # Get parent table name (first field of satellite table, without the suffix _hashkey).
-            # This will only be needed for satellites, that need a parent table.
+            # Get parent table name (first field of satellite table, without the suffix
+            # _hashkey). This will only be needed for satellites, that need a parent
+            # table.
             if prefix in TABLE_PREFIXES[TableType.SATELLITE]:
                 try:
                     parent_table = next(
@@ -200,15 +211,16 @@ class SnowflakeDeserializer:
                 except StopIteration:
                     raise RuntimeError(
                         (
-                            f"'{table}': No field named '{table}_{FIELD_SUFFIX[FieldRole.HASHKEY]}' found"
+                            f"'{table}': No field named "
+                            f"'{table}_{FIELD_SUFFIX[FieldRole.HASHKEY]}' found"
                         )
                     )
             table_fields = [
                 field for field in self.fields if field.parent_table_name == table
             ]
 
-            # Get driving keys for current table (if it has driving keys is considered an
-            # effectivity satellite, otherwise it is considered a regular satellite.
+            # Get driving keys for current table (if it has driving keys is considered
+            # an effectivity satellite, otherwise it is considered a regular satellite.
             if self.driving_keys:
                 driving_keys = [
                     driving_key
@@ -236,7 +248,8 @@ class SnowflakeDeserializer:
                 target_tables.append(target_hub)
             else:
                 raise ValueError(
-                    f"'{table}': Table name is not valid (check_allowed prefixes in TABLE_PREFIXES)"
+                    f"'{table}': Table name is not valid (check_allowed prefixes in "
+                    f"TABLE_PREFIXES)"
                 )
 
         self._logger.info("Deserialization completed.")

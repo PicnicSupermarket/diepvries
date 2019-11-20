@@ -4,6 +4,28 @@ from enum import Enum
 from pathlib import Path
 
 
+class FieldDataType(Enum):
+    """
+    Define the possible data types for a DataVaultField.
+
+    These data types are mapped directly from Snowflake root data types (the ones
+    that are actually stores in Snowflake metadata views).
+    """
+
+    ARRAY = "ARRAY"
+    BOOLEAN = "BOOLEAN"
+    DATE = "DATE"
+    FLOAT = "FLOAT"
+    NUMBER = "NUMBER"
+    OBJECT = "OBJECT"
+    TEXT = "TEXT"
+    TIME = "TIME"
+    TIMESTAMP_LTZ = "TIMESTAMP_LTZ"
+    TIMESTAMP_NTZ = "TIMESTAMP_NTZ"
+    TIMESTAMP_TZ = "TIMESTAMP_TZ"
+    VARIANT = "VARIANT"
+
+
 class FieldRole(Enum):
     """
     Define the possible roles for each field in a Data Vault model.
@@ -32,8 +54,9 @@ class TableType(Enum):
 class FixedPrefixLoggerAdapter(logging.LoggerAdapter):
     """
     This LoggerAdapter implementation prefixes log calls with "[prefix]".
-    This is useful to add contextually valuable information to the log call (Snowflake username
-    and session ID) without changing the logging format of the root logger.
+    This is useful to add contextually valuable information to the log call
+    (Snowflake username and session ID) without changing the logging format of the
+    root logger.
 
     XXX: remove code and replace references to picnic tools logger
         (when this class is migrated to picnic tools).

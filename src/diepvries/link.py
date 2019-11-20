@@ -1,6 +1,6 @@
 from typing import List
 
-from . import FieldRole, TEMPLATES_DIR, FIELD_SUFFIX
+from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
 from .template_sql.sql_formulas import format_fields_for_join
 
@@ -20,7 +20,8 @@ class Link(DataVaultTable):
         """
         Perform Link specific checks (besides common ones - check parent class):
         1. Table has one field with role = FieldRole.HASHKEY;
-        2. Field with role = FieldRole.HASHKEY is placed in the first column of the table;
+        2. Field with role = FieldRole.HASHKEY is placed in the first column of the
+        table;
         3. Table has at least two business keys for connected hubs;
         4. Table has at least two hashkeys for connected hubs;
         5. Table has the same number of business keys and hashkeys for connected hubs.
@@ -48,22 +49,24 @@ class Link(DataVaultTable):
         if len(business_keys) != len(hashkey_parents):
             raise RuntimeError(
                 (
-                    f"'{self.name}': Number of hashkeys and business keys for connected "
-                    f"hubs should be the same"
+                    f"'{self.name}': Number of hashkeys and business keys for "
+                    f"connected hubs should be the same"
                 )
             )
 
         if len(business_keys) == 1:
             raise RuntimeError(
                 (
-                    f"'{self.name}': At least two business keys for connected hubs are needed, only one found"
+                    f"'{self.name}': At least two business keys for connected hubs are "
+                    f"needed, only one found"
                 )
             )
 
         if len(hashkey_parents) == 1:
             raise RuntimeError(
                 (
-                    f"'{self.name}': At least two hashkeys for connected hubs are needed, only one found"
+                    f"'{self.name}': At least two hashkeys for connected hubs are "
+                    f"needed, only one found"
                 )
             )
 

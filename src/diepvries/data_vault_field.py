@@ -1,11 +1,13 @@
 from . import (
     FIELD_PREFIX,
     FIELD_SUFFIX,
-    FieldRole,
     METADATA_FIELDS,
     TABLE_PREFIXES,
+    FieldDataType,
+    FieldRole,
     TableType,
 )
+from .template_sql.sql_formulas import DECIMAL_FIELDS_HASH_TEMPLATE
 
 
 class DataVaultField:
@@ -17,25 +19,40 @@ class DataVaultField:
         self,
         parent_table_name: str,
         name: str,
-        datatype: str,
+        data_type: FieldDataType,
         position: int,
         is_mandatory: bool,
+        precision: int = None,
+        scale: int = None,
+        length: int = None,
     ):
         """
-        Instantiate a DataVaultField object and converts both name and parent_table_name to lower case.
+        Instantiate a DataVaultField object and converts both name and parent_table_name
+        to lower case.
 
         Args:
             parent_table_name (str): Name of parent table in the database.
             name (str): Column name in the database.
-            datatype (str): Column datatype in the database.
+            data_type (FieldDataType): Column data type in the database.
             position (int): Column position in the database.
             is_mandatory (bool): Column is mandatory in the database.
+            precision (int): numeric precision (maximum number of digits before the
+                decimal separator). Only applicable when
+                self.data_type==FieldDataType.NUMBER.
+            scale (int): numeric scale (maximum number of digits after the
+                decimal separator). Only applicable when
+                self.data_type==FieldDataType.NUMBER.
+            length (int): character length (maximum number of characters allowed).
+                Only applicable when self.data_type==FieldDataType.TEXT.
         """
         self.parent_table_name = parent_table_name.lower()
         self.name = name.lower()
-        self.datatype = datatype
+        self.data_type = data_type
         self.position = position
         self.is_mandatory = is_mandatory
+        self.precision = precision
+        self.scale = scale
+        self.length = length
 
     def __hash__(self):
         return hash(self.name_in_staging)
@@ -94,10 +111,12 @@ class DataVaultField:
     @property
     def name_in_staging(self) -> str:
         """
-        Define the name that this field should have, whenever created in a staging table.
+        Define the name that this field should have, whenever created in a staging
+        table.
 
         In most cases this function will return self.name, but for hashdiffs the name
-        is <parent_table_name>_hashdiff (every Satellite has one hashdiff field, named s_hashdiff).
+        is <parent_table_name>_hashdiff (every Satellite has one hashdiff field, named
+        s_hashdiff).
 
         Returns:
             str: Name of the field in staging.
@@ -120,7 +139,26 @@ class DataVaultField:
         Returns:
             str: The DDL expression for this field.
         """
-        return f"{self.name_in_staging} {self.datatype} {'NOT NULL' if self.is_mandatory else ''}"
+        if (
+            self.data_type == FieldDataType.NUMBER
+            and self.scale is not None
+            and self.precision is not None
+        ):
+            return (
+                f"{self.name_in_staging} {self.data_type.value} "
+                f"({self.precision}, {self.scale}) "
+                f"{'NOT NULL' if self.is_mandatory else ''}"
+            )
+        elif self.data_type == FieldDataType.TEXT and self.length:
+            return (
+                f"{self.name_in_staging} {self.data_type.value} "
+                f"({self.length}) {'NOT NULL' if self.is_mandatory else ''}"
+            )
+        else:
+            return (
+                f"{self.name_in_staging} {self.data_type.name} "
+                f"{'NOT NULL' if self.is_mandatory else ''}"
+            )
 
     @property
     def role(self) -> FieldRole:
@@ -164,3 +202,23 @@ class DataVaultField:
                     f" (validate FieldRole and FIELD_PREFIXES configuration)"
                 )
             )
+
+    @property
+    def hash_sql_expression(self):
+        """
+        Generate the SQL expression that should be used to convert a field from
+        its representation in the database to the expected string representation, for
+        hashing purposes (generate hashkeys or hashdiffs).
+
+        This property is only needed to assure backwards compatibility with the current
+        Data Vault framework implementation (in Pentaho). The only data_type that needs
+        special conversion is the decimal, as Pentaho trims all 0s on the right and
+        Snowflake always keeps the full scale (with 0s on the right to match scale).
+
+        Returns:
+            str: SQL expression to use while hashing.
+        """
+        if self.data_type == FieldDataType.NUMBER:
+            return DECIMAL_FIELDS_HASH_TEMPLATE.format(numeric_field=self.name)
+        else:
+            return self.name

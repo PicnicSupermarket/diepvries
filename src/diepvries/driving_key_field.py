@@ -5,7 +5,8 @@ from dataclasses import dataclass
 class DrivingKeyField:
     """
     Class that represents a driving key (field used in effectivity satellites to point
-    that is should be used to calculate the r_timestamp_end - PARTITION BY clause in DML).
+    that is should be used to calculate the r_timestamp_end - PARTITION BY clause in
+    DML).
     """
 
     #: Name of parent table in the database (always a Link).
@@ -23,4 +24,7 @@ class DrivingKeyField:
         Returns:
             str: String representation for the `DrivingKeyField` object.
         """
-        return f"{type(self).__name__}: field_name={self.name}, satellite={self.satellite_name}"
+        return (
+            f"{type(self).__name__}: field_name={self.name}, "
+            f"satellite={self.satellite_name}"
+        )

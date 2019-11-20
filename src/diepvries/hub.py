@@ -1,4 +1,4 @@
-from . import FieldRole, FIELD_SUFFIX, TEMPLATES_DIR
+from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
 from .template_sql.sql_formulas import format_fields_for_join
 

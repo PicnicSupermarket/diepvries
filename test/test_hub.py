@@ -1,4 +1,5 @@
 from picnic.data_vault import FieldRole
+
 from .conftest import clean_sql
 
 

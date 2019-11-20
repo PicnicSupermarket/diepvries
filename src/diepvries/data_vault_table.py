@@ -1,9 +1,9 @@
 import logging
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import List, Dict
+from typing import Dict, List
 
-from . import FieldRole, FixedPrefixLoggerAdapter, HASH_DELIMITER, METADATA_FIELDS
+from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .data_vault_field import DataVaultField
 from .template_sql.sql_formulas import (
     BUSINESS_KEY_SQL_TEMPLATE,
@@ -15,19 +15,21 @@ from .template_sql.sql_formulas import (
 
 class DataVaultTable(ABC):
     _fields = None
-    _fields_by_name = None
-    _fields_by_role = None
 
     def __init__(self, schema: str, name: str, fields: List[DataVaultField]):
         """
         Abstract class DataVaultTable. It holds common properties between all
         subclasses: Hub, Link and Satellite.
 
-        Besides setting each __init__ argument as class attributes, it also performs the following actions:
-        - Calculate fields_by_name: dictionary with each DataVaultField as values and its name as key;
-        - Calculate fields_by_role: dictionary with a list of DataVaultField as values and its role as key;
-        - Check if table structure is valid: in this class, only generic checks (applicable to all DataVaultTable
-        subclasses). Each subclass will call super()._validate before starting each specific test (only applicable
+        Besides setting each __init__ argument as class attributes, it also performs
+        the following actions:
+        - Calculate fields_by_name: dictionary with each DataVaultField as values and
+        its name as key;
+        - Calculate fields_by_role: dictionary with a list of DataVaultField as values
+        and its role as key;
+        - Check if table structure is valid: in this class, only generic checks
+        (applicable to all DataVaultTable subclasses). Each subclass will call
+        super()._validate before starting each specific test (only applicable
         to instances of the subclass).
 
         Args:
@@ -39,8 +41,8 @@ class DataVaultTable(ABC):
         self.name = name.lower()
         self.fields = fields
 
-        # Check if table structure is valid. Each subclass has its own implementation (with its specific tests +
-        # the tests performed in this abstract class).
+        # Check if table structure is valid. Each subclass has its own implementation
+        # (with its specific tests + the tests performed in this abstract class).
         self._validate()
 
         # Variables set in DataVaultLoad
@@ -81,9 +83,11 @@ class DataVaultTable(ABC):
     @fields.setter
     def fields(self, fields: List[DataVaultField]):
         """
-        Besides the setting of fields property, this method also sorts current table fields by position (in
-        the database table). This sorting is crucial to assure that hashdiffs/hashkeys are always generated following
-        the same field order (check hashkey_sql and hashdiff_sql for more detail about hash fields generation).
+        Besides the setting of fields property, this method also sorts current table
+        fields by position (in the database table). This sorting is crucial to assure
+        that hashdiffs/hashkeys are always generated following the same field order
+        (check hashkey_sql and hashdiff_sql for more detail about hash fields
+        generation).
 
         Args:
             fields (List[DataVaultField]): Field list that the current table holds.
@@ -111,7 +115,8 @@ class DataVaultTable(ABC):
     @lru_cache(1)
     def fields_by_role(self) -> Dict[str, List[DataVaultField]]:
         """
-        Returns a dictionary of DataVaultField, indexed by its role (check _fields_by_role_as_dict).
+        Returns a dictionary of DataVaultField, indexed by its role (check
+        _fields_by_role_as_dict).
 
         Returns:
             Dict[str, DataVaultField]: Dictionary of fields, indexed by its role.
@@ -147,7 +152,8 @@ class DataVaultTable(ABC):
         Calculate common placeholders needed to generate SQL for all DataVaultTable.
 
         Returns:
-            Dict[str, str]: Common placeholders to be used in all DataVaultTable SQL scripts.
+            Dict[str, str]: Common placeholders to be used in all DataVaultTable SQL
+                scripts.
         """
         fields = ",".join(format_fields_for_select(fields=self.fields))
         query_args = {
@@ -173,11 +179,13 @@ class DataVaultTable(ABC):
         """
         if not self.fields_by_name.get(METADATA_FIELDS["record_start_timestamp"]):
             raise RuntimeError(
-                f"{self.name}: No field named '{METADATA_FIELDS['record_start_timestamp']}' found"
+                f"{self.name}: No field named "
+                f"'{METADATA_FIELDS['record_start_timestamp']}' found"
             )
         if not self.fields_by_name.get(METADATA_FIELDS["record_source"]):
             raise RuntimeError(
-                f"{self.name}: No field named '{METADATA_FIELDS['record_source']}' found"
+                f"{self.name}: No field named '{METADATA_FIELDS['record_source']}' "
+                f"found"
             )
 
     @property
@@ -185,7 +193,8 @@ class DataVaultTable(ABC):
         """
         Generate SQL expression that should be used to calculate hashkey fields.
 
-        The hashkey formula is the following: MD5(business_key_1 + |~~| + business_key_n + |~~| child_key_1).
+        The hashkey formula is the following: MD5(business_key_1 + |~~| +
+        business_key_n + |~~| child_key_1).
 
         Returns:
             str: Hashkey SQL expression.
@@ -199,13 +208,15 @@ class DataVaultTable(ABC):
         business_keys_sql = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY)
+                fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY),
+                used_for_hashing=True,
             )
         ]
         child_keys_sql = [
             CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.CHILD_KEY)
+                fields=self.fields_by_role.get(FieldRole.CHILD_KEY),
+                used_for_hashing=True,
             )
         ]
         fields_for_hashkey = business_keys_sql

@@ -6,7 +6,7 @@ from typing import List
 from ordered_set import OrderedSet
 from pytz import timezone
 
-from . import FieldRole, FixedPrefixLoggerAdapter, METADATA_FIELDS, TEMPLATES_DIR
+from . import METADATA_FIELDS, TEMPLATES_DIR, FieldRole, FixedPrefixLoggerAdapter
 from .data_vault_field import DataVaultField
 from .data_vault_table import DataVaultTable
 from .hub import Hub
@@ -35,22 +35,23 @@ class DataVaultLoad:
         source: str = None,
     ):
         """
-        Instantiate a DataVaultLoad object and calculate additional fields (not passed upon
-        DataVaultLoad creation).
+        Instantiate a DataVaultLoad object and calculate additional fields (not passed
+        upon DataVaultLoad creation).
 
         Args:
             extract_schema (str): Schema where the extraction table is stored.
             extract_table (str): Name of the extraction table.
             staging_schema (str): Schema where the staging table should be created.
             staging_table (str): Name of the staging table (functional name,
-                as the physical name will be calculated in staging_table property getter).
+                as the physical name will be calculated in staging_table property
+                getter).
             target_tables (List[DataVaultTable]): Tables that will be populated by
                 current staging table.
             extract_start_timestamp (datetime): Moment when the extraction started
                 (when we started fetching data from source).
-            source (str): Source system/API/database. If source is not passed as argument,
-                the process will assume that a source (field named according to METADATA_FIELDS naming conventions)
-                will exist in target table.
+            source (str): Source system/API/database. If source is not passed as
+                argument, the process will assume that a source (field named according
+                to METADATA_FIELDS naming conventions) will exist in target table.
         """
         self.extract_schema = extract_schema
         self.extract_table = extract_table
@@ -98,14 +99,15 @@ class DataVaultLoad:
         """
         Perform the following actions:
             1. Sort target_tables by loading order and name.
-            2. Define staging_table and staging schema for all target_tables: physical name of the
-                staging table, including extract_start_timestamp as suffix.
+            2. Define staging_table and staging schema for all target_tables: physical
+                name of the staging table, including extract_start_timestamp as suffix.
             3. Check if:
                 - Table has a parent table - applicable for satellites only.
-                - All parent hub names exist in target_tables - applicable for links only.
+                - All parent hub names exist in target_tables - applicable for links
+                only.
         Args:
-            target_tables (List[DataVaultTable]): List of tables to be populated in current
-                DataVaultLoad.
+            target_tables (List[DataVaultTable]): List of tables to be populated in
+                current DataVaultLoad.
 
         Raises:
             RuntimeError: In case one of the checks above fails.
@@ -124,7 +126,8 @@ class DataVaultLoad:
                 for parent_hub in target_table.parent_hub_names:
                     if not self._get_target_table(parent_hub):
                         raise RuntimeError(
-                            f"{target_table}: Parent hub '{parent_hub}' missing in target_tables configuration"
+                            f"{target_table}: Parent hub '{parent_hub}' missing in "
+                            f"target_tables configuration"
                         )
 
     @property
@@ -163,18 +166,19 @@ class DataVaultLoad:
         fields_ddl = []
 
         # Produce the list of fields that should exist in the staging table.
-        # As common field names can appear in multiple target tables we cannot have duplicated field
-        # names in the staging table, it's assured that each field is only considered once.
+        # As common field names can appear in multiple target tables we cannot have
+        # duplicated field names in the staging table, it's assured that each field is
+        # only considered once.
         staging_fields = OrderedSet(
             [
                 field
                 for table in self.target_tables
                 for field in table.fields
-                # Record end timestamp is calculated during Data Vault model load (not needed in the
-                # staging table).
+                # Record end timestamp is calculated during Data Vault model load
+                # (not needed in the staging table).
                 if field.name != METADATA_FIELDS["record_end_timestamp"]
-                # Fields with HASHKEY_PARENT role are not needed in the staging table (the same
-                # field will exist with role = HASHKEY in the parent hub).
+                # Fields with HASHKEY_PARENT role are not needed in the staging table
+                # (the same field will exist with role = HASHKEY in the parent hub).
                 and field.role != FieldRole.HASHKEY_PARENT
             ]
         )
@@ -215,8 +219,8 @@ class DataVaultLoad:
         Generate the SQL script to load current Data Vault model (list of SQL commands).
 
         Returns:
-            List[str]: SQL script that should be executed to load current Data Vault model -
-                one entry per table to load.
+            List[str]: SQL script that should be executed to load current Data Vault
+                model - one entry per table to load.
         """
         data_vault_sql = [self.staging_create_sql_statement]
         for table in self.target_tables:
@@ -228,8 +232,8 @@ class DataVaultLoad:
         self, field: DataVaultField, table: DataVaultTable
     ) -> str:
         """
-        Calculate the SQL expression that should be used to represent the field passed as argument
-        in the staging table SQL script.
+        Calculate the SQL expression that should be used to represent the field passed
+        as argument in the staging table SQL script.
 
         Args:
             field (DataVaultField): Field to calculate SQL expression.
@@ -277,7 +281,8 @@ class DataVaultLoad:
             DataVaultTable: Table instance with the name given as argument.
 
         Raises:
-            RuntimeError: If target_table passed as argument does not exist in target_tables.
+            RuntimeError: If target_table passed as argument does not exist in
+                target_tables.
         """
         try:
             target_table = next(
