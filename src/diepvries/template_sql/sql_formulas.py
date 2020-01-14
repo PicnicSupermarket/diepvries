@@ -125,8 +125,6 @@ def format_fields_for_select(fields: List, table_alias: str = None) -> List[str]
         fields (Union[List[DataVaultField], List[DrivingKeyField]]): Fields to be
             formatted. It accepts both DrivingKeyField and DataVaultField instances.
         table_alias (str): alias that should be used in the each field.
-        used_for_hashing (bool): Indicates if the fields will be used to calculate
-            hashes (hashkey or hashdiff).
 
     Returns:
         List[str]: field list formatted for SQL SELECT clause.

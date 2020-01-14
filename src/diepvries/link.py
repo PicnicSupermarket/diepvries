@@ -46,7 +46,6 @@ class Link(DataVaultTable):
             business_keys = self.fields_by_role[FieldRole.BUSINESS_KEY]
         except KeyError:
             raise KeyError(f"'{self.name}': No business keys for connected hubs found")
-
         try:
             hashkey_parents = self.fields_by_role[FieldRole.HASHKEY_PARENT]
         except KeyError:
@@ -131,7 +130,7 @@ class Link(DataVaultTable):
         """
         parent_hub_names = []
 
-        for hashkey_parent in self.fields_by_role.get(FieldRole.HASHKEY_PARENT):
+        for hashkey_parent in self.fields_by_role[FieldRole.HASHKEY_PARENT]:
             parent_hub_names.append(
                 hashkey_parent.name.replace(f"_{FIELD_SUFFIX[FieldRole.HASHKEY]}", "")
             )

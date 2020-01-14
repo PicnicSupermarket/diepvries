@@ -82,12 +82,10 @@ class Hub(DataVaultTable):
          Returns:
              str: SQL query to load target hub.
          """
-        hashkey = next(
-            hashkey for hashkey in self.fields_by_role.get(FieldRole.HASHKEY)
-        )
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
         business_keys = format_fields_for_join(
-            fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY),
+            fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
             table_1_alias="hub",
             table_2_alias="staging",
         )

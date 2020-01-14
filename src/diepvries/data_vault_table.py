@@ -113,13 +113,13 @@ class DataVaultTable(ABC):
 
     @property
     @lru_cache(1)
-    def fields_by_role(self) -> Dict[str, List[DataVaultField]]:
+    def fields_by_role(self) -> Dict[FieldRole, List[DataVaultField]]:
         """
         Returns a dictionary of DataVaultField, indexed by its role (check
         _fields_by_role_as_dict).
 
         Returns:
-            Dict[str, DataVaultField]: Dictionary of fields, indexed by its role.
+            Dict[FieldRole, DataVaultField]: Dictionary of fields, indexed by its role.
         """
         fields_by_role_as_dict = {
             FieldRole.HASHKEY: [],
@@ -204,19 +204,19 @@ class DataVaultTable(ABC):
         hashkey = next(
             hashkey
             for hashkey in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.HASHKEY)
+                fields=self.fields_by_role[FieldRole.HASHKEY]
             )
         )
         business_keys_sql = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY),
+                fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
             )
         ]
         child_keys_sql = [
             CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.CHILD_KEY),
+                fields=self.fields_by_role[FieldRole.CHILD_KEY]
             )
         ]
         fields_for_hashkey = business_keys_sql

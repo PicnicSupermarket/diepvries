@@ -220,12 +220,12 @@ class Satellite(DataVaultTable):
             str: Hashdiff SQL expression.
         """
         hashdiff = next(
-            hashdiff for hashdiff in self.fields_by_role.get(FieldRole.HASHDIFF)
+            hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
         business_keys_sql = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role.get(FieldRole.BUSINESS_KEY)
+                fields=self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY],
             )
         ]
         child_keys_sql = [
@@ -237,7 +237,7 @@ class Satellite(DataVaultTable):
         descriptive_fields_sql = [
             DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.DESCRIPTIVE),
+                fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
             )
         ]
         fields_for_hashdiff = business_keys_sql
@@ -275,15 +275,15 @@ class Satellite(DataVaultTable):
         hashkey = next(
             hashkey
             for hashkey in format_fields_for_select(
-                fields=self.fields_by_role.get(FieldRole.HASHKEY_PARENT)
+                fields=self.fields_by_role[FieldRole.HASHKEY_PARENT]
             )
         )
 
         hashdiff = next(
-            hashdiff for hashdiff in self.fields_by_role.get(FieldRole.HASHDIFF)
+            hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
 
-        descriptive_fields = self.fields_by_role.get(FieldRole.DESCRIPTIVE)
+        descriptive_fields = self.fields_by_role[FieldRole.DESCRIPTIVE]
         satellite_descriptive_fields = ",".join(
             format_fields_for_select(fields=descriptive_fields, table_alias="satellite")
         )
