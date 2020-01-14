@@ -1,10 +1,9 @@
-from typing import List
+from typing import Dict, List
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
 from .template_sql.sql_formulas import (
     FIELDS_AGGREGATION_SQL_TEMPLATE,
-    format_fields_for_join,
     format_fields_for_select,
 )
 
@@ -76,6 +75,46 @@ class Link(DataVaultTable):
             )
 
     @property
+    def sql_placeholders(self) -> Dict[str, str]:
+        """
+        Satellite specific SQL placeholders, to be used in to format the Satellite
+        loading query.
+
+        The results are joined with the results from super().sql_placeholders(), as all
+        placeholders calculated in DataVaultTable (parent class) are applicable in a
+        Satellite.
+
+        Returns:
+            Dict[str, str]: Satellite specific SQL placeholders.
+        """
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
+
+        hashkey_condition = f"link.{hashkey.name} = staging.{hashkey.name}"
+
+        non_hashkey_fields = [
+            field for field in self.fields if field.role != FieldRole.HASHKEY
+        ]
+        non_hashkey_fields_aggregation = ",".join(
+            [
+                FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+                for field in format_fields_for_select(fields=non_hashkey_fields)
+            ]
+        )
+        non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields)
+        )
+
+        sql_placeholders = {
+            "hashkey_field": hashkey.name,
+            "non_hashkey_fields": non_hashkey_fields,
+            "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
+            "hashkey_condition": hashkey_condition,
+        }
+        sql_placeholders.update(super().sql_placeholders)
+
+        return sql_placeholders
+
+    @property
     def sql_load_statement(self) -> str:
         """
         Generate the SQL query to populate current link.
@@ -86,33 +125,11 @@ class Link(DataVaultTable):
         Returns:
             str: SQL query to load target link.
         """
-        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
-
-        hashkey_condition = f"link.{hashkey.name} = staging.{hashkey.name}"
-
-        non_hashkey_fields = [
-            field for field in self.fields if field.role != FieldRole.HASHKEY
-        ]
-        non_hashkey_fields_sql = ",".join(
-            format_fields_for_select(fields=non_hashkey_fields)
-        )
-
-        non_hashkey_fields_aggregation = [
-            FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
-            for field in format_fields_for_select(fields=non_hashkey_fields)
-        ]
-        non_hashkey_fields_aggregation_sql = ",".join(non_hashkey_fields_aggregation)
 
         sql_load_statement = (
             (TEMPLATES_DIR / "link_dml.sql")
             .read_text()
-            .format(
-                **self.sql_placeholders,
-                hashkey_field=hashkey.name,
-                non_hashkey_fields=non_hashkey_fields_sql,
-                non_hashkey_fields_aggregation=non_hashkey_fields_aggregation_sql,
-                hashkey_condition=hashkey_condition,
-            )
+            .format(**self.sql_placeholders,)
         )
 
         self._logger.info("Loading SQL for link (%s) generated.", self.name)

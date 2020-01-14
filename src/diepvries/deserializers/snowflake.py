@@ -12,6 +12,7 @@ from ..driving_key_field import DrivingKeyField
 from ..effectivity_satellite import EffectivitySatellite
 from ..hub import Hub
 from ..link import Link
+from ..role_playing_hub import RolePlayingHub
 from ..satellite import Satellite
 from . import DESERIALIZERS_DIR
 
@@ -48,6 +49,7 @@ class SnowflakeDeserializer:
         target_tables: List[str],
         database_configuration: DatabaseConfiguration,
         driving_keys: List[DrivingKeyField] = None,
+        role_playing_hubs: Dict[str, str] = None,
     ):
         """
         SnowflakeDeserializer instantiation.
@@ -66,11 +68,15 @@ class SnowflakeDeserializer:
             driving_keys (List[DrivingKeyField]): List of fields that should be used
                 as driving keys in current model's effectivity satellites (if
                 applicable).
+            role_playing_hubs (Dict[str, str]): List of tables that should be created
+                as RolePlayingHub objects. Each dictionary has the role playing hub as
+                key and the parent table as value.
         """
         self.target_schema = target_schema
         self.target_tables = target_tables
         self.database_name = database_configuration
         self.driving_keys = driving_keys
+        self.role_playing_hubs = role_playing_hubs
 
         # Create Snowflake database connection.
         self.database_connection = connect(**asdict(database_configuration))
@@ -192,7 +198,13 @@ class SnowflakeDeserializer:
             RuntimeError: When the table name is not valid (does not have a valid prefix).
         """
         table_prefix = next(split_part for split_part in target_table_name.split("_"))
-        if table_prefix in TABLE_PREFIXES[TableType.HUB]:
+        role_playing_hubs = self.role_playing_hubs or {}
+        if (
+            table_prefix in TABLE_PREFIXES[TableType.HUB]
+            and target_table_name in role_playing_hubs.keys()
+        ):
+            return RolePlayingHub
+        elif table_prefix in TABLE_PREFIXES[TableType.HUB]:
             return Hub
         elif table_prefix in TABLE_PREFIXES[TableType.LINK]:
             return Link
@@ -219,7 +231,28 @@ class SnowflakeDeserializer:
         Returns:
             List[DataVaultTable]: List of deserialized target tables.
         """
-        return [self._deserialize_table(table) for table in self.target_tables]
+        deserialized_target_tables = [
+            self._deserialize_table(table) for table in self.target_tables
+        ]
+
+        # Set RolePlayingHubs parent tables.
+        role_playing_hubs = filter(
+            lambda x: isinstance(x, RolePlayingHub), deserialized_target_tables
+        )
+        for role_playing_hub in role_playing_hubs:
+            try:
+                role_playing_hub.parent_table = next(
+                    table
+                    for table in deserialized_target_tables
+                    if table.name == self.role_playing_hubs[role_playing_hub.name]
+                )
+            except StopIteration:
+                raise RuntimeError(
+                    f"Table '{self.role_playing_hubs[role_playing_hub.name]}' "
+                    f"missing in target tables list"
+                )
+
+        return deserialized_target_tables
 
     @property
     def target_tables(self) -> List[str]:

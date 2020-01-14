@@ -23,9 +23,7 @@ def test_set_field_roles(l_order_customer):
 
     for field in l_order_customer.fields:
         expected_role = next(
-            expected_role["role"]
-            for expected_role in expected_roles
-            if expected_role["field"] == field.name
+            role["role"] for role in expected_roles if role["field"] == field.name
         )
         assert expected_role == field.role
 

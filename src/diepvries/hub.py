@@ -1,3 +1,5 @@
+from typing import Dict
+
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .data_vault_table import DataVaultTable
 from .template_sql.sql_formulas import (
@@ -72,6 +74,52 @@ class Hub(DataVaultTable):
             )
 
     @property
+    def sql_placeholders(self) -> Dict[str, str]:
+        """
+        Satellite specific SQL placeholders, to be used in to format the Satellite
+        loading query.
+
+        The results are joined with the results from super().sql_placeholders(), as all
+        placeholders calculated in DataVaultTable (parent class) are applicable in a
+        Satellite.
+        
+        Returns:
+            Dict[str, str]: Satellite specific SQL placeholders.
+        """
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
+
+        business_key_condition = "AND".join(
+            format_fields_for_join(
+                fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
+                table_1_alias="hub",
+                table_2_alias="staging",
+            )
+        )
+
+        non_hashkey_fields = [
+            field for field in self.fields if field.role != FieldRole.HASHKEY
+        ]
+        non_hashkey_fields_aggregation = ",".join(
+            [
+                FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+                for field in format_fields_for_select(fields=non_hashkey_fields)
+            ]
+        )
+        non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields)
+        )
+
+        sql_placeholders = {
+            "hashkey_field": hashkey.name,
+            "non_hashkey_fields": non_hashkey_fields,
+            "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
+            "business_key_condition": business_key_condition,
+        }
+        sql_placeholders.update(super().sql_placeholders)
+
+        return sql_placeholders
+
+    @property
     def sql_load_statement(self) -> str:
         """
          Generate the SQL query to populate current hub.
@@ -82,38 +130,9 @@ class Hub(DataVaultTable):
          Returns:
              str: SQL query to load target hub.
          """
-        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
-
-        business_keys = format_fields_for_join(
-            fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
-            table_1_alias="hub",
-            table_2_alias="staging",
-        )
-        business_key_condition = "AND".join(business_keys)
-
-        non_hashkey_fields = [
-            field for field in self.fields if field.role != FieldRole.HASHKEY
-        ]
-        non_hashkey_fields_sql = ",".join(
-            format_fields_for_select(fields=non_hashkey_fields)
-        )
-
-        non_hashkey_fields_aggregation = [
-            FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
-            for field in format_fields_for_select(fields=non_hashkey_fields)
-        ]
-        non_hashkey_fields_aggregation_sql = ",".join(non_hashkey_fields_aggregation)
 
         sql_load_statement = (
-            (TEMPLATES_DIR / "hub_dml.sql")
-            .read_text()
-            .format(
-                **self.sql_placeholders,
-                hashkey_field=hashkey.name,
-                non_hashkey_fields=non_hashkey_fields_sql,
-                non_hashkey_fields_aggregation=non_hashkey_fields_aggregation_sql,
-                business_key_condition=business_key_condition,
-            )
+            (TEMPLATES_DIR / "hub_dml.sql").read_text().format(**self.sql_placeholders,)
         )
 
         self._logger.info("Loading SQL for hub (%s) generated.", self.name)

@@ -130,31 +130,28 @@ class Satellite(DataVaultTable):
         hashdiff = next(
             hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
-        business_keys_sql = [
+        fields_for_hashdiff = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
                 fields=self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY],
             )
         ]
-        child_keys_sql = [
-            CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
-            for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY],
-            )
-        ]
-        descriptive_fields_sql = [
-            DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
-            for field in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
-            )
-        ]
-        fields_for_hashdiff = business_keys_sql
-
-        if child_keys_sql:
-            fields_for_hashdiff.extend(child_keys_sql)
-
-        if descriptive_fields_sql:
-            fields_for_hashdiff.extend(descriptive_fields_sql)
+        fields_for_hashdiff.extend(
+            [
+                CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
+                for field in format_fields_for_select(
+                    fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY],
+                )
+            ]
+        )
+        fields_for_hashdiff.extend(
+            [
+                DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
+                for field in format_fields_for_select(
+                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
+                )
+            ]
+        )
 
         hashdiff_expression = f"||'{HASH_DELIMITER}'||".join(fields_for_hashdiff)
 
@@ -190,36 +187,34 @@ class Satellite(DataVaultTable):
         hashdiff = next(
             hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
-
-        descriptive_fields = self.fields_by_role[FieldRole.DESCRIPTIVE]
-        satellite_descriptive_fields = ",".join(
-            format_fields_for_select(fields=descriptive_fields, table_alias="satellite")
+        fields = ",".join(format_fields_for_select(fields=self.fields))
+        descriptive_fields = ",".join(
+            format_fields_for_select(fields=self.fields_by_role[FieldRole.DESCRIPTIVE])
         )
-        satellite_descriptive_fields_sql = (
-            f",{satellite_descriptive_fields}" if satellite_descriptive_fields else ""
+        satellite_descriptive_fields = ",".join(
+            format_fields_for_select(
+                fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
+                table_alias="satellite",
+            )
         )
         staging_descriptive_fields = ",".join(
-            format_fields_for_select(fields=descriptive_fields, table_alias="staging")
+            format_fields_for_select(
+                fields=self.fields_by_role[FieldRole.DESCRIPTIVE], table_alias="staging"
+            )
         )
-        staging_descriptive_fields_sql = (
-            f",{staging_descriptive_fields}" if staging_descriptive_fields else ""
-        )
-
-        descriptive_fields_sql = ",".join(
-            format_fields_for_select(fields=descriptive_fields)
-        )
-        descriptive_fields_sql = (
-            f",{descriptive_fields_sql}" if descriptive_fields_sql else ""
-        )
-        fields = ",".join(format_fields_for_select(fields=self.fields))
-
         descriptive_fields_aggregation = ",".join(
             [
                 FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
-                for field in format_fields_for_select(fields=descriptive_fields)
+                for field in format_fields_for_select(
+                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE]
+                )
             ]
         )
-        if descriptive_fields_aggregation:
+
+        if self.fields_by_role[FieldRole.DESCRIPTIVE]:
+            descriptive_fields = f",{descriptive_fields}"
+            satellite_descriptive_fields = f",{satellite_descriptive_fields}"
+            staging_descriptive_fields = f",{staging_descriptive_fields}"
             descriptive_fields_aggregation = f",{descriptive_fields_aggregation}"
 
         sql_placeholders = {
@@ -227,9 +222,9 @@ class Satellite(DataVaultTable):
             "hashkey_field": hashkey,
             "hashdiff_field": hashdiff.name,
             "staging_hashdiff_field": hashdiff.name_in_staging,
-            "staging_descriptive_fields": staging_descriptive_fields_sql,
-            "satellite_descriptive_fields": satellite_descriptive_fields_sql,
-            "descriptive_fields": descriptive_fields_sql,
+            "staging_descriptive_fields": staging_descriptive_fields,
+            "satellite_descriptive_fields": satellite_descriptive_fields,
+            "descriptive_fields": descriptive_fields,
             "end_of_time": END_OF_TIME_SQL_TEMPLATE,
             "record_end_timestamp_name": METADATA_FIELDS["record_end_timestamp"],
             "descriptive_fields_aggregation": descriptive_fields_aggregation,

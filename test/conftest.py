@@ -11,6 +11,7 @@ from picnic.data_vault.driving_key_field import DrivingKeyField
 from picnic.data_vault.effectivity_satellite import EffectivitySatellite
 from picnic.data_vault.hub import Hub
 from picnic.data_vault.link import Link
+from picnic.data_vault.role_playing_hub import RolePlayingHub
 from picnic.data_vault.satellite import Satellite
 
 
@@ -120,6 +121,61 @@ def h_customer(process_configuration, staging_table):
         fields=h_customer_fields,
     )
     return h_customer
+
+
+@pytest.fixture
+def h_customer_test_role_playing(process_configuration, h_customer, staging_table):
+    """
+    Define h_customer_test_role_playing test hub for full test suite.
+
+    Args:
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
+        staging_table (str): staging table physical name fixture value.
+
+    Returns:
+        RolePlayingHub: deserialized h_customer_test_role_playing.
+    """
+    h_customer_test_role_playing_fields = [
+        DataVaultField(
+            parent_table_name="h_customer_test_role_playing",
+            name="h_customer_test_role_playing_hashkey",
+            data_type=FieldDataType.TEXT,
+            position=1,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="h_customer_test_role_playing",
+            name="r_timestamp",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
+            position=2,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="h_customer_test_role_playing",
+            name="r_source",
+            data_type=FieldDataType.TEXT,
+            position=3,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="h_customer_test_role_playing",
+            name="customer_test_role_playing_id",
+            data_type=FieldDataType.TEXT,
+            position=4,
+            is_mandatory=True,
+        ),
+    ]
+
+    h_customer_test_role_playing = RolePlayingHub(
+        schema=process_configuration["target_schema"],
+        name="h_customer_test_role_playing",
+        fields=h_customer_test_role_playing_fields,
+    )
+    h_customer_test_role_playing.parent_table = h_customer
+
+    return h_customer_test_role_playing
 
 
 @pytest.fixture
@@ -444,6 +500,7 @@ def data_vault_load(
     process_configuration,
     extract_start_timestamp,
     h_customer,
+    h_customer_test_role_playing,
     h_order,
     l_order_customer,
     hs_customer,
@@ -469,6 +526,7 @@ def data_vault_load(
     """
     target_tables = [
         h_customer,
+        h_customer_test_role_playing,
         h_order,
         l_order_customer,
         hs_customer,

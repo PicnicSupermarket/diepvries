@@ -22,7 +22,6 @@ from .template_sql.sql_formulas import (
 
 class DataVaultLoad:
     _target_tables = None
-    _staging_table = None
 
     def __init__(
         self,
@@ -175,9 +174,9 @@ class DataVaultLoad:
         fields_ddl = []
 
         # Produce the list of fields that should exist in the staging table.
-        # As common field names can appear in multiple target tables we cannot have
-        # duplicated field names in the staging table, it's assured that each field is
-        # only considered once.
+        # As common field names can appear in multiple target tables and it is not
+        # possible to have duplicated field names in the staging table, all fields
+        # are stored in an OrderedSet, assuring its original order, without duplication.
         staging_fields = OrderedSet(
             [
                 field
@@ -186,9 +185,6 @@ class DataVaultLoad:
                 # Record end timestamp is calculated during Data Vault model load
                 # (not needed in the staging table).
                 if field.name != METADATA_FIELDS["record_end_timestamp"]
-                # Fields with HASHKEY_PARENT role are not needed in the staging table
-                # (the same field will exist with role = HASHKEY in the parent hub).
-                and field.role != FieldRole.HASHKEY_PARENT
             ]
         )
 
@@ -231,9 +227,9 @@ class DataVaultLoad:
             List[str]: SQL script that should be executed to load current Data Vault
                 model - one entry per table to load.
         """
-        data_vault_sql = [self.staging_create_sql_statement]
-        for table in self.target_tables:
-            data_vault_sql.append(table.sql_load_statement)
+        data_vault_sql = [self.staging_create_sql_statement] + [
+            table.sql_load_statement for table in self.target_tables
+        ]
 
         return data_vault_sql
 
@@ -252,31 +248,24 @@ class DataVaultLoad:
             str: SQL expression that should be used in staging creation.
         """
         if field.name_in_staging == METADATA_FIELDS["record_start_timestamp"]:
-            formatted_timestamp = self.extract_start_timestamp.strftime(
-                "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
-            sql_expression = RECORD_START_TIMESTAMP_SQL_TEMPLATE.format(
-                extract_start_timestamp=formatted_timestamp
+            return RECORD_START_TIMESTAMP_SQL_TEMPLATE.format(
+                extract_start_timestamp=self.extract_start_timestamp.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
             )
         elif (
             field.name_in_staging == METADATA_FIELDS["record_source"]
             and self.source is not None
         ):
-            source_expression = SOURCE_SQL_TEMPLATE.format(source=self.source)
-            sql_expression = source_expression
+            return SOURCE_SQL_TEMPLATE.format(source=self.source)
         elif field.role == FieldRole.BUSINESS_KEY:
-            business_key_expression = ALIASED_BUSINESS_KEY_SQL_TEMPLATE.format(
-                business_key=field.name
-            )
-            sql_expression = business_key_expression
+            return ALIASED_BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field.name)
         elif field.role == FieldRole.HASHKEY and isinstance(table, (Hub, Link)):
-            sql_expression = table.hashkey_sql
+            return table.hashkey_sql
         elif field.role == FieldRole.HASHDIFF and isinstance(table, Satellite):
-            sql_expression = table.hashdiff_sql
+            return table.hashdiff_sql
         else:
-            sql_expression = field.name_in_staging
-
-        return sql_expression
+            return field.name_in_staging
 
     @lru_cache(1)
     def _get_target_table(self, target_table_name: str) -> DataVaultTable:
@@ -295,7 +284,7 @@ class DataVaultLoad:
         """
         try:
             target_table = next(
-                table for table in self.target_tables if table.name == target_table_name
+                filter(lambda x: x.name == target_table_name, self.target_tables)
             )
         except StopIteration:
             raise StopIteration(f"Table '{target_table_name}' missing in target_tables")

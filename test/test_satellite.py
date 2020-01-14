@@ -18,9 +18,9 @@ def test_effectivity_satellite_sql(test_path, data_vault_load):
             conftest.py).
     """
     effectivity_satellite = next(
-        table
-        for table in data_vault_load.target_tables
-        if table.name == "ls_order_customer_eff"
+        filter(
+            lambda x: x.name == "ls_order_customer_eff", data_vault_load.target_tables
+        )
     )
 
     expected_results = (
@@ -54,9 +54,7 @@ def test_set_field_roles(hs_customer):
 
     for field in hs_customer.fields:
         expected_role = next(
-            expected_role["role"]
-            for expected_role in expected_roles
-            if expected_role["field"] == field.name
+            role["role"] for role in expected_roles if role["field"] == field.name
         )
         assert expected_role == field.role
 
@@ -84,7 +82,7 @@ def test_hashdiff_sql(data_vault_load):
             conftest.py).
     """
     satellite = next(
-        table for table in data_vault_load.target_tables if table.name == "hs_customer"
+        filter(lambda x: x.name == "hs_customer", data_vault_load.target_tables)
     )
     expected_sql = (
         "MD5(REGEXP_REPLACE(COALESCE(customer_id, 'dv_unknown')||'|~~|'||"

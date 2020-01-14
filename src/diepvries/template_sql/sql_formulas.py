@@ -97,7 +97,7 @@ def format_fields_for_join(
     Get formatted list of field names for SQL JOIN condition.
 
     Args:
-        fields (Union[List[DataVaultField], List[DrivingKeyField]]): Fields to be
+        fields (List[Union[DataVaultField, DrivingKeyField]]): Fields to be
             formatted. It accepts both DrivingKeyField and DataVaultField instances.
         table_1_alias (str): alias that should be used in the field on the left side of
             equality sign.
@@ -122,7 +122,7 @@ def format_fields_for_select(fields: List, table_alias: str = None) -> List[str]
     Get formatted list of field names for SQL SELECT statement.
 
     Args:
-        fields (Union[List[DataVaultField], List[DrivingKeyField]]): Fields to be
+        fields (List[Union[DataVaultField, DrivingKeyField]]): Fields to be
             formatted. It accepts both DrivingKeyField and DataVaultField instances.
         table_alias (str): alias that should be used in the each field.
 

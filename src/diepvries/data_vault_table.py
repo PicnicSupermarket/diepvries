@@ -134,6 +134,7 @@ class DataVaultTable(ABC):
 
         for field in self.fields:
             fields_by_role_as_dict[field.role].append(field)
+
         return fields_by_role_as_dict
 
     @property
@@ -207,26 +208,24 @@ class DataVaultTable(ABC):
                 fields=self.fields_by_role[FieldRole.HASHKEY]
             )
         )
-        business_keys_sql = [
+        fields_for_hashkey = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
                 fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
             )
         ]
-        child_keys_sql = [
-            CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
-            for field in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.CHILD_KEY]
-            )
-        ]
-        fields_for_hashkey = business_keys_sql
+        fields_for_hashkey.extend(
+            [
+                CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
+                for field in format_fields_for_select(
+                    fields=self.fields_by_role[FieldRole.CHILD_KEY]
+                )
+            ]
+        )
 
-        if child_keys_sql:
-            fields_for_hashkey.extend(child_keys_sql)
-
-        hashkey_expression = f"||'{HASH_DELIMITER}'||".join(fields_for_hashkey)
         hashkey_sql = HASHKEY_SQL_TEMPLATE.format(
-            hashkey_expression=hashkey_expression, hashkey=hashkey
+            hashkey_expression=f"||'{HASH_DELIMITER}'||".join(fields_for_hashkey),
+            hashkey=hashkey,
         )
         self._logger.debug(
             "Hashkey SQL expression for table (%s) is '(%s)'", self.name, hashkey_sql
