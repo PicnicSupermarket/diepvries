@@ -8,6 +8,7 @@ from picnic.data_vault import FieldDataType
 from picnic.data_vault.data_vault_field import DataVaultField
 from picnic.data_vault.data_vault_load import DataVaultLoad
 from picnic.data_vault.driving_key_field import DrivingKeyField
+from picnic.data_vault.effectivity_satellite import EffectivitySatellite
 from picnic.data_vault.hub import Hub
 from picnic.data_vault.link import Link
 from picnic.data_vault.satellite import Satellite
@@ -429,7 +430,7 @@ def ls_order_customer_eff(process_configuration, staging_table, l_order_customer
         )
     ]
 
-    ls_order_customer_eff = Satellite(
+    ls_order_customer_eff = EffectivitySatellite(
         schema=process_configuration["target_schema"],
         name="ls_order_customer_eff",
         fields=ls_order_customer_eff_fields,

@@ -9,6 +9,7 @@ from .. import TABLE_PREFIXES, FieldDataType, FixedPrefixLoggerAdapter, TableTyp
 from ..data_vault_field import DataVaultField
 from ..data_vault_table import DataVaultTable
 from ..driving_key_field import DrivingKeyField
+from ..effectivity_satellite import EffectivitySatellite
 from ..hub import Hub
 from ..link import Link
 from ..satellite import Satellite
@@ -106,7 +107,7 @@ class SnowflakeDeserializer:
             "name": target_table_name,
             "fields": self._fields[target_table_name],
         }
-        if self._get_table_type(target_table_name) == Satellite:
+        if self._get_table_type(target_table_name) == EffectivitySatellite:
             table_args["driving_keys"] = self._driving_keys_by_table.get(
                 target_table_name
             )
@@ -195,6 +196,11 @@ class SnowflakeDeserializer:
             return Hub
         elif table_prefix in TABLE_PREFIXES[TableType.LINK]:
             return Link
+        elif (
+            table_prefix in TABLE_PREFIXES[TableType.SATELLITE]
+            and self._driving_keys_by_table.get(target_table_name)
+        ):
+            return EffectivitySatellite
         elif table_prefix in TABLE_PREFIXES[TableType.SATELLITE]:
             return Satellite
         else:
