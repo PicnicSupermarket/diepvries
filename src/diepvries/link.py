@@ -85,15 +85,9 @@ class Link(DataVaultTable):
         Returns:
             str: SQL query to load target link.
         """
-        hashkey = next(
-            hashkey for hashkey in self.fields_by_role.get(FieldRole.HASHKEY)
-        )
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        hashkey_parents = self.fields_by_role.get(FieldRole.HASHKEY_PARENT)
-        hashkey_parents_sql = format_fields_for_join(
-            fields=hashkey_parents, table_1_alias="link", table_2_alias="staging",
-        )
-        hashkey_condition = " AND ".join(hashkey_parents_sql)
+        hashkey_condition = f"link.{hashkey.name} = staging.{hashkey.name}"
 
         non_hashkey_fields = [
             field for field in self.fields if field.role != FieldRole.HASHKEY
