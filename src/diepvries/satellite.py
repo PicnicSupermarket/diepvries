@@ -9,6 +9,7 @@ from .template_sql.sql_formulas import (
     CHILD_KEY_SQL_TEMPLATE,
     DESCRIPTIVE_FIELD_SQL_TEMPLATE,
     END_OF_TIME_SQL_TEMPLATE,
+    FIELDS_AGGREGATION_SQL_TEMPLATE,
     HASHDIFF_SQL_TEMPLATE,
     RECORD_END_TIMESTAMP_SQL_TEMPLATE,
     format_fields_for_join,
@@ -301,6 +302,15 @@ class Satellite(DataVaultTable):
         )
         fields = ",".join(format_fields_for_select(fields=self.fields))
 
+        descriptive_fields_aggregation = ",".join(
+            [
+                FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+                for field in format_fields_for_select(fields=descriptive_fields)
+            ]
+        )
+        if descriptive_fields_aggregation:
+            descriptive_fields_aggregation = f",{descriptive_fields_aggregation}"
+
         query_args = {
             "fields": fields,
             "hashkey_field": hashkey,
@@ -311,6 +321,7 @@ class Satellite(DataVaultTable):
             "descriptive_fields": descriptive_fields_sql,
             "end_of_time": END_OF_TIME_SQL_TEMPLATE,
             "record_end_timestamp_name": METADATA_FIELDS["record_end_timestamp"],
+            "descriptive_fields_aggregation": descriptive_fields_aggregation,
         }
 
         return query_args

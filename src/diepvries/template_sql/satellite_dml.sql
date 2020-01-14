@@ -1,79 +1,81 @@
 MERGE INTO {target_schema}.{data_vault_table} AS satellite
-USING (WITH deduplicated_staging AS (
-    SELECT ranked_staging.*
-    FROM (
-           SELECT
-             staging.{hashkey_field},
-             staging.{staging_hashdiff_field},
-             staging.{record_start_timestamp},
-             ROW_NUMBER()
-             OVER (
-               PARTITION BY staging.{hashkey_field}
-               ORDER BY staging.{staging_hashdiff_field}
-               )                                          AS rank,
-              staging.{record_source}
-              {staging_descriptive_fields}
-           FROM {staging_schema}.{staging_table} AS staging
-         ) AS ranked_staging
-      CROSS JOIN (
-                   SELECT MAX({record_start_timestamp}) AS max_r_timestamp
-                   FROM {target_schema}.{data_vault_table}
-                 ) AS max_satellite_timestamp
-    WHERE ranked_staging.rank = 1
-          AND ranked_staging.{record_start_timestamp} >= COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')),
-staging_satellite_affected_records AS (
-SELECT
-  staging.{hashkey_field},
-  staging.{staging_hashdiff_field},
-  staging.{record_start_timestamp},
-  staging.{record_source}
-  {staging_descriptive_fields}
-FROM deduplicated_staging AS staging
-  LEFT OUTER JOIN {target_schema}.{data_vault_table} AS satellite
-    ON (
-    staging.{hashkey_field} = satellite.{hashkey_field}
-    AND satellite.{record_end_timestamp_name} = {end_of_time}
-    )
-WHERE satellite.{hashkey_field} IS NULL
-      OR satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
-UNION ALL
-SELECT
-  satellite.{hashkey_field},
-  satellite.{hashdiff_field},
-  satellite.{record_start_timestamp},
-  satellite.{record_source}
-  {satellite_descriptive_fields}
-FROM {target_schema}.{data_vault_table} AS satellite
-  INNER JOIN deduplicated_staging AS staging
-    ON (
-    staging.{hashkey_field} = satellite.{hashkey_field}
-    AND satellite.{record_end_timestamp_name} = {end_of_time}
-    )
-WHERE staging.{staging_hashdiff_field} <> satellite.{hashdiff_field}
-     )
-SELECT
-  {hashkey_field},
-  {staging_hashdiff_field},
-  {record_start_timestamp} AS {record_start_timestamp},
-  {record_end_timestamp_expression},
-  {record_source}
-  {descriptive_fields}
-FROM staging_satellite_affected_records
-) AS staging
-  ON (
-      satellite.{hashkey_field} = staging.{hashkey_field}
-      AND satellite.{record_start_timestamp} = staging.{record_start_timestamp}
+  USING (
+    WITH
+      filtered_staging AS (
+        SELECT
+          staging.*
+        FROM {staging_schema}.{staging_table} AS staging
+          CROSS JOIN (
+                       SELECT
+                         MAX({record_start_timestamp}) AS max_r_timestamp
+                       FROM {target_schema}.{data_vault_table}
+                     ) AS max_satellite_timestamp
+        WHERE staging.{record_start_timestamp} >=
+              COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
+      ),
+      staging_satellite_affected_records AS (
+        SELECT
+          {hashkey_field}               AS {hashkey_field},
+          MIN({staging_hashdiff_field}) AS {staging_hashdiff_field},
+          MIN({record_start_timestamp}) AS {record_start_timestamp},
+          MIN({record_source})          AS {record_source}
+          {descriptive_fields_aggregation}
+        FROM (
+          /* Records that will be inserted (don't exist in target table or exist
+            in the target table but the hashdiff changed). As the r_timestamp is fetched
+            from the staging table, these records will always be included in the
+            WHEN NOT MATCHED condition of the MERGE command. */
+          SELECT
+            staging.{hashkey_field},
+            staging.{staging_hashdiff_field},
+            staging.{record_start_timestamp},
+            staging.{record_source}
+            {staging_descriptive_fields}
+          FROM filtered_staging AS staging
+            LEFT OUTER JOIN {target_schema}.{data_vault_table} AS satellite
+                            ON (staging.{hashkey_field} = satellite.{hashkey_field}
+                                AND satellite.{record_end_timestamp_name} = {end_of_time})
+          WHERE satellite.{hashkey_field} IS NULL
+             OR satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
+          UNION ALL
+          /* Records from the target table that will have its r_timestamp_end updated
+            (hashkey already exists in target table, but hashdiff changed). As the
+            r_timestamp is fetched from the target table, these records will always be
+            included in the WHEN MATCHED condition of the MERGE command. */
+          SELECT
+            satellite.{hashkey_field},
+            satellite.{hashdiff_field},
+            satellite.{record_start_timestamp},
+            satellite.{record_source}
+            {satellite_descriptive_fields}
+          FROM {target_schema}.{data_vault_table} AS satellite
+            INNER JOIN filtered_staging AS staging
+                       ON (staging.{hashkey_field} = satellite.{hashkey_field}
+                        AND satellite.{record_end_timestamp_name} = {end_of_time})
+          WHERE staging.{staging_hashdiff_field} <> satellite.{hashdiff_field}
+        ) AS affected_records
+        GROUP BY {hashkey_field}
       )
-WHEN MATCHED THEN
+    SELECT
+      {hashkey_field},
+      {staging_hashdiff_field},
+      {record_start_timestamp} AS {record_start_timestamp},
+      {record_end_timestamp_expression},
+      {record_source}
+      {descriptive_fields}
+    FROM staging_satellite_affected_records
+  ) AS staging
+  ON (satellite.{hashkey_field} = staging.{hashkey_field}
+    AND satellite.{record_start_timestamp} = staging.{record_start_timestamp})
+  WHEN MATCHED THEN
     UPDATE SET satellite.{record_end_timestamp_name} = staging.{record_end_timestamp_name}
-WHEN NOT MATCHED
-  THEN
+  WHEN NOT MATCHED
+    THEN
     INSERT ({fields})
-    VALUES (
-      staging.{hashkey_field},
-      staging.{staging_hashdiff_field},
-      staging.{record_start_timestamp},
-      staging.{record_end_timestamp_name},
-      staging.{record_source}
-      {staging_descriptive_fields}
-      );
+      VALUES (
+               staging.{hashkey_field},
+               staging.{staging_hashdiff_field},
+               staging.{record_start_timestamp},
+               staging.{record_end_timestamp_name},
+               staging.{record_source}
+               {staging_descriptive_fields});

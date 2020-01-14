@@ -93,7 +93,7 @@ def test_hashdiff_sql(data_vault_load):
         "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(CAST(test_integer AS FLOAT) AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(CAST(test_decimal AS FLOAT) AS VARCHAR), ''), "
-        "'(\\\|~~\\\|){1,}$', '')) AS hs_customer_hashdiff"
+        "'(\\\\|~~\\\\|){1,}$', '')) AS hs_customer_hashdiff"
     )
 
     assert clean_sql(expected_sql) == clean_sql(satellite.hashdiff_sql)
