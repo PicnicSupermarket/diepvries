@@ -7,7 +7,6 @@ from . import (
     FieldRole,
     TableType,
 )
-from .template_sql.sql_formulas import DECIMAL_FIELDS_HASH_TEMPLATE
 
 
 class DataVaultField:
@@ -202,23 +201,3 @@ class DataVaultField:
                     f" (validate FieldRole and FIELD_PREFIXES configuration)"
                 )
             )
-
-    @property
-    def hash_sql_expression(self):
-        """
-        Generate the SQL expression that should be used to convert a field from
-        its representation in the database to the expected string representation, for
-        hashing purposes (generate hashkeys or hashdiffs).
-
-        This property is only needed to assure backwards compatibility with the current
-        Data Vault framework implementation (in Pentaho). The only data_type that needs
-        special conversion is the decimal, as Pentaho trims all 0s on the right and
-        Snowflake always keeps the full scale (with 0s on the right to match scale).
-
-        Returns:
-            str: SQL expression to use while hashing.
-        """
-        if self.data_type == FieldDataType.NUMBER:
-            return DECIMAL_FIELDS_HASH_TEMPLATE.format(numeric_field=self.name)
-        else:
-            return self.name

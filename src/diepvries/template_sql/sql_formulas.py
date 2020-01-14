@@ -58,10 +58,6 @@ JOIN_CONDITION_SQL_TEMPLATE = (
     "{table_1_alias}.{field_name} = {table_2_alias}.{field_name}"
 )
 
-# SQL formula used to convert decimal fields to FLOAT before concatenating them to
-# produce hashes.
-DECIMAL_FIELDS_HASH_TEMPLATE = "CAST({numeric_field} AS FLOAT)"
-
 # Formula used to calculate r_timestamp_end while populating satellites.
 # If we find an existing version for a business key that we are going to INSERT,
 # this previous version have to be "closed", with the new timestamp (this execution's
@@ -121,9 +117,7 @@ def format_fields_for_join(
     ]
 
 
-def format_fields_for_select(
-    fields: List, table_alias: str = None, used_for_hashing: bool = False,
-) -> List[str]:
+def format_fields_for_select(fields: List, table_alias: str = None) -> List[str]:
     """
     Get formatted list of field names for SQL SELECT statement.
 
@@ -138,21 +132,12 @@ def format_fields_for_select(
         List[str]: field list formatted for SQL SELECT clause.
 
     """
-    if table_alias is not None and used_for_hashing:
-        return [
-            ALIASED_FIELD_SQL_TEMPLATE.format(
-                field_name=field.hash_sql_expression, table_alias=table_alias
-            )
-            for field in fields
-        ]
-    elif table_alias is not None:
+    if table_alias is not None:
         return [
             ALIASED_FIELD_SQL_TEMPLATE.format(
                 field_name=field.name, table_alias=table_alias
             )
             for field in fields
         ]
-    elif used_for_hashing:
-        return [field.hash_sql_expression for field in fields]
     else:
         return [field.name for field in fields]

@@ -207,14 +207,12 @@ class DataVaultTable(ABC):
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
                 fields=self.fields_by_role.get(FieldRole.BUSINESS_KEY),
-                used_for_hashing=True,
             )
         ]
         child_keys_sql = [
             CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
             for field in format_fields_for_select(
                 fields=self.fields_by_role.get(FieldRole.CHILD_KEY),
-                used_for_hashing=True,
             )
         ]
         fields_for_hashkey = business_keys_sql

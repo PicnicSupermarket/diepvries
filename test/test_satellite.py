@@ -91,8 +91,8 @@ def test_hashdiff_sql(data_vault_load):
         "COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_date AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(CAST(test_integer AS FLOAT) AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(CAST(test_decimal AS FLOAT) AS VARCHAR), ''), "
+        "COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||"
+        "COALESCE(CAST(test_decimal AS VARCHAR), ''), "
         "'(\\\\|~~\\\\|){1,}$', '')) AS hs_customer_hashdiff"
     )
 
