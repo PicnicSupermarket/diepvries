@@ -173,15 +173,19 @@ class DataVaultTable(ABC):
         2. Table has one source field - name defined in METADATA_FIELDS.
 
         Raises:
-            RuntimeError: If one of the checks fails.
+            KeyError: If one of the checks fails.
         """
-        if not self.fields_by_name.get(METADATA_FIELDS["record_start_timestamp"]):
-            raise RuntimeError(
+        try:
+            self.fields_by_name[METADATA_FIELDS["record_start_timestamp"]]
+        except KeyError:
+            raise KeyError(
                 f"{self.name}: No field named "
                 f"'{METADATA_FIELDS['record_start_timestamp']}' found"
             )
-        if not self.fields_by_name.get(METADATA_FIELDS["record_source"]):
-            raise RuntimeError(
+        try:
+            self.fields_by_name[METADATA_FIELDS["record_source"]]
+        except KeyError:
+            raise KeyError(
                 f"{self.name}: No field named '{METADATA_FIELDS['record_source']}' "
                 f"found"
             )

@@ -101,16 +101,16 @@ class DataVaultLoad:
             1. Sort target_tables by loading order and name.
             2. Define staging_table and staging schema for all target_tables: physical
                 name of the staging table, including extract_start_timestamp as suffix.
-            3. Check if:
-                - Table has a parent table - applicable for satellites only.
-                - All parent hub names exist in target_tables - applicable for links
+            3. Build relationship between each Satellite and its parent table.
+            4. Check if all parent hub names exist in target_tables - applicable for links
                 only.
         Args:
             target_tables (List[DataVaultTable]): List of tables to be populated in
                 current DataVaultLoad.
 
         Raises:
-            RuntimeError: In case one of the checks above fails.
+            StopIteration: If a parent table (both from Link and Satellite)
+                is missing in self.target_tables.
         """
         self._target_tables = sorted(
             target_tables, key=lambda x: (x.loading_order, x.name)
@@ -118,14 +118,23 @@ class DataVaultLoad:
         for target_table in self._target_tables:
             target_table.staging_schema = self.staging_schema
             target_table.staging_table = self.staging_table
-            if isinstance(target_table, Satellite):
-                target_table.parent_table = self._get_target_table(
-                    target_table.parent_table_name
+            try:
+                if isinstance(target_table, Satellite):
+                    target_table.parent_table = self._get_target_table(
+                        target_table.parent_table_name
+                    )
+            except StopIteration:
+                raise StopIteration(
+                    f"{target_table}: Parent table "
+                    f"'{target_table.parent_table_name}' missing in "
+                    f"target_tables configuration"
                 )
             if isinstance(target_table, Link):
                 for parent_hub in target_table.parent_hub_names:
-                    if not self._get_target_table(parent_hub):
-                        raise RuntimeError(
+                    try:
+                        self._get_target_table(parent_hub)
+                    except StopIteration:
+                        raise StopIteration(
                             f"{target_table}: Parent hub '{parent_hub}' missing in "
                             f"target_tables configuration"
                         )
@@ -281,7 +290,7 @@ class DataVaultLoad:
             DataVaultTable: Table instance with the name given as argument.
 
         Raises:
-            RuntimeError: If target_table passed as argument does not exist in
+            StopIteration: If target_table passed as argument does not exist in
                 target_tables.
         """
         try:
@@ -289,6 +298,6 @@ class DataVaultLoad:
                 table for table in self.target_tables if table.name == target_table_name
             )
         except StopIteration:
-            raise RuntimeError(f"Table '{target_table_name}' missing in target_tables")
+            raise StopIteration(f"Table '{target_table_name}' missing in target_tables")
 
         return target_table

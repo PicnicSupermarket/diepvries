@@ -81,22 +81,28 @@ class Satellite(DataVaultTable):
         3. Table has one hashdiff field (s_hashdiff).
 
         Raises:
-            RuntimeError: If one of the checks fails.
+            KeyError: If any of the checks fail.
         """
         super()._validate()
 
-        if not self.fields_by_role.get(FieldRole.HASHKEY_PARENT):
-            raise RuntimeError(f"'{self.name}': No hashkeys for parent table found")
+        try:
+            self.fields_by_role[FieldRole.HASHKEY_PARENT]
+        except KeyError:
+            raise KeyError(f"'{self.name}': No hashkeys for parent table found")
 
-        if not self.fields_by_name.get(METADATA_FIELDS["record_end_timestamp"]):
-            raise RuntimeError(
-                f"'{self.name}': No field named "
-                f"'{METADATA_FIELDS['record_end_timestamp']}' found"
+        try:
+            self.fields_by_name[METADATA_FIELDS["record_end_timestamp"]]
+        except KeyError:
+            raise KeyError(
+                f"'{self.name}': No field named '{METADATA_FIELDS['record_end_timestamp']}' "
+                f"found"
             )
 
         hashdiff_name = f"s_{FIELD_SUFFIX[FieldRole.HASHDIFF]}"
-        if not self.fields_by_name.get(hashdiff_name):
-            raise RuntimeError(f"'{self.name}': No field named '{hashdiff_name}' found")
+        try:
+            self.fields_by_name[hashdiff_name]
+        except KeyError:
+            raise KeyError(f"'{self.name}': No field named '{hashdiff_name}' found")
 
     @property
     def sql_load_statement(self) -> str:

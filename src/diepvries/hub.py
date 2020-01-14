@@ -48,23 +48,25 @@ class Hub(DataVaultTable):
         3. Table has one field with role = FieldRole.BUSINESS_KEY;
 
         Raises:
-            RuntimeError: If one of the checks fails.
+            KeyError: If the table does not have any business key or hashkey.
+            RuntimeError: If the table has more that one business key.
         """
         super()._validate()
         hashkey_name = f"{self.name}_{FIELD_SUFFIX[FieldRole.HASHKEY]}"
 
-        if not self.fields_by_name.get(hashkey_name):
-            raise RuntimeError(f"{self.name}: No field named '{hashkey_name}' found")
+        try:
+            self.fields_by_name[hashkey_name]
+        except KeyError:
+            raise KeyError(f"{self.name}: No field named '{hashkey_name}' found")
 
-        business_keys = self.fields_by_role.get(FieldRole.BUSINESS_KEY)
         business_key_name = f"{self.entity_name}_{FIELD_SUFFIX[FieldRole.BUSINESS_KEY]}"
 
-        if not business_keys:
-            raise RuntimeError(
-                f"{self.name}: No field named '{business_key_name}' found"
-            )
+        try:
+            business_keys = self.fields_by_name[business_key_name]
+        except KeyError:
+            raise KeyError(f"{self.name}: No field named '{business_key_name}' found")
 
-        if len(business_keys) > 1:
+        if len(self.fields_by_role[FieldRole.BUSINESS_KEY]) > 1:
             raise RuntimeError(
                 f"{self.name}: More than one business key detected: ({business_keys})"
             )

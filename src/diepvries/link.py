@@ -31,24 +31,26 @@ class Link(DataVaultTable):
         5. Table has the same number of business keys and hashkeys for connected hubs.
 
         Raises:
-            RuntimeError: If one of the checks fails.
+            KeyError: If the table has no hashkey.
+            RuntimeError: If any other check fails.
         """
         super()._validate()
         hashkey_name = f"{self.name}_{FIELD_SUFFIX[FieldRole.HASHKEY]}"
 
-        if not self.fields_by_name.get(hashkey_name):
-            raise RuntimeError(f"'{self.name}': No field named '{hashkey_name}' found")
+        try:
+            self.fields_by_name[hashkey_name]
+        except KeyError:
+            raise KeyError(f"'{self.name}': No field named '{hashkey_name}' found")
 
-        business_keys = self.fields_by_role.get(FieldRole.BUSINESS_KEY)
-        hashkey_parents = self.fields_by_role.get(FieldRole.HASHKEY_PARENT)
+        try:
+            business_keys = self.fields_by_role[FieldRole.BUSINESS_KEY]
+        except KeyError:
+            raise KeyError(f"'{self.name}': No business keys for connected hubs found")
 
-        if not business_keys:
-            raise RuntimeError(
-                f"'{self.name}': No business keys for connected hubs found"
-            )
-
-        if not hashkey_parents:
-            raise RuntimeError(f"'{self.name}': No hashkeys for connected hubs found")
+        try:
+            hashkey_parents = self.fields_by_role[FieldRole.HASHKEY_PARENT]
+        except KeyError:
+            raise KeyError(f"'{self.name}': No hashkeys for connected hubs found")
 
         if len(business_keys) != len(hashkey_parents):
             raise RuntimeError(
