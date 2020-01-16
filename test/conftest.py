@@ -241,7 +241,7 @@ def l_order_customer(process_configuration, staging_table):
         staging_table (str): staging table physical name fixture value.
 
     Returns:
-        Link: deserialized h_customer.
+        Link: deserialized l_order_customer.
     """
     l_order_customer_fields = [
         DataVaultField(
@@ -317,6 +317,95 @@ def l_order_customer(process_configuration, staging_table):
         fields=l_order_customer_fields,
     )
     return l_order_customer
+
+
+@pytest.fixture
+def l_order_customer_test_role_playing(process_configuration, staging_table):
+    """
+    Define l_order_customer_test_role_playing test link for full test suite.
+
+    Args:
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
+        staging_table (str): staging table physical name fixture value.
+
+    Returns:
+        Link: deserialized l_order_customer_test_role_playing.
+    """
+    l_order_customer_test_role_playing_fields = [
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="l_order_customer_test_role_playing_hashkey",
+            data_type=FieldDataType.TEXT,
+            position=1,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="h_order_hashkey",
+            data_type=FieldDataType.TEXT,
+            position=2,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="h_customer_test_role_playing_hashkey",
+            data_type=FieldDataType.TEXT,
+            position=3,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="order_id",
+            data_type=FieldDataType.TEXT,
+            position=4,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="customer_test_role_playing_id",
+            data_type=FieldDataType.TEXT,
+            position=5,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="ck_test_string",
+            data_type=FieldDataType.TEXT,
+            position=6,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="ck_test_timestamp",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
+            position=7,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="r_timestamp",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
+            position=8,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="l_order_customer_test_role_playing",
+            name="r_source",
+            data_type=FieldDataType.TEXT,
+            position=9,
+            is_mandatory=True,
+        ),
+    ]
+    l_order_customer_test_role_playing = Link(
+        schema=process_configuration["target_schema"],
+        name="l_order_customer_test_role_playing",
+        fields=l_order_customer_test_role_playing_fields,
+    )
+    return l_order_customer_test_role_playing
 
 
 @pytest.fixture
@@ -496,11 +585,90 @@ def ls_order_customer_eff(process_configuration, staging_table, l_order_customer
 
 
 @pytest.fixture
+def ls_order_customer_test_role_playing_eff(
+    process_configuration, staging_table, l_order_customer_test_role_playing
+):
+    """
+    Define ls_order_customer_test_role_playing_eff test (effectivity) satellite for
+    full test suite.
+
+    Args:
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
+        staging_table (str): staging table physical name fixture value.
+
+    Returns:
+        Satellite: deserialized ls_order_customer_test_role_playing_eff.
+    """
+    ls_order_customer_test_role_playing_eff_fields = [
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="l_order_customer_test_role_playing_hashkey",
+            data_type=FieldDataType.TEXT,
+            position=1,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="s_hashdiff",
+            data_type=FieldDataType.TEXT,
+            position=2,
+            is_mandatory=True,
+            length=32,
+        ),
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="r_timestamp",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
+            position=3,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="r_timestamp_end",
+            data_type=FieldDataType.TIMESTAMP_NTZ,
+            position=4,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="r_source",
+            data_type=FieldDataType.TEXT,
+            position=5,
+            is_mandatory=True,
+        ),
+        DataVaultField(
+            parent_table_name="ls_order_customer_test_role_playing_eff",
+            name="dummy_descriptive_field",
+            data_type=FieldDataType.TEXT,
+            position=6,
+            is_mandatory=True,
+        ),
+    ]
+
+    driving_keys = [
+        DrivingKeyField(
+            name="h_customer_test_role_playing_hashkey",
+            parent_table_name="l_order_customer_test_role_playing",
+            satellite_name="ls_order_customer_test_role_playing_eff",
+        )
+    ]
+
+    ls_order_customer_test_role_playing_eff = EffectivitySatellite(
+        schema=process_configuration["target_schema"],
+        name="ls_order_customer_test_role_playing_eff",
+        fields=ls_order_customer_test_role_playing_eff_fields,
+        driving_keys=driving_keys,
+    )
+    return ls_order_customer_test_role_playing_eff
+
+
+@pytest.fixture
 def data_vault_load(
     process_configuration,
     extract_start_timestamp,
     h_customer,
-    h_customer_test_role_playing,
     h_order,
     l_order_customer,
     hs_customer,
@@ -526,11 +694,56 @@ def data_vault_load(
     """
     target_tables = [
         h_customer,
-        h_customer_test_role_playing,
         h_order,
         l_order_customer,
         hs_customer,
         ls_order_customer_eff,
+    ]
+    data_vault_load_configuration = {
+        "extract_schema": process_configuration["extract_schema"],
+        "extract_table": process_configuration["extract_table"],
+        "staging_schema": process_configuration["staging_schema"],
+        "staging_table": process_configuration["staging_table"],
+        "target_tables": target_tables,
+        "source": process_configuration["source"],
+    }
+    return DataVaultLoad(
+        **data_vault_load_configuration, extract_start_timestamp=extract_start_timestamp
+    )
+
+
+@pytest.fixture
+def data_vault_load_with_role_playing(
+    process_configuration,
+    extract_start_timestamp,
+    h_customer_test_role_playing,
+    h_order,
+    l_order_customer_test_role_playing,
+    ls_order_customer_test_role_playing_eff,
+):
+    """
+    Create an instance of DataVaultLoad for a model with a role playing hub
+    (using fixture values defined above).
+
+    Args:
+        process_configuration (List[Dict[str, str]]): process configuration fixture
+            value.
+        extract_start_timestamp (datetime.datetime): extraction start timestamp
+            fixture value.
+        h_customer_test_role_playing (Hub): deserialized h_customer.
+        h_order (Hub): deserialized h_order.
+        l_order_customer_test_role_playing (Link): deserialized l_order_customer.
+        ls_order_customer_test_role_playing_eff (Satellite): deserialized
+            ls_order_customer_eff.
+
+    Returns:
+        DataVaultLoad: test DataVaultLoad with role playing hub.
+    """
+    target_tables = [
+        h_customer_test_role_playing,
+        h_order,
+        l_order_customer_test_role_playing,
+        ls_order_customer_test_role_playing_eff,
     ]
     data_vault_load_configuration = {
         "extract_schema": process_configuration["extract_schema"],

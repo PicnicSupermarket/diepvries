@@ -75,8 +75,8 @@ class SnowflakeDeserializer:
         self.target_schema = target_schema
         self.target_tables = target_tables
         self.database_name = database_configuration
-        self.driving_keys = driving_keys
-        self.role_playing_hubs = role_playing_hubs
+        self.driving_keys = driving_keys or []
+        self.role_playing_hubs = role_playing_hubs or []
 
         # Create Snowflake database connection.
         self.database_connection = connect(**asdict(database_configuration))
@@ -132,16 +132,15 @@ class SnowflakeDeserializer:
                 name.
         """
         driving_keys_by_table = {}
-        if self.driving_keys:
-            effectivity_satellites = set(
-                [driving_key.satellite_name for driving_key in self.driving_keys]
-            )
-            for table in effectivity_satellites:
-                driving_keys_by_table[table] = [
-                    driving_key
-                    for driving_key in self.driving_keys
-                    if driving_key.satellite_name
-                ]
+        effectivity_satellites = set(
+            [driving_key.satellite_name for driving_key in self.driving_keys]
+        )
+        for table in effectivity_satellites:
+            driving_keys_by_table[table] = [
+                driving_key
+                for driving_key in self.driving_keys
+                if driving_key.satellite_name
+            ]
 
         return driving_keys_by_table
 
@@ -157,9 +156,14 @@ class SnowflakeDeserializer:
             Dict[str, List[DataVaultField]]: Mapping between each table and its fields
                 list.
         """
+        if self.role_playing_hubs:
+            tables = set(self.target_tables + list(self.role_playing_hubs.values()))
+        else:
+            tables = self.target_tables
+
         query_args = {
             "target_schema": self.target_schema,
-            "table_list": ",".join([f"'{table}'" for table in self.target_tables]),
+            "table_list": ",".join([f"'{table}'" for table in tables]),
         }
 
         model_metadata_sql = (
@@ -208,10 +212,9 @@ class SnowflakeDeserializer:
             return Hub
         elif table_prefix in TABLE_PREFIXES[TableType.LINK]:
             return Link
-        elif (
-            table_prefix in TABLE_PREFIXES[TableType.SATELLITE]
-            and self._driving_keys_by_table.get(target_table_name)
-        ):
+        elif table_prefix in TABLE_PREFIXES[
+            TableType.SATELLITE
+        ] and self._driving_keys_by_table.get(target_table_name):
             return EffectivitySatellite
         elif table_prefix in TABLE_PREFIXES[TableType.SATELLITE]:
             return Satellite
@@ -239,18 +242,8 @@ class SnowflakeDeserializer:
         role_playing_hubs = filter(
             lambda x: isinstance(x, RolePlayingHub), deserialized_target_tables
         )
-        for role_playing_hub in role_playing_hubs:
-            try:
-                role_playing_hub.parent_table = next(
-                    table
-                    for table in deserialized_target_tables
-                    if table.name == self.role_playing_hubs[role_playing_hub.name]
-                )
-            except StopIteration:
-                raise RuntimeError(
-                    f"Table '{self.role_playing_hubs[role_playing_hub.name]}' "
-                    f"missing in target tables list"
-                )
+        for rph in role_playing_hubs:
+            rph.parent_table = self._deserialize_table(self.role_playing_hubs[rph.name])
 
         return deserialized_target_tables
 
