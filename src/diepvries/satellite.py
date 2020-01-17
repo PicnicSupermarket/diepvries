@@ -7,7 +7,6 @@ from .template_sql.sql_formulas import (
     CHILD_KEY_SQL_TEMPLATE,
     DESCRIPTIVE_FIELD_SQL_TEMPLATE,
     END_OF_TIME_SQL_TEMPLATE,
-    FIELDS_AGGREGATION_SQL_TEMPLATE,
     HASHDIFF_SQL_TEMPLATE,
     RECORD_END_TIMESTAMP_SQL_TEMPLATE,
     format_fields_for_select,
@@ -15,6 +14,8 @@ from .template_sql.sql_formulas import (
 
 
 class Satellite(DataVaultTable):
+    # Parent table is set after instantiation.
+    parent_table = None
     """
     Satellite: Data Vault table that contains all properties of a link or a satellite.
     The data in this table is totally historized. Each row has a start and end
@@ -202,20 +203,11 @@ class Satellite(DataVaultTable):
                 fields=self.fields_by_role[FieldRole.DESCRIPTIVE], table_alias="staging"
             )
         )
-        descriptive_fields_aggregation = ",".join(
-            [
-                FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
-                for field in format_fields_for_select(
-                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE]
-                )
-            ]
-        )
 
         if self.fields_by_role[FieldRole.DESCRIPTIVE]:
             descriptive_fields = f",{descriptive_fields}"
             satellite_descriptive_fields = f",{satellite_descriptive_fields}"
             staging_descriptive_fields = f",{staging_descriptive_fields}"
-            descriptive_fields_aggregation = f",{descriptive_fields_aggregation}"
 
         sql_placeholders = {
             "fields": fields,
@@ -227,7 +219,6 @@ class Satellite(DataVaultTable):
             "descriptive_fields": descriptive_fields,
             "end_of_time": END_OF_TIME_SQL_TEMPLATE,
             "record_end_timestamp_name": METADATA_FIELDS["record_end_timestamp"],
-            "descriptive_fields_aggregation": descriptive_fields_aggregation,
         }
         sql_placeholders.update(super().sql_placeholders)
 
