@@ -105,15 +105,19 @@ class Hub(DataVaultTable):
                 for field in format_fields_for_select(fields=non_hashkey_fields)
             ]
         )
-        non_hashkey_fields = ",".join(
+        hub_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields)
+        )
+        staging_non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields, table_alias="staging")
         )
 
         sql_placeholders = {
             "hashkey_field": hashkey.name,
-            "non_hashkey_fields": non_hashkey_fields,
+            "non_hashkey_fields": hub_non_hashkey_fields,
             "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
             "business_key_condition": business_key_condition,
+            "staging_non_hashkey_fields": staging_non_hashkey_fields,
         }
         sql_placeholders.update(super().sql_placeholders)
 

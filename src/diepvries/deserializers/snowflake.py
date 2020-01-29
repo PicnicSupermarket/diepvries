@@ -139,7 +139,7 @@ class SnowflakeDeserializer:
             driving_keys_by_table[table] = [
                 driving_key
                 for driving_key in self.driving_keys
-                if driving_key.satellite_name
+                if driving_key.satellite_name == table
             ]
 
         return driving_keys_by_table

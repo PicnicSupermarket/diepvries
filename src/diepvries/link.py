@@ -100,15 +100,19 @@ class Link(DataVaultTable):
                 for field in format_fields_for_select(fields=non_hashkey_fields)
             ]
         )
-        non_hashkey_fields = ",".join(
+        link_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields)
+        )
+        staging_non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields, table_alias="staging")
         )
 
         sql_placeholders = {
             "hashkey_field": hashkey.name,
-            "non_hashkey_fields": non_hashkey_fields,
+            "non_hashkey_fields": link_non_hashkey_fields,
             "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
             "hashkey_condition": hashkey_condition,
+            "staging_non_hashkey_fields": staging_non_hashkey_fields,
         }
         sql_placeholders.update(super().sql_placeholders)
 
