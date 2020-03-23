@@ -170,10 +170,6 @@ class DataVaultField:
         Raises:
             RuntimeError: If a field role could be attributed.
         """
-        name_no_prefix_or_suffix = self.name.replace(f"_{self.suffix}", "").replace(
-            f"{self.prefix}_", ""
-        )
-
         if self.name in METADATA_FIELDS.values():
             return FieldRole.METADATA
         elif (
@@ -187,7 +183,7 @@ class DataVaultField:
             return FieldRole.CHILD_KEY
         elif (
             self.suffix in FIELD_SUFFIX[FieldRole.BUSINESS_KEY]
-            and name_no_prefix_or_suffix in self.parent_table_name
+            and self.parent_table_type != TableType.SATELLITE
         ):
             return FieldRole.BUSINESS_KEY
         elif self.suffix in FIELD_SUFFIX[FieldRole.HASHDIFF]:

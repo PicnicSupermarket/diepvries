@@ -498,6 +498,13 @@ def hs_customer(process_configuration, staging_table):
             precision=18,
             scale=8,
         ),
+        DataVaultField(
+            parent_table_name="hs_customer",
+            name="x_customer_id",
+            data_type=FieldDataType.TEXT,
+            position=11,
+            is_mandatory=False,
+        ),
     ]
     hs_customer = Satellite(
         schema=process_configuration["target_schema"],
