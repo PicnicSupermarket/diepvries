@@ -505,6 +505,13 @@ def hs_customer(process_configuration, staging_table):
             position=11,
             is_mandatory=False,
         ),
+        DataVaultField(
+            parent_table_name="hs_customer",
+            name="grouping_key",
+            data_type=FieldDataType.TEXT,
+            position=12,
+            is_mandatory=False,
+        ),
     ]
     hs_customer = Satellite(
         schema=process_configuration["target_schema"],

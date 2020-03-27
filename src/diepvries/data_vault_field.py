@@ -174,19 +174,19 @@ class DataVaultField:
             return FieldRole.METADATA
         elif (
             self.name == f"{self.parent_table_name}_{self.suffix}"
-            and self.suffix in FIELD_SUFFIX[FieldRole.HASHKEY]
+            and self.suffix == FIELD_SUFFIX[FieldRole.HASHKEY]
         ):
             return FieldRole.HASHKEY
-        elif self.suffix in FIELD_SUFFIX[FieldRole.HASHKEY]:
+        elif self.suffix == FIELD_SUFFIX[FieldRole.HASHKEY]:
             return FieldRole.HASHKEY_PARENT
-        elif self.prefix in FIELD_PREFIX[FieldRole.CHILD_KEY]:
+        elif self.prefix == FIELD_PREFIX[FieldRole.CHILD_KEY]:
             return FieldRole.CHILD_KEY
         elif (
-            self.suffix in FIELD_SUFFIX[FieldRole.BUSINESS_KEY]
+            self.suffix == FIELD_SUFFIX[FieldRole.BUSINESS_KEY]
             and self.parent_table_type != TableType.SATELLITE
         ):
             return FieldRole.BUSINESS_KEY
-        elif self.suffix in FIELD_SUFFIX[FieldRole.HASHDIFF]:
+        elif self.suffix == FIELD_SUFFIX[FieldRole.HASHDIFF]:
             return FieldRole.HASHDIFF
         elif self.parent_table_type == TableType.SATELLITE:
             return FieldRole.DESCRIPTIVE

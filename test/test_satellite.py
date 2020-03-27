@@ -51,6 +51,7 @@ def test_set_field_roles(hs_customer):
         {"field": "test_integer", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_decimal", "role": FieldRole.DESCRIPTIVE},
         {"field": "x_customer_id", "role": FieldRole.DESCRIPTIVE},
+        {"field": "grouping_key", "role": FieldRole.DESCRIPTIVE},
     ]
 
     for field in hs_customer.fields:
@@ -92,7 +93,8 @@ def test_hashdiff_sql(data_vault_load):
         "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||"
         "COALESCE(CAST(test_decimal AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(x_customer_id AS VARCHAR), ''), "
+        "COALESCE(CAST(x_customer_id AS VARCHAR), '')||'|~~|'||"
+        "COALESCE(CAST(grouping_key AS VARCHAR), ''), "
         "'(\\\\|~~\\\\|){1,}$', '')) AS hs_customer_hashdiff"
     )
 
