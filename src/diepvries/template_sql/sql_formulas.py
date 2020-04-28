@@ -2,7 +2,6 @@ from typing import List
 
 from .. import END_OF_TIME, HASH_DELIMITER, METADATA_FIELDS, UNKNOWN
 
-
 # SQL formulas (formatted strings).
 
 # Formula used to COALESCE each business key to be included in staging table SELECT

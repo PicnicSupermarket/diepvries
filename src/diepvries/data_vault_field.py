@@ -182,8 +182,9 @@ class DataVaultField:
         elif self.prefix == FIELD_PREFIX[FieldRole.CHILD_KEY]:
             return FieldRole.CHILD_KEY
         elif (
-            self.suffix == FIELD_SUFFIX[FieldRole.BUSINESS_KEY]
-            and self.parent_table_type != TableType.SATELLITE
+            self.parent_table_type != TableType.SATELLITE
+            and self.prefix not in FIELD_PREFIX.values()
+            and self.position != 1
         ):
             return FieldRole.BUSINESS_KEY
         elif self.suffix == FIELD_SUFFIX[FieldRole.HASHDIFF]:

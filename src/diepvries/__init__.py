@@ -84,7 +84,11 @@ FIELD_SUFFIX = {
 }
 
 # Possible values for a field prefix, by field role (when applicable).
-FIELD_PREFIX = {FieldRole.CHILD_KEY: "ck", FieldRole.METADATA: "r"}
+FIELD_PREFIX = {
+    FieldRole.CHILD_KEY: "ck",
+    FieldRole.METADATA: "r",
+    FieldRole.HASHKEY: "h",
+}
 
 # Delimiter used in the concatenation of fields to calculate hashkeys/hashdiffs.
 HASH_DELIMITER = "|~~|"

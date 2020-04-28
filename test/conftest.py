@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from picnic.data_vault import FieldDataType
 from picnic.data_vault.data_vault_field import DataVaultField
 from picnic.data_vault.data_vault_load import DataVaultLoad
@@ -13,7 +14,6 @@ from picnic.data_vault.hub import Hub
 from picnic.data_vault.link import Link
 from picnic.data_vault.role_playing_hub import RolePlayingHub
 from picnic.data_vault.satellite import Satellite
-
 
 # Regex used to remove comments in SQL queries.
 COMMENT_REGEX = re.compile(r"/\*{1}[^\/\*]+\*\/")
