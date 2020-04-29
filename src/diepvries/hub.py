@@ -61,16 +61,13 @@ class Hub(DataVaultTable):
         except KeyError:
             raise KeyError(f"{self.name}: No field named '{hashkey_name}' found")
 
-        business_key_name = f"{self.entity_name}_{FIELD_SUFFIX[FieldRole.BUSINESS_KEY]}"
-
-        try:
-            business_keys = self.fields_by_name[business_key_name]
-        except KeyError:
-            raise KeyError(f"{self.name}: No field named '{business_key_name}' found")
-
-        if len(self.fields_by_role[FieldRole.BUSINESS_KEY]) > 1:
+        business_keys = [
+            field.name for field in self.fields_by_role[FieldRole.BUSINESS_KEY]
+        ]
+        if len(business_keys) > 1:
             raise RuntimeError(
-                f"{self.name}: More than one business key detected: ({business_keys})"
+                f"{self.name}: More than one business key detected: "
+                f"({','.join(business_keys)})"
             )
 
     @property
