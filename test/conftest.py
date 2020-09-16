@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from picnic.data_vault import FieldDataType
 from picnic.data_vault.data_vault_field import DataVaultField
 from picnic.data_vault.data_vault_load import DataVaultLoad

@@ -58,19 +58,19 @@ class Link(DataVaultTable):
                 )
             )
 
-        if len(business_keys) == 1:
+        if not business_keys:
             raise RuntimeError(
                 (
-                    f"'{self.name}': At least two business keys for connected hubs are "
-                    f"needed, only one found"
+                    f"'{self.name}': At least one business key for connected hub(s) is "
+                    f"needed, none found"
                 )
             )
 
-        if len(hashkey_parents) == 1:
+        if not hashkey_parents:
             raise RuntimeError(
                 (
-                    f"'{self.name}': At least two hashkeys for connected hubs are "
-                    f"needed, only one found"
+                    f"'{self.name}': At least one hashkey for connected hub(s) is "
+                    f"needed, none found"
                 )
             )
 
