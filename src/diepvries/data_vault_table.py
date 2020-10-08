@@ -211,7 +211,7 @@ class DataVaultTable(ABC):
         fields_for_hashkey = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
+                fields=self.fields_by_role[FieldRole.BUSINESS_KEY]
             )
         ]
         fields_for_hashkey.extend(

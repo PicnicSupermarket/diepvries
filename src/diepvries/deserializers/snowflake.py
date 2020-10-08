@@ -1,4 +1,6 @@
+import json
 import logging
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from functools import lru_cache
 from typing import Dict, List, Union
@@ -74,7 +76,7 @@ class SnowflakeDeserializer:
         """
         self.target_schema = target_schema
         self.target_tables = target_tables
-        self.database_name = database_configuration
+        self.target_database = database_configuration.database
         self.driving_keys = driving_keys or []
         self.role_playing_hubs = role_playing_hubs or []
 
@@ -94,7 +96,7 @@ class SnowflakeDeserializer:
             str: Logger string format.
         """
         return (
-            f"{type(self).__name__}: database={self.database_name}, "
+            f"{type(self).__name__}: database={self.target_database}, "
             f"target_tables={';'.join(self.target_tables)}"
         )
 
@@ -147,10 +149,9 @@ class SnowflakeDeserializer:
     @property
     @lru_cache(1)
     def _fields(self) -> Dict[str, List[DataVaultField]]:
-        """
-        Deserialize all fields present in self.target_tables.
+        """Deserialize all fields present in `self.target_tables`.
 
-        This deserialization will be done using Snowflake metadata system views.
+        This deserialization will be done using Snowflake's `SHOW COLUMNS` command.
 
         Returns:
             Dict[str, List[DataVaultField]]: Mapping between each table and its fields
@@ -161,28 +162,56 @@ class SnowflakeDeserializer:
         else:
             tables = self.target_tables
 
-        query_args = {
-            "target_schema": self.target_schema,
-            "table_list": ",".join([f"'{table}'" for table in tables]),
-        }
-
         model_metadata_sql = (
             (DESERIALIZERS_DIR / "snowflake_model_metadata.sql")
             .read_text()
-            .format(**query_args)
+            .format(
+                target_database=self.target_database, target_schema=self.target_schema
+            )
         )
         with self.database_connection.cursor(DictCursor) as cursor:
-            # Get model properties from database metadata (for all target
+            # Get model properties from database metadata (for all tables
             # in self.target_tables).
             cursor.execute(model_metadata_sql)
-            fields = {}
-            for field in cursor:
-                field["data_type"] = FieldDataType(field["data_type"])
+            fields = defaultdict(list)
 
-                if fields.get(field["parent_table_name"]):
-                    fields[field["parent_table_name"]].append(DataVaultField(**field))
-                else:
-                    fields[field["parent_table_name"]] = [DataVaultField(**field)]
+            # Variables used to calculate the position of each field within its table.
+            # Snowflake's `SHOW COLUMNS` command returns the columns' metadata in the
+            # correct order, but does not return a pre-calculated field with the
+            # position of the field.
+            previous_table = None
+            position = 1
+
+            for field in cursor:
+                table_name = field["table_name"].lower()
+
+                if table_name not in tables:
+                    continue
+
+                if previous_table != table_name:
+                    position = 1
+
+                data_type_properties = json.loads(field["data_type"])
+
+                fields[table_name].append(
+                    DataVaultField(
+                        parent_table_name=table_name,
+                        name=field["column_name"].lower(),
+                        data_type=FieldDataType(
+                            data_type_properties["type"]
+                            if data_type_properties["type"] != "FIXED"
+                            else "NUMBER"
+                        ),
+                        position=position,
+                        is_mandatory=not (data_type_properties["nullable"]),
+                        precision=data_type_properties.get("precision"),
+                        scale=data_type_properties.get("scale"),
+                        length=data_type_properties.get("length"),
+                    )
+                )
+
+                position += 1
+                previous_table = table_name
 
         return fields
 

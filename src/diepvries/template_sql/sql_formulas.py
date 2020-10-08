@@ -90,7 +90,7 @@ STAGING_PHYSICAL_NAME_SQL_TEMPLATE = "{staging_table}_{staging_table_suffix}"
 
 
 def format_fields_for_join(
-    fields: List, table_1_alias: str, table_2_alias: str,
+    fields: List, table_1_alias: str, table_2_alias: str
 ) -> List[str]:
     """
     Get formatted list of field names for SQL JOIN condition.

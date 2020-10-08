@@ -134,14 +134,14 @@ class Satellite(DataVaultTable):
         fields_for_hashdiff = [
             BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
             for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY],
+                fields=self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY]
             )
         ]
         fields_for_hashdiff.extend(
             [
                 CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
                 for field in format_fields_for_select(
-                    fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY],
+                    fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY]
                 )
             ]
         )
@@ -149,7 +149,7 @@ class Satellite(DataVaultTable):
             [
                 DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
                 for field in format_fields_for_select(
-                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
+                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE]
                 )
             ]
         )

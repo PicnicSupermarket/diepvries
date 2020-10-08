@@ -20,9 +20,7 @@ class RolePlayingHub(Hub):
     views pointing to the main hub.
     """
 
-    def __init__(
-        self, schema: str, name: str, fields: List[DataVaultField],
-    ):
+    def __init__(self, schema: str, name: str, fields: List[DataVaultField]):
         """
         Instantiate a role RolePlayingHub.
 
@@ -103,7 +101,7 @@ class RolePlayingHub(Hub):
         sql_load_statement = (
             (TEMPLATES_DIR / "role_playing_hub_dml.sql")
             .read_text()
-            .format(**self.sql_placeholders,)
+            .format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for role playing hub (%s) generated.", self.name)

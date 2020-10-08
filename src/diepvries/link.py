@@ -131,9 +131,7 @@ class Link(DataVaultTable):
         """
 
         sql_load_statement = (
-            (TEMPLATES_DIR / "link_dml.sql")
-            .read_text()
-            .format(**self.sql_placeholders,)
+            (TEMPLATES_DIR / "link_dml.sql").read_text().format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for link (%s) generated.", self.name)

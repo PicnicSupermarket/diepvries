@@ -79,7 +79,7 @@ class Hub(DataVaultTable):
         The results are joined with the results from super().sql_placeholders(), as all
         placeholders calculated in DataVaultTable (parent class) are applicable in a
         Satellite.
-        
+
         Returns:
             Dict[str, str]: Satellite specific SQL placeholders.
         """
@@ -123,17 +123,17 @@ class Hub(DataVaultTable):
     @property
     def sql_load_statement(self) -> str:
         """
-         Generate the SQL query to populate current hub.
+        Generate the SQL query to populate current hub.
 
-         All needed placeholders are calculated, in order to match template SQL
-         (check template_sql.hub_dml.sql).
+        All needed placeholders are calculated, in order to match template SQL
+        (check template_sql.hub_dml.sql).
 
-         Returns:
-             str: SQL query to load target hub.
-         """
+        Returns:
+            str: SQL query to load target hub.
+        """
 
         sql_load_statement = (
-            (TEMPLATES_DIR / "hub_dml.sql").read_text().format(**self.sql_placeholders,)
+            (TEMPLATES_DIR / "hub_dml.sql").read_text().format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for hub (%s) generated.", self.name)
