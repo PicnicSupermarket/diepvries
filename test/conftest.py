@@ -1,9 +1,11 @@
+"""Pytest fixtures."""
+
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Dict
 
 import pytest
-import yaml
 from picnic.data_vault import FieldDataType
 from picnic.data_vault.data_vault_field import DataVaultField
 from picnic.data_vault.data_vault_load import DataVaultLoad
@@ -15,72 +17,63 @@ from picnic.data_vault.role_playing_hub import RolePlayingHub
 from picnic.data_vault.satellite import Satellite
 
 # Regex used to remove comments in SQL queries.
-COMMENT_REGEX = re.compile(r"/\*{1}[^\/\*]+\*\/")
+COMMENT_REGEX = re.compile(r"/\*[^\/\*]+\*\/")
+
+
+# Pytest fixtures that depend on other fixtures defined in the same scope will
+# trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't
+# make much sense in this case.
+# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
-def extract_start_timestamp():
-    """
-    Define extraction start timestamp for full test suite.
+def extract_start_timestamp() -> datetime:
+    """Define extraction start timestamp.
 
     Returns:
-        datetime.datetime: extraction start timestamp used for testing.
+        Extraction start timestamp used for testing.
     """
     timestamp = datetime(2019, 8, 6, tzinfo=timezone.utc)
     return timestamp
 
 
 @pytest.fixture
-def staging_table():
-    """
-    Define staging table physical name for full test suite.
+def test_path() -> Path:
+    """Define test path.
 
     Returns:
-        str: staging table physical name.
-    """
-    return "orders_20190806_000000"
-
-
-@pytest.fixture
-def test_path():
-    """
-    Define test path for full test suite.
-
-    Returns:
-        Path: current directory.
+        Parent directory of this file.
     """
     return Path(__file__).resolve().parent
 
 
 @pytest.fixture
-def process_configuration(test_path):
-    """
-    Make process configuration yml available for full test suite.
-
-    Args:
-        test_path (Path): test path fixture value.
+def process_configuration() -> Dict[str, str]:
+    """Define process configuration.
 
     Returns:
-        List[Dict[str, str]]: configuration yaml file content.
+        Process configuration.
     """
-    process_configuration_text = (test_path / "test_process_config.yml").read_text()
-    process_configuration_file = yaml.safe_load(process_configuration_text)
-
-    return process_configuration_file
+    config = {
+        "source": "test",
+        "extract_schema": "dv_extract",
+        "extract_table": "extract_orders",
+        "staging_schema": "dv_stg",
+        "staging_table": "orders",
+        "target_schema": "dv",
+    }
+    return config
 
 
 @pytest.fixture
-def h_customer(process_configuration, staging_table):
-    """
-    Define h_customer test hub for full test suite.
+def h_customer(process_configuration: Dict[str, str]) -> Hub:
+    """Define h_customer test hub.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Hub: deserialized h_customer.
+        Deserialized hub h_customer.
     """
     h_customer_fields = [
         DataVaultField(
@@ -123,17 +116,17 @@ def h_customer(process_configuration, staging_table):
 
 
 @pytest.fixture
-def h_customer_test_role_playing(process_configuration, h_customer, staging_table):
-    """
-    Define h_customer_test_role_playing test hub for full test suite.
+def h_customer_test_role_playing(
+    process_configuration: Dict[str, str], h_customer: Hub
+) -> RolePlayingHub:
+    """Define h_customer_test_role_playing test hub.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
+        h_customer: Hub customer fixture value.
 
     Returns:
-        RolePlayingHub: deserialized h_customer_test_role_playing.
+        Deserialized role playing hub h_customer_test_role_playing.
     """
     h_customer_test_role_playing_fields = [
         DataVaultField(
@@ -178,17 +171,14 @@ def h_customer_test_role_playing(process_configuration, h_customer, staging_tabl
 
 
 @pytest.fixture
-def h_order(process_configuration, staging_table):
-    """
-    Define h_order test hub for full test suite.
+def h_order(process_configuration: Dict[str, str]) -> Hub:
+    """Define h_order test hub.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Hub: deserialized h_order.
+        Deserialized hub h_order.
     """
     h_order_fields = [
         DataVaultField(
@@ -230,17 +220,14 @@ def h_order(process_configuration, staging_table):
 
 
 @pytest.fixture
-def l_order_customer(process_configuration, staging_table):
-    """
-    Define l_order_customer test link for full test suite.
+def l_order_customer(process_configuration: Dict[str, str]) -> Link:
+    """Define l_order_customer test link.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Link: deserialized l_order_customer.
+        Deserialized link l_order_customer.
     """
     l_order_customer_fields = [
         DataVaultField(
@@ -319,17 +306,14 @@ def l_order_customer(process_configuration, staging_table):
 
 
 @pytest.fixture
-def l_order_customer_test_role_playing(process_configuration, staging_table):
-    """
-    Define l_order_customer_test_role_playing test link for full test suite.
+def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) -> Link:
+    """Define l_order_customer_test_role_playing test link.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Link: deserialized l_order_customer_test_role_playing.
+        Deserialized link l_order_customer_test_role_playing.
     """
     l_order_customer_test_role_playing_fields = [
         DataVaultField(
@@ -408,17 +392,14 @@ def l_order_customer_test_role_playing(process_configuration, staging_table):
 
 
 @pytest.fixture
-def hs_customer(process_configuration, staging_table):
-    """
-    Define hs_customer test satellite for full test suite.
+def hs_customer(process_configuration: Dict[str, str]) -> Satellite:
+    """Define hs_customer test satellite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Satellite: deserialized hs_customer.
+        Deserialized satellite hs_customer.
     """
     hs_customer_fields = [
         DataVaultField(
@@ -521,17 +502,16 @@ def hs_customer(process_configuration, staging_table):
 
 
 @pytest.fixture
-def ls_order_customer_eff(process_configuration, staging_table, l_order_customer):
-    """
-    Define ls_order_customer_eff test (effectivity) satellite for full test suite.
+def ls_order_customer_eff(
+    process_configuration: Dict[str, str]
+) -> EffectivitySatellite:
+    """Define ls_order_customer_eff test (effectivity) satellite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Satellite: deserialized ls_order_customer_eff.
+        Deserialized effectivity satellite ls_order_customer_eff.
     """
     ls_order_customer_eff_fields = [
         DataVaultField(
@@ -599,19 +579,15 @@ def ls_order_customer_eff(process_configuration, staging_table, l_order_customer
 
 @pytest.fixture
 def ls_order_customer_test_role_playing_eff(
-    process_configuration, staging_table, l_order_customer_test_role_playing
-):
-    """
-    Define ls_order_customer_test_role_playing_eff test (effectivity) satellite for
-    full test suite.
+    process_configuration: Dict[str, str]
+) -> EffectivitySatellite:
+    """Define ls_order_customer_test_role_playing_eff test (effectivity) satellite.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        staging_table (str): staging table physical name fixture value.
+        process_configuration: Process configuration fixture value.
 
     Returns:
-        Satellite: deserialized ls_order_customer_test_role_playing_eff.
+        Deserialized effectivity satellite ls_order_customer_test_role_playing_eff.
     """
     ls_order_customer_test_role_playing_eff_fields = [
         DataVaultField(
@@ -679,31 +655,27 @@ def ls_order_customer_test_role_playing_eff(
 
 @pytest.fixture
 def data_vault_load(
-    process_configuration,
-    extract_start_timestamp,
-    h_customer,
-    h_order,
-    l_order_customer,
-    hs_customer,
-    ls_order_customer_eff,
-):
-    """
-    Create an instance of DataVaultLoad including all test tables
-    (using fixture values defined above).
+    process_configuration: Dict[str, str],
+    extract_start_timestamp: datetime,
+    h_customer: Hub,
+    h_order: Hub,
+    l_order_customer: Link,
+    hs_customer: Satellite,
+    ls_order_customer_eff: EffectivitySatellite,
+) -> DataVaultLoad:
+    """Define an instance of DataVaultLoad that includes all test tables.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        extract_start_timestamp (datetime.datetime): extraction start timestamp
-            fixture value.
-        h_customer (Hub): deserialized h_customer.
-        h_order (Hub): deserialized h_order.
-        l_order_customer (Link): deserialized l_order_customer.
-        hs_customer (Satellite): deserialized hs_customer.
-        ls_order_customer_eff (Satellite): deserialized ls_order_customer_eff.
+        process_configuration: Process configuration fixture value.
+        extract_start_timestamp: Extraction start timestamp fixture value.
+        h_customer: Deserialized hub h_customer.
+        h_order: Deserialized hub h_order.
+        l_order_customer: Deserialized link l_order_customer.
+        hs_customer: Deserialized satellite hs_customer.
+        ls_order_customer_eff: Deserialized effectivity satellite ls_order_customer_eff.
 
     Returns:
-        DataVaultLoad: test DataVaultLoad.
+        Instance of DataVaultLoad suitable for testing.
     """
     target_tables = [
         h_customer,
@@ -727,30 +699,26 @@ def data_vault_load(
 
 @pytest.fixture
 def data_vault_load_with_role_playing(
-    process_configuration,
-    extract_start_timestamp,
-    h_customer_test_role_playing,
-    h_order,
-    l_order_customer_test_role_playing,
-    ls_order_customer_test_role_playing_eff,
-):
-    """
-    Create an instance of DataVaultLoad for a model with a role playing hub
-    (using fixture values defined above).
+    process_configuration: Dict[str, str],
+    extract_start_timestamp: datetime,
+    h_customer_test_role_playing: Hub,
+    h_order: Hub,
+    l_order_customer_test_role_playing: Link,
+    ls_order_customer_test_role_playing_eff: EffectivitySatellite,
+) -> DataVaultLoad:
+    """Define an instance of DataVaultLoad for a model with a role playing hub.
 
     Args:
-        process_configuration (List[Dict[str, str]]): process configuration fixture
-            value.
-        extract_start_timestamp (datetime.datetime): extraction start timestamp
-            fixture value.
-        h_customer_test_role_playing (Hub): deserialized h_customer.
-        h_order (Hub): deserialized h_order.
-        l_order_customer_test_role_playing (Link): deserialized l_order_customer.
-        ls_order_customer_test_role_playing_eff (Satellite): deserialized
+        process_configuration: Process configuration fixture value.
+        extract_start_timestamp: Extraction start timestamp fixture value.
+        h_customer_test_role_playing: Deserialized hub h_customer.
+        h_order: Deserialized hub h_order.
+        l_order_customer_test_role_playing: Deserialized link l_order_customer.
+        ls_order_customer_test_role_playing_eff: Deserialized effectivity satellite
             ls_order_customer_eff.
 
     Returns:
-        DataVaultLoad: test DataVaultLoad with role playing hub.
+        Instance of DataVaultLoad with role playing hub.
     """
     target_tables = [
         h_customer_test_role_playing,
@@ -772,15 +740,17 @@ def data_vault_load_with_role_playing(
 
 
 def clean_sql(sql: str) -> str:
-    """
-    Removes extra spaces and comments (in /**/ format) from a string,
-    for SQL comparison purposes.
+    """Canonalize an SQL string by removing extra spaces and comments.
+
+    Removed comments use the `/*comment*/` format.
+
+    This is suitable for comparing SQL scripts.
 
     Args:
-        sql (str): SQL command to be cleaned.
+        sql: SQL command to be cleaned.
 
     Returns:
-        str: clean SQL command.
+        Clean SQL command.
     """
     _sql = COMMENT_REGEX.sub("", sql)
     _sql = " ".join(_sql.split()).replace(";", "")

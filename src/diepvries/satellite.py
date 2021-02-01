@@ -1,3 +1,5 @@
+"""A Satellite."""
+
 from typing import Dict
 
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
@@ -14,31 +16,32 @@ from .template_sql.sql_formulas import (
 
 
 class Satellite(DataVaultTable):
-    # Parent table is set after instantiation.
-    parent_table = None
-    """
-    Satellite: Data Vault table that contains all properties of a link or a satellite.
-    The data in this table is totally historized. Each row has a start and end
-    timestamp. There are no deletes in this type of tables. If something changes, a
-    new record is inserted and the start and end timestamps adjusted accordingly.
+    """A Satellite.
+
+    A Satellite is a Data Vault table that contains all properties of a link or a
+    hub. The data in this table is totally historized. Each row has a start and end
+    timestamp. There are no deletes in this type of tables. If something changes,
+    a new record is inserted and the start and end timestamps adjusted accordingly.
 
     Example: Customer Satellite will hold all customer properties: name,
     date of registration, address, etc...
     """
 
+    # Parent table is set after instantiation.
+    parent_table = None
+
     @property
     def loading_order(self) -> int:
-        """
-        Get loading order (satellites are the third and last tables to be loaded).
+        """Get loading order (satellites are the third and last tables to be loaded).
 
         Returns:
-            int: Table loading order.
+           Table loading order.
         """
         return 3
 
     def _validate(self):
-        """
-        Perform Satellite specific checks (besides common ones - check parent class):
+        """Perform Satellite specific checks (besides common ones - check parent class).
+
         1. Table has one hashkey for parent table (hub or link);
         2. Table has one end timestamp field (r_timestamp_end);
         3. Table has one hashdiff field (s_hashdiff).
@@ -50,33 +53,34 @@ class Satellite(DataVaultTable):
 
         try:
             self.fields_by_role[FieldRole.HASHKEY_PARENT]
-        except KeyError:
-            raise KeyError(f"'{self.name}': No hashkeys for parent table found")
+        except KeyError as e:
+            raise KeyError(f"'{self.name}': No hashkeys for parent table found") from e
 
         try:
             self.fields_by_name[METADATA_FIELDS["record_end_timestamp"]]
-        except KeyError:
+        except KeyError as e:
             raise KeyError(
                 f"'{self.name}': No field named '{METADATA_FIELDS['record_end_timestamp']}' "
                 f"found"
-            )
+            ) from e
 
         hashdiff_name = f"s_{FIELD_SUFFIX[FieldRole.HASHDIFF]}"
         try:
             self.fields_by_name[hashdiff_name]
-        except KeyError:
-            raise KeyError(f"'{self.name}': No field named '{hashdiff_name}' found")
+        except KeyError as e:
+            raise KeyError(
+                f"'{self.name}': No field named '{hashdiff_name}' found"
+            ) from e
 
     @property
     def sql_load_statement(self) -> str:
-        """
-        Generate the SQL query to populate current satellite
+        """Get the SQL query to populate the satellite.
 
         All needed placeholders are calculated, in order to match template SQL (check
         template_sql.satellite_dml.sql).
 
         Returns:
-            str: SQL query to load target satellite.
+            SQL query to load target satellite.
         """
         record_end_timestamp = RECORD_END_TIMESTAMP_SQL_TEMPLATE.format(
             key_fields=self.sql_placeholders["hashkey_field"]
@@ -98,12 +102,12 @@ class Satellite(DataVaultTable):
 
     @property
     def parent_table_name(self) -> str:
-        """
-        Get the name of current table's parent by removing the _hashkey suffix from the
-        table's hashkey field.
+        """Get the name the parent table.
+
+        It is calculated by removing the _hashkey suffix from the table's hashkey field.
 
         Returns:
-            str: Parent table name.
+            Parent table name.
         """
         parent_table_name = next(
             field.name
@@ -115,18 +119,17 @@ class Satellite(DataVaultTable):
 
     @property
     def hashdiff_sql(self) -> str:
-        """
-        Generate the SQL expression that should be used to calculate a hashdiff field.
+        """Get the SQL expression that should be used to calculate a hashdiff field.
 
         The hashdiff formula is the following:
-            - MD5(business_key_1 + |~~| + business_key_n + |~~| + child_key_1 + |~~|
-            descriptive_field_1).
+            - `MD5(business_key_1 + |~~| + business_key_n + |~~| + child_key_1 + |~~|
+            descriptive_field_1)`.
             - To assure that a hashdiff does not change if a new field
             is added to the table, it is assured that all |~~| character sequences
             placed in the end of the string are removed.
 
         Returns:
-            str: Hashdiff SQL expression.
+            Hashdiff SQL expression.
         """
         hashdiff = next(
             hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
@@ -167,16 +170,16 @@ class Satellite(DataVaultTable):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Satellite specific SQL placeholders, to be used in to format the Satellite
-        loading query.
+        """Satellite specific SQL placeholders.
+
+        These placeholders are used to format the Satellite loading query.
 
         The results are joined with the results from super().sql_placeholders(), as all
         placeholders calculated in DataVaultTable (parent class) are applicable in a
         Satellite.
 
         Returns:
-            Dict[str, str]: Satellite specific SQL placeholders.
+            Satellite specific SQL placeholders.
         """
         hashkey = next(
             hashkey

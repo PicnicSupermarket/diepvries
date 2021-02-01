@@ -1,13 +1,14 @@
+"""Unit test for Link."""
+
 from picnic.data_vault import FieldRole
+from picnic.data_vault.link import Link
 
 
-def test_set_field_roles(l_order_customer):
-    """
-    Compare field_roles attributed to l_order_customer fields with expected results.
+def test_set_field_roles(l_order_customer: Link):
+    """Assert correctness of field_roles attributed to l_order_customer fields.
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in
-            conftest.py).
+        l_order_customer: l_order_customer fixture value.
     """
     expected_roles = [
         {"field": "r_source", "role": FieldRole.METADATA},
@@ -28,14 +29,11 @@ def test_set_field_roles(l_order_customer):
         assert expected_role == field.role
 
 
-def test_hashkey_sql(l_order_customer):
-    """
-    Compares SQL generated in Link class (for l_order_customer_hashkey) with expected
-    values.
+def test_hashkey_sql(l_order_customer: Link):
+    """Assert correctness of SQL generated in Link class (for l_order_customer_hashkey).
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in
-            conftest.py).
+        l_order_customer: l_order_customer fixture value.
     """
     expected_sql = (
         "MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, "
@@ -45,14 +43,13 @@ def test_hashkey_sql(l_order_customer):
     assert expected_sql == l_order_customer.hashkey_sql
 
 
-def test_parent_hub_names(l_order_customer):
-    """
-    Check if the names of the parent hubs were correctly attributed in
-    Link class (l_order_customer_hashkey).
+def test_parent_hub_names(l_order_customer: Link):
+    """Assert correctness of the names of the parent hubs in Link class.
+
+     (l_order_customer_hashkey).
 
     Args:
-        l_order_customer (Link): l_order_customer fixture value (defined in
-            conftest.py).
+        l_order_customer: l_order_customer fixture value.
     """
     expected_parent_hub_names = ["h_order", "h_customer"]
     for parent_hub in l_order_customer.parent_hub_names:

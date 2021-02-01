@@ -1,8 +1,10 @@
-from typing import List
+"""SQL formulas (formatted strings)."""
+
+from typing import List, Union
 
 from .. import END_OF_TIME, HASH_DELIMITER, METADATA_FIELDS, UNKNOWN
-
-# SQL formulas (formatted strings).
+from ..data_vault_field import DataVaultField
+from ..driving_key_field import DrivingKeyField
 
 # Formula used to COALESCE each business key to be included in staging table SELECT
 # statement.
@@ -90,21 +92,21 @@ STAGING_PHYSICAL_NAME_SQL_TEMPLATE = "{staging_table}_{staging_table_suffix}"
 
 
 def format_fields_for_join(
-    fields: List, table_1_alias: str, table_2_alias: str
+    fields: List[Union[DataVaultField, DrivingKeyField]],
+    table_1_alias: str,
+    table_2_alias: str,
 ) -> List[str]:
-    """
-    Get formatted list of field names for SQL JOIN condition.
+    """Get formatted list of field names for SQL JOIN condition.
 
     Args:
-        fields (List[Union[DataVaultField, DrivingKeyField]]): Fields to be
-            formatted. It accepts both DrivingKeyField and DataVaultField instances.
-        table_1_alias (str): alias that should be used in the field on the left side of
+        fields: Fields to be formatted.
+        table_1_alias: Alias that should be used in the field on the left side of the
             equality sign.
-        table_2_alias (str): alias that should be used in the field on the right side of
+        table_2_alias: alias that should be used in the field on the right side of the
             equality sign.
 
     Returns:
-        List[str]: field list formatted for SQL JOIN condition.
+        Fields list formatted for an SQL JOIN condition.
     """
     return [
         JOIN_CONDITION_SQL_TEMPLATE.format(
@@ -116,17 +118,17 @@ def format_fields_for_join(
     ]
 
 
-def format_fields_for_select(fields: List, table_alias: str = None) -> List[str]:
-    """
-    Get formatted list of field names for SQL SELECT statement.
+def format_fields_for_select(
+    fields: List[Union[DataVaultField, DrivingKeyField]], table_alias: str = None
+) -> List[str]:
+    """Get formatted list of field names for SQL SELECT statement.
 
     Args:
-        fields (List[Union[DataVaultField, DrivingKeyField]]): Fields to be
-            formatted. It accepts both DrivingKeyField and DataVaultField instances.
-        table_alias (str): alias that should be used in the each field.
+        fields: Fields to be formatted.
+        table_alias: Alias that should be used in each field.
 
     Returns:
-        List[str]: field list formatted for SQL SELECT clause.
+        Fields list formatted for SQL SELECT clause.
 
     """
     if table_alias is not None:
@@ -136,5 +138,5 @@ def format_fields_for_select(fields: List, table_alias: str = None) -> List[str]
             )
             for field in fields
         ]
-    else:
-        return [field.name for field in fields]
+
+    return [field.name for field in fields]

@@ -1,12 +1,15 @@
+"""Field for Driving Key."""
+
 from dataclasses import dataclass
 
 
 @dataclass
 class DrivingKeyField:
-    """
-    Class that represents a driving key (field used in effectivity satellites to point
-    that is should be used to calculate the r_timestamp_end - PARTITION BY clause in
-    DML).
+    """A driving key.
+
+    A driving key is a field used in effectivity satellites to calculate the
+    `r_timestamp_end` (`PARTITION BY` clause in DML) when the link unique key is
+    defined by a subset of hashkeys.
     """
 
     #: Name of parent table in the database (always a Link).
@@ -17,12 +20,12 @@ class DrivingKeyField:
     satellite_name: str
 
     def __str__(self) -> str:
-        """
-        Define the representation of a DrivingKeyField object as a string.
+        """Representation of a DrivingKeyField object as a string.
+
         This helps the tracking of logging events per entity.
 
         Returns:
-            str: String representation for the `DrivingKeyField` object.
+            String representation for the `DrivingKeyField` object.
         """
         return (
             f"{type(self).__name__}: field_name={self.name}, "

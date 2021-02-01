@@ -1,3 +1,5 @@
+"""Data Vault table."""
+
 import logging
 from abc import ABC, abstractmethod
 from functools import lru_cache
@@ -14,12 +16,18 @@ from .template_sql.sql_formulas import (
 
 
 class DataVaultTable(ABC):
+    """A Data Vault table.
+
+    Abstract class DataVaultTable. It holds common properties between all subclasses:
+    Hub, Link and Satellite.
+    """
+
     _fields = None
 
-    def __init__(self, schema: str, name: str, fields: List[DataVaultField]):
-        """
-        Abstract class DataVaultTable. It holds common properties between all
-        subclasses: Hub, Link and Satellite.
+    def __init__(
+        self, schema: str, name: str, fields: List[DataVaultField], *_args, **_kwargs
+    ):
+        """Instantiate a Data Vault table.
 
         Besides setting each __init__ argument as class attributes, it also performs
         the following actions:
@@ -33,9 +41,11 @@ class DataVaultTable(ABC):
         to instances of the subclass).
 
         Args:
-            schema (str): Data Vault schema name.
-            name (str): Data Vault table name.
-            fields (List[DataVaultField]): List of fields that this table holds.
+            schema: Data Vault schema name.
+            name: Data Vault table name.
+            fields: List of fields that this table holds.
+            _args: Unused here, useful for children classes.
+            _kwargs: Unused here, useful for children classes.
         """
         self.schema = schema
         self.name = name.lower()
@@ -54,35 +64,33 @@ class DataVaultTable(ABC):
         self._logger.info("Instance of (%s) created", type(self))
 
     def __str__(self) -> str:
-        """
-        Define the representation of a DataVaultTable object as a string.
+        """Representation of a DataVaultTable object as a string.
+
         This helps the tracking of logging events per entity.
 
         Returns:
-            str: String representation of a DataVaultTable.
+            String representation of a DataVaultTable.
         """
         return f"{type(self).__name__}: {self.schema}.{self.name}"
 
     @property
     @abstractmethod
     def loading_order(self) -> int:
-        """
-        Implemented in subclasses.
-        """
+        """Get loading order."""
 
     @property
     def fields(self) -> List[DataVaultField]:
-        """
-        Returns field list for current table.
+        """Get fields list for the current table.
 
         Returns:
-            List[DataVaultField]: Fields for current table.
+            Fields for the current table.
         """
         return self._fields
 
     @fields.setter
     def fields(self, fields: List[DataVaultField]):
-        """
+        """Set fields.
+
         Besides the setting of fields property, this method also sorts current table
         fields by position (in the database table). This sorting is crucial to assure
         that hashdiffs/hashkeys are always generated following the same field order
@@ -90,19 +98,17 @@ class DataVaultTable(ABC):
         generation).
 
         Args:
-            fields (List[DataVaultField]): Field list that the current table holds.
+            fields: Fields list that the current table holds.
         """
         self._fields = sorted(fields, key=lambda x: x.position)
 
     @property
     @lru_cache(1)
     def fields_by_name(self) -> Dict[str, DataVaultField]:
-        """
-        Returns a dictionary of DataVaultField, indexed by its name.
+        """Get a dictionary of fields, indexed by their names.
 
         Returns:
-            Dict[str, DataVaultField]: Dictionary of fields, indexed by its name.
-
+            Dictionary of fields, indexed by their names.
         """
         fields_by_name_as_dict = {}
 
@@ -114,12 +120,12 @@ class DataVaultTable(ABC):
     @property
     @lru_cache(1)
     def fields_by_role(self) -> Dict[FieldRole, List[DataVaultField]]:
-        """
-        Returns a dictionary of DataVaultField, indexed by its role (check
-        _fields_by_role_as_dict).
+        """Get a dictionary of fields, indexed by their roles.
+
+        See _fields_by_role_as_dict.
 
         Returns:
-            Dict[FieldRole, DataVaultField]: Dictionary of fields, indexed by its role.
+            Dictionary of fields, indexed by their roles.
         """
         fields_by_role_as_dict = {
             FieldRole.HASHKEY: [],
@@ -140,21 +146,18 @@ class DataVaultTable(ABC):
     @property
     @abstractmethod
     def sql_load_statement(self) -> str:
-        """
-        Implemented in subclasses.
+        """Get SQL script to load current table.
 
         Returns:
-            str: SQL script that should be executed to load current table.
+           SQL script to load current table.
         """
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Calculate common placeholders needed to generate SQL for all DataVaultTable.
+        """Get common placeholders needed to generate SQL for this DataVaultTable.
 
         Returns:
-            Dict[str, str]: Common placeholders to be used in all DataVaultTable SQL
-                scripts.
+            Common placeholders to be used in all DataVaultTable SQL scripts.
         """
         query_args = {
             "target_schema": self.schema,
@@ -168,7 +171,8 @@ class DataVaultTable(ABC):
         return query_args
 
     def _validate(self):
-        """
+        """Validate table fields.
+
         Perform the following checks (common to all DataVaultTable subclasses):
         1. Table has one start_timestamp field - name defined in METADATA_FIELDS.
         2. Table has one source field - name defined in METADATA_FIELDS.
@@ -178,29 +182,28 @@ class DataVaultTable(ABC):
         """
         try:
             self.fields_by_name[METADATA_FIELDS["record_start_timestamp"]]
-        except KeyError:
+        except KeyError as e:
             raise KeyError(
                 f"{self.name}: No field named "
                 f"'{METADATA_FIELDS['record_start_timestamp']}' found"
-            )
+            ) from e
         try:
             self.fields_by_name[METADATA_FIELDS["record_source"]]
-        except KeyError:
+        except KeyError as e:
             raise KeyError(
                 f"{self.name}: No field named '{METADATA_FIELDS['record_source']}' "
                 f"found"
-            )
+            ) from e
 
     @property
     def hashkey_sql(self) -> str:
-        """
-        Generate SQL expression that should be used to calculate hashkey fields.
+        """Get SQL expression to calculate hashkey fields.
 
-        The hashkey formula is the following: MD5(business_key_1 + |~~| +
-        business_key_n + |~~| child_key_1).
+        The hashkey formula is the following:
+        `MD5(business_key_1 + |~~| + business_key_n + |~~| child_key_1)`.
 
         Returns:
-            str: Hashkey SQL expression.
+            Hashkey SQL expression.
         """
         hashkey = next(
             hashkey

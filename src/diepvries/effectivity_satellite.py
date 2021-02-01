@@ -1,3 +1,5 @@
+"""An effectivity satellite."""
+
 from typing import Dict, List
 
 from . import TEMPLATES_DIR
@@ -12,9 +14,10 @@ from .template_sql.sql_formulas import (
 
 
 class EffectivitySatellite(Satellite):
-    """
-    An effectivity satellite is a special type of satellite with the purpose of
-    keeping "versions open" based on a subset of fields in the parent link.
+    """Effectivity satellite.
+
+    An effectivity satellite is a special type of satellite with the purpose of keeping
+    "versions open" based on a subset of fields in the parent link.
 
     Example: A Data Vault model that has a link between a Customer and a Contact. It is
     required (for this specific example) to keep only one contact, per customer open at
@@ -29,31 +32,33 @@ class EffectivitySatellite(Satellite):
         name: str,
         fields: List[DataVaultField],
         driving_keys: List[DrivingKeyField],
+        *args,
+        **kwargs,
     ):
-        """
-        Instantiate an EffectivitySatellite.
+        """Instantiate an EffectivitySatellite.
 
         Args:
-            schema (str): Data Vault schema name.
-            name (str): Satellite name.
-            fields (List[DataVaultField]): List of fields that this Satellite holds.
-            driving_keys (List[DrivingKeyField]): Define the set of link (parent table)
-                fields that should be used as driving keys (in the example presented
-                above, the driving key would be the h_customer_hashkey).
+            schema: Data Vault schema name.
+            name: Satellite name.
+            fields: List of fields that this Satellite holds.
+            driving_keys: Define the set of link (parent table) fields that should be
+                used as driving keys (in the example presented above, the driving key
+                would be the h_customer_hashkey).
+            args: Unused here, useful for children classes.
+            kwargs: Unused here, useful for children classes.
         """
-        super().__init__(schema, name, fields)
+        super().__init__(schema, name, fields, *args, **kwargs)
         self.driving_keys = driving_keys
 
     @property
     def sql_load_statement(self) -> str:
-        """
-        Generate the SQL query to populate current effectivity satellite
+        """Get the SQL query to populate current effectivity satellite.
 
         All needed placeholders are calculated, in order to match template SQL (check
         template_sql.effectivity_satellite_dml.sql).
 
         Returns:
-            str: SQL query to load target satellite.
+            SQL query to load target satellite.
         """
         sql_load_statement = (
             (TEMPLATES_DIR / "effectivity_satellite_dml.sql")
@@ -70,16 +75,17 @@ class EffectivitySatellite(Satellite):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Calculate effectivity satellite specific placeholders, needed to generate SQL.
+        """Calculate effectivity satellite specific placeholders.
+
+        They are needed to generate SQL.
 
         The results are joined with the results from super().sql_placeholders(), as
         all placeholders calculated in Satellite (parent class) are applicable in
         an EffectivitySatellite.
 
         Returns:
-            Dict[str, str]: Effectivity satellite specific placeholders,
-                to use in effectivity satellites.
+            Effectivity satellite specific placeholders, to use in effectivity
+                satellites.
         """
         record_end_timestamp = RECORD_END_TIMESTAMP_SQL_TEMPLATE.format(
             key_fields=",".join(format_fields_for_select(fields=self.driving_keys))

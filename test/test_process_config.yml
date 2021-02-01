@@ -1,6 +1,0 @@
-source: test
-extract_schema: dv_extract
-extract_table: extract_orders
-staging_schema: dv_stg
-staging_table: orders
-target_schema: dv

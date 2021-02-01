@@ -1,3 +1,5 @@
+"""A role playing Hub."""
+
 from typing import Dict, List
 
 from . import TEMPLATES_DIR, FieldRole
@@ -7,10 +9,11 @@ from .template_sql.sql_formulas import format_fields_for_select
 
 
 class RolePlayingHub(Hub):
-    """
-    Hub that is not materialized as a table, but is a view pointing
-    to a main Hub. The concept is essentially the same as a role playing dimension
-    in a star schema.
+    """A role playing Hub.
+
+    A role playing Hub is a hub that is not materialized as a table, but is a view
+    pointing to a main Hub. The concept is essentially the same as a role playing
+    dimension in a star schema.
 
     One conceptual example of a Role Playing Hub can be a Hub that represents an
     account, that can assume different roles (supplier, transporter, administrator,
@@ -21,13 +24,12 @@ class RolePlayingHub(Hub):
     """
 
     def __init__(self, schema: str, name: str, fields: List[DataVaultField]):
-        """
-        Instantiate a role RolePlayingHub.
+        """Instantiate a role RolePlayingHub.
 
         Args:
-            schema (str): Data Vault schema name.
-            name (str): Role playing hub name.
-            fields (List[DataVaultField]): List of fields that this Hub holds.
+            schema: Data Vault schema name.
+            name: Role playing hub name.
+            fields: List of fields that this Hub holds.
         """
         super().__init__(schema, name, fields)
         # Parent table is set just after instantiation.
@@ -35,9 +37,9 @@ class RolePlayingHub(Hub):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Role playing hub specific SQL placeholders, to be used in to format the
-        RolePlayingHub loading query.
+        """Role playing hub specific SQL placeholders.
+
+        These placeholders are used to format the RolePlayingHub loading query.
 
         The results are joined with the results from super().sql_placeholders(), as most
         placeholders calculated in DataVaultTable (parent class) are applicable in a
@@ -46,7 +48,7 @@ class RolePlayingHub(Hub):
         hub in this case.
 
         Returns:
-            Dict[str, str]: Role playing hub specific SQL placeholders.
+            Role playing hub specific SQL placeholders.
         """
         sql_placeholders = super().sql_placeholders
 
@@ -87,17 +89,16 @@ class RolePlayingHub(Hub):
 
     @property
     def sql_load_statement(self) -> str:
-        """
-        Generate the SQL query to populate current role playing hub
-        (if table has a parent table - role playing hub).
+        """Get the SQL query to populate the current role playing hub.
+
+        If table has a parent table - role playing hub.
 
         All needed placeholders are calculated, in order to match template SQL (check
         template_sql.role_playing_hub_dml.sql).
 
         Returns:
-            str: SQL query to load target hub.
+            SQL query to load target hub.
         """
-
         sql_load_statement = (
             (TEMPLATES_DIR / "role_playing_hub_dml.sql")
             .read_text()

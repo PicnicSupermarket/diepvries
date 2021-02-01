@@ -1,3 +1,5 @@
+"""A link."""
+
 from typing import Dict, List
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
@@ -9,19 +11,20 @@ from .template_sql.sql_formulas import (
 
 
 class Link(DataVaultTable):
+    """A link."""
+
     @property
     def loading_order(self) -> int:
-        """
-        Get loading order (links are the second tables to be loaded).
+        """Get loading order (links are the second tables to be loaded).
 
         Returns:
-            int: Table loading order.
+            Table loading order.
         """
         return 2
 
     def _validate(self):
-        """
-        Perform Link specific checks (besides common ones - check parent class):
+        """Perform Link specific checks (besides common ones - check parent class).
+
         1. Table has one field with role = FieldRole.HASHKEY;
         2. Field with role = FieldRole.HASHKEY is placed in the first column of the
         table;
@@ -38,17 +41,23 @@ class Link(DataVaultTable):
 
         try:
             self.fields_by_name[hashkey_name]
-        except KeyError:
-            raise KeyError(f"'{self.name}': No field named '{hashkey_name}' found")
+        except KeyError as e:
+            raise KeyError(
+                f"'{self.name}': No field named '{hashkey_name}' found"
+            ) from e
 
         try:
             business_keys = self.fields_by_role[FieldRole.BUSINESS_KEY]
-        except KeyError:
-            raise KeyError(f"'{self.name}': No business keys for connected hubs found")
+        except KeyError as e:
+            raise KeyError(
+                f"'{self.name}': No business keys for connected hubs found"
+            ) from e
         try:
             hashkey_parents = self.fields_by_role[FieldRole.HASHKEY_PARENT]
-        except KeyError:
-            raise KeyError(f"'{self.name}': No hashkeys for connected hubs found")
+        except KeyError as e:
+            raise KeyError(
+                f"'{self.name}': No hashkeys for connected hubs found"
+            ) from e
 
         if len(business_keys) != len(hashkey_parents):
             raise RuntimeError(
@@ -76,16 +85,16 @@ class Link(DataVaultTable):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Satellite specific SQL placeholders, to be used in to format the Satellite
-        loading query.
+        """Link specific SQL placeholders.
+
+        These placeholders are used to format the link loading query.
 
         The results are joined with the results from super().sql_placeholders(), as all
         placeholders calculated in DataVaultTable (parent class) are applicable in a
         Satellite.
 
         Returns:
-            Dict[str, str]: Satellite specific SQL placeholders.
+            Satellite specific SQL placeholders.
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
@@ -120,16 +129,14 @@ class Link(DataVaultTable):
 
     @property
     def sql_load_statement(self) -> str:
-        """
-        Generate the SQL query to populate current link.
+        """Get the SQL query to populate current link.
 
         All needed placeholders are calculated, in order to match template SQL
         (check template_sql.link_dml.sql).
 
         Returns:
-            str: SQL query to load target link.
+            SQL query to load target link.
         """
-
         sql_load_statement = (
             (TEMPLATES_DIR / "link_dml.sql").read_text().format(**self.sql_placeholders)
         )
@@ -141,11 +148,10 @@ class Link(DataVaultTable):
 
     @property
     def parent_hub_names(self) -> List[str]:
-        """
-        Get a list of parent hub names.
+        """Get the list of parent hub names.
 
         Returns:
-            List[str]: Parent hub names.
+            Parent hub names.
         """
         parent_hub_names = []
 

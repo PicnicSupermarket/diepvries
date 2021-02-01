@@ -1,3 +1,5 @@
+"""Definitions and helpers."""
+
 import logging
 from datetime import datetime, timezone
 from enum import Enum
@@ -5,11 +7,10 @@ from pathlib import Path
 
 
 class FieldDataType(Enum):
-    """
-    Define the possible data types for a DataVaultField.
+    """Possible data types for a DataVaultField.
 
     These data types are mapped directly from Snowflake root data types (the ones
-    that are actually stores in Snowflake metadata views).
+    that are actually stored in Snowflake metadata views).
     """
 
     ARRAY = "ARRAY"
@@ -27,9 +28,7 @@ class FieldDataType(Enum):
 
 
 class FieldRole(Enum):
-    """
-    Define the possible roles for each field in a Data Vault model.
-    """
+    """Possible roles for each field in a Data Vault model."""
 
     HASHKEY = "hashkey"
     HASHKEY_PARENT = "hashkey_parent"
@@ -42,9 +41,7 @@ class FieldRole(Enum):
 
 
 class TableType(Enum):
-    """
-    Define the possible types of table in a Data Vault model.
-    """
+    """Possible types of a table in a Data Vault model."""
 
     HUB = "hub"
     LINK = "link"
@@ -52,21 +49,22 @@ class TableType(Enum):
 
 
 class FixedPrefixLoggerAdapter(logging.LoggerAdapter):
-    """
+    """Logger with a prefix.
+
     This LoggerAdapter implementation prefixes log calls with "[prefix]".
+
     This is useful to add contextually valuable information to the log call
     (Snowflake username and session ID) without changing the logging format of the
     root logger.
-
-    XXX: remove code and replace references to picnic tools logger
-        (when this class is migrated to picnic tools).
     """
 
     def __init__(self, logger, prefix):
+        """Instantiate logger."""
         super().__init__(logger, {})
         self.prefix = prefix
 
     def process(self, msg, kwargs):
+        """Process a message."""
         return "[(%s)] (%s)" % (self.prefix, msg), kwargs
 
 

@@ -1,3 +1,5 @@
+"""A Hub."""
+
 from typing import Dict
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
@@ -10,42 +12,41 @@ from .template_sql.sql_formulas import (
 
 
 class Hub(DataVaultTable):
+    """A hub."""
+
     @property
-    def prefix(self):
-        """
-        Get table prefix.
+    def prefix(self) -> str:
+        """Get table prefix.
 
         Returns:
-            str: Table prefix.
+            Table prefix.
 
         """
         return next(split_part for split_part in self.name.split("_"))
 
     @property
     def loading_order(self) -> int:
-        """
-        Get loading order (hubs are the first tables to be loaded).
+        """Get loading order (hubs are the first tables to be loaded).
 
         Returns:
-            int: Table loading order.
+           Table loading order.
         """
         return 1
 
     @property
     def entity_name(self) -> str:
-        """
-        Get entity name for current Hub.
+        """Get entity name for current Hub.
 
         Entity name corresponds to the name of the table, without the prefix.
 
         Returns:
-            str: Name of the entity.
+            Name of the entity.
         """
         return "_".join(self.name.split("_")[1:])
 
     def _validate(self):
-        """
-        Perform Hub specific checks (besides common ones - check parent class):
+        """Perform Hub specific checks (besides common ones - check parent class).
+
         1. Table has one field with role = FieldRole.HASHKEY;
         3. Table has one field with role = FieldRole.BUSINESS_KEY;
 
@@ -58,8 +59,8 @@ class Hub(DataVaultTable):
 
         try:
             self.fields_by_name[hashkey_name]
-        except KeyError:
-            raise KeyError(f"{self.name}: No field named '{hashkey_name}' found")
+        except KeyError as e:
+            raise KeyError(f"{self.name}: No field named '{hashkey_name}' found") from e
 
         business_keys = [
             field.name for field in self.fields_by_role[FieldRole.BUSINESS_KEY]
@@ -72,16 +73,16 @@ class Hub(DataVaultTable):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """
-        Satellite specific SQL placeholders, to be used in to format the Satellite
-        loading query.
+        """Hub specific SQL placeholders.
+
+        These placeholders are used to format the hub loading query.
 
         The results are joined with the results from super().sql_placeholders(), as all
         placeholders calculated in DataVaultTable (parent class) are applicable in a
         Satellite.
 
         Returns:
-            Dict[str, str]: Satellite specific SQL placeholders.
+            Satellite specific SQL placeholders.
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
@@ -122,16 +123,14 @@ class Hub(DataVaultTable):
 
     @property
     def sql_load_statement(self) -> str:
-        """
-        Generate the SQL query to populate current hub.
+        """Get the SQL query to populate current hub.
 
         All needed placeholders are calculated, in order to match template SQL
         (check template_sql.hub_dml.sql).
 
         Returns:
-            str: SQL query to load target hub.
+            SQL query to load target hub.
         """
-
         sql_load_statement = (
             (TEMPLATES_DIR / "hub_dml.sql").read_text().format(**self.sql_placeholders)
         )

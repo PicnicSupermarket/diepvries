@@ -1,21 +1,25 @@
+"""Unit test for Satellite."""
+from pathlib import Path
+
 from picnic.data_vault import FieldRole
+from picnic.data_vault.data_vault_load import DataVaultLoad
+from picnic.data_vault.satellite import Satellite
 
 from .conftest import clean_sql
 
 
-def test_effectivity_satellite_sql(test_path, data_vault_load):
-    """
-    Compares SQL generated in Satellite class (for ls_order_customer_eff -
-    effectivity satellite) with the expected results.
+def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLoad):
+    """Assert correctness of SQL generated in Satellite class.
+
+     (for ls_order_customer_eff - effectivity satellite)
 
     This test has to receive data_vault_load fixture and not ls_order_customer_eff
     as it needs the parent_table defined and this definition occurs in data_vault_load
     constructor.
 
     Args:
-        test_path (Path): test_path fixture value (defined in conftest.py).
-        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in
-            conftest.py).
+        test_path: Test path fixture value.
+        data_vault_load: Data vault load fixture value.
     """
     effectivity_satellite = next(
         filter(
@@ -32,12 +36,11 @@ def test_effectivity_satellite_sql(test_path, data_vault_load):
     )
 
 
-def test_set_field_roles(hs_customer):
-    """
-    Compare field_roles attributed to hs_customer fields with expected results.
+def test_set_field_roles(hs_customer: Satellite):
+    """Assert correctness of field_roles attributed to hs_customer fields.
 
     Args:
-        hs_customer (Satellite): hs_customer fixture value (defined in conftest.py).
+        hs_customer: hs_customer fixture value.
     """
     expected_roles = [
         {"field": "h_customer_hashkey", "role": FieldRole.HASHKEY_PARENT},
@@ -61,31 +64,31 @@ def test_set_field_roles(hs_customer):
         assert expected_role == field.role
 
 
-def test_parent_table_name(hs_customer):
-    """
-    Check if parent_table_name is being correctly calculated.
+def test_parent_table_name(hs_customer: Satellite):
+    """Assert correctness of parent table name.
 
     Args:
-        hs_customer (Satellite): hs_customer fixture value (defined in conftest.py).
+        hs_customer: hs_customer fixture value.
     """
     assert hs_customer.parent_table_name == "h_customer"
 
 
-def test_hashdiff_sql(data_vault_load):
-    """
-    Compares SQL generated in Satellite class (for hs_customer hashdiff) with expected
-    values.
+def test_hashdiff_sql(data_vault_load: DataVaultLoad):
+    """Assert correctness of SQL generated in Satellite class.
+
+     (for hs_customer hashdiff)
 
     This test has to receive data_vault_load fixture and not hs_customer as it needs the
     parent_table defined and this definition occurs in data_vault_load constructor.
 
     Args:
-        data_vault_load (DataVaultLoad): data_vault_load fixture value (defined in
-            conftest.py).
+        data_vault_load: Data vault load fixture value.
     """
     satellite = next(
         filter(lambda x: x.name == "hs_customer", data_vault_load.target_tables)
     )
+    assert isinstance(satellite, Satellite)
+
     expected_sql = (
         "MD5(REGEXP_REPLACE(COALESCE(customer_id, 'dv_unknown')||'|~~|'||"
         "COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||"
