@@ -1,4 +1,5 @@
-"""Unit test for Data Vault load."""
+"""Unit tests for Data Vault load."""
+
 from pathlib import Path
 
 from picnic.data_vault.data_vault_load import DataVaultLoad

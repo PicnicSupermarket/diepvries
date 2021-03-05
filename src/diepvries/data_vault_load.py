@@ -167,7 +167,7 @@ class DataVaultLoad:
         """Generate the SQL query to create the staging table.
 
         All needed placeholders are calculated, in order to match template SQL (check
-        template_sql.staging_table_ddl.sql).
+        template_sql/staging_table_ddl.sql).
 
         Returns:
             SQL query to create staging table.
@@ -178,7 +178,8 @@ class DataVaultLoad:
         # Produce the list of fields that should exist in the staging table.
         # As common field names can appear in multiple target tables and it is not
         # possible to have duplicated field names in the staging table, all fields
-        # are stored in an OrderedSet, assuring its original order, without duplication.
+        # are stored in an OrderedSet, assuring its original order, without
+        # duplication.
         staging_fields = OrderedSet(
             [
                 field
@@ -190,7 +191,7 @@ class DataVaultLoad:
             ]
         )
 
-        # Iterate over all staging fields and produces the DML and DDL expressions
+        # Iterate over all staging fields and produce the DML and DDL expressions
         # that should be used to create the staging table.
         for field in staging_fields:
             fields_dml.append(
