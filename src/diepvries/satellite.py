@@ -121,12 +121,16 @@ class Satellite(DataVaultTable):
     def hashdiff_sql(self) -> str:
         """Get the SQL expression that should be used to calculate a hashdiff field.
 
-        The hashdiff formula is the following:
-            - `MD5(business_key_1 + |~~| + business_key_n + |~~| + child_key_1 + |~~|
-            descriptive_field_1)`.
-            - To assure that a hashdiff does not change if a new field
-            is added to the table, it is assured that all |~~| character sequences
-            placed in the end of the string are removed.
+        The hashdiff formula is the following:::
+
+            MD5(business_key_1   + |~~|
+                + business_key_n + |~~|
+                + child_key_1    + |~~|
+                + descriptive_field_1)
+
+        To assure that a hashdiff does not change if a new field is added to the
+        table, it is assumed that all ``|~~|`` character sequences placed at the end of
+        the string are removed.
 
         Returns:
             Hashdiff SQL expression.
