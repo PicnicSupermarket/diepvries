@@ -4,21 +4,6 @@
 # Build Sphinx documentation
 #
 
-# Convert README.md to index.rst
-m2r2 README.md
-mv -f README.rst doc/index.rst
-
-# Add apidoc entry-point to index
-cat >> doc/index.rst <<EOF
-
-API documentation
------------------
-
-.. toctree::
-
-   api/modules
-EOF
-
 # Build apidoc
 sphinx-apidoc --implicit-namespaces -M -t doc_templates --separate -o doc/api src/picnic
 
