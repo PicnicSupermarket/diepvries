@@ -128,7 +128,7 @@ class Satellite(DataVaultTable):
                 + child_key_1    + |~~|
                 + descriptive_field_1)
 
-        To assure that a hashdiff does not change if a new field is added to the
+        To ensure that a hashdiff does not change if a new field is added to the
         table, it is assumed that all ``|~~|`` character sequences placed at the end of
         the string are removed.
 

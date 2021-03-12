@@ -178,7 +178,7 @@ class DataVaultLoad:
         # Produce the list of fields that should exist in the staging table.
         # As common field names can appear in multiple target tables and it is not
         # possible to have duplicated field names in the staging table, all fields
-        # are stored in an OrderedSet, assuring its original order, without
+        # are stored in an OrderedSet, ensuring its original order, without
         # duplication.
         staging_fields = OrderedSet(
             [

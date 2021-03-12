@@ -92,7 +92,7 @@ class DataVaultTable(ABC):
         """Set fields.
 
         Besides the setting of fields property, this method also sorts current table
-        fields by position (in the database table). This sorting is crucial to assure
+        fields by position (in the database table). This sorting is crucial to ensure
         that hashdiffs/hashkeys are always generated following the same field order
         (check hashkey_sql and hashdiff_sql for more detail about hash fields
         generation).
