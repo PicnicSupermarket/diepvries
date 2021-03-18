@@ -5,7 +5,6 @@ from datetime import datetime
 from functools import lru_cache
 from typing import List, Optional
 
-from ordered_set import OrderedSet
 from pytz import timezone
 
 from . import METADATA_FIELDS, TEMPLATES_DIR, FieldRole, FixedPrefixLoggerAdapter
@@ -175,21 +174,24 @@ class DataVaultLoad:
         fields_dml = []
         fields_ddl = []
 
-        # Produce the list of fields that should exist in the staging table.
-        # As common field names can appear in multiple target tables and it is not
-        # possible to have duplicated field names in the staging table, all fields
-        # are stored in an OrderedSet, ensuring its original order, without
-        # duplication.
-        staging_fields = OrderedSet(
-            [
-                field
-                for table in self.target_tables
-                for field in table.fields
+        # Produce the list of fields that should exist in the staging table. As
+        # common field names can appear in multiple target tables and it is not
+        # possible to have duplicated field names in the staging table, seen fields
+        # are kept in a set to avoid duplicates; while the list is built iteratively
+        # to maintain ordering.
+        staging_fields = []
+        seen_fields = set()
+        for table in self.target_tables:
+            for field in table.fields:
                 # Record end timestamp is calculated during Data Vault model load
                 # (not needed in the staging table).
-                if field.name != METADATA_FIELDS["record_end_timestamp"]
-            ]
-        )
+                if field.name == METADATA_FIELDS["record_end_timestamp"]:
+                    continue
+                # Avoid duplicates.
+                if field in seen_fields:
+                    continue
+                seen_fields.add(field)
+                staging_fields.append(field)
 
         # Iterate over all staging fields and produce the DML and DDL expressions
         # that should be used to create the staging table.
