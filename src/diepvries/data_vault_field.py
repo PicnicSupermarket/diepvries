@@ -53,11 +53,11 @@ class DataVaultField:
         self.length = length
 
     def __hash__(self):
-        """Hash of a data vault field."""
+        """Hash of a Data Vault field."""
         return hash(self.name_in_staging)
 
     def __eq__(self, other):
-        """Equality of a data vault field."""
+        """Equality of a Data Vault field."""
         return self.name_in_staging == other.name_in_staging
 
     def __str__(self) -> str:

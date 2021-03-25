@@ -10,6 +10,7 @@ Topics
 .. toctree::
 
    introduction
+   philosophy
    glossary
    naming-conventions
    security
@@ -21,6 +22,7 @@ Get started
 
    installation
    tutorial
+   advanced-topics
 
 Developer documentation
 -----------------------
