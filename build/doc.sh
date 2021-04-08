@@ -13,7 +13,7 @@ sphinx-build \
     -C \
     -D project="diepvries" \
     -D copyright="Picnic Technologies" \
-    -D extensions="sphinx.ext.autodoc,sphinx.ext.napoleon,m2r2,sphinx_autodoc_typehints" \
+    -D extensions="sphinx.ext.autodoc,sphinx.ext.napoleon,m2r2,sphinx_autodoc_typehints,sphinx.ext.graphviz" \
     -D napoleon_google_docstring=1 \
     -D napoleon_numpy_docstring=0 \
     -D napoleon_include_init_with_doc=1 \

@@ -29,4 +29,5 @@ Developer documentation
 
 .. toctree::
 
+   development
    API documentation <api/modules>
