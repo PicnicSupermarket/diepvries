@@ -4,8 +4,6 @@ from pathlib import Path
 
 from picnic.data_vault.data_vault_load import DataVaultLoad
 
-from .conftest import clean_sql
-
 
 def test_staging_table_sql(test_path: Path, data_vault_load: DataVaultLoad):
     """Assert correctness of staging table creation SQL.
@@ -15,9 +13,7 @@ def test_staging_table_sql(test_path: Path, data_vault_load: DataVaultLoad):
         data_vault_load: Data vault load fixture value.
     """
     expected_results = (test_path / "sql" / "expected_results_staging.sql").read_text()
-    assert clean_sql(expected_results) == clean_sql(
-        data_vault_load.staging_create_sql_statement
-    )
+    assert expected_results == data_vault_load.staging_create_sql_statement
 
 
 def test_staging_table_with_role_playing_sql(
@@ -33,8 +29,9 @@ def test_staging_table_with_role_playing_sql(
     expected_results = (
         test_path / "sql" / "expected_results_staging_with_role_playing.sql"
     ).read_text()
-    assert clean_sql(expected_results) == clean_sql(
-        data_vault_load_with_role_playing.staging_create_sql_statement
+    assert (
+        expected_results
+        == data_vault_load_with_role_playing.staging_create_sql_statement
     )
 
 
@@ -46,15 +43,9 @@ def test_data_vault_load_sql(test_path: Path, data_vault_load: DataVaultLoad):
         data_vault_load: Data vault load fixture value.
     """
     expected_results = (
-        (test_path / "sql" / "expected_results_data_vault_load.sql")
-        .read_text()
-        .split(";")
-    )
-    for index, sql in enumerate(expected_results):
-        if clean_sql(sql) == "":
-            break
-
-        assert clean_sql(sql) == clean_sql(data_vault_load.sql_load_script[index])
+        test_path / "sql" / "expected_results_data_vault_load.sql"
+    ).read_text()
+    assert expected_results == "\n".join(data_vault_load.sql_load_script)
 
 
 def test_data_vault_load_with_role_playing_sql(
@@ -68,14 +59,8 @@ def test_data_vault_load_with_role_playing_sql(
             value.
     """
     expected_results = (
-        (test_path / "sql" / "expected_results_data_vault_load_with_role_playing.sql")
-        .read_text()
-        .split(";")
+        test_path / "sql" / "expected_results_data_vault_load_with_role_playing.sql"
+    ).read_text()
+    assert expected_results == "\n".join(
+        data_vault_load_with_role_playing.sql_load_script
     )
-    for index, sql in enumerate(expected_results):
-        if clean_sql(sql) == "":
-            break
-
-        assert clean_sql(sql) == clean_sql(
-            data_vault_load_with_role_playing.sql_load_script[index]
-        )

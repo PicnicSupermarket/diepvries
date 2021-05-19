@@ -6,4 +6,4 @@ MERGE INTO {target_schema}.{data_vault_table} AS link
         GROUP BY {hashkey_field}
     ) AS staging ON ({hashkey_condition})
     WHEN NOT MATCHED THEN INSERT ({hashkey_field}, {non_hashkey_fields})
-        VALUES (staging.{hashkey_field}, {staging_non_hashkey_fields})
+        VALUES (staging.{hashkey_field}, {staging_non_hashkey_fields});

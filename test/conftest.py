@@ -16,9 +16,6 @@ from picnic.data_vault.link import Link
 from picnic.data_vault.role_playing_hub import RolePlayingHub
 from picnic.data_vault.satellite import Satellite
 
-# Regex used to remove comments in SQL queries.
-COMMENT_REGEX = re.compile(r"/\*[^\/\*]+\*\/")
-
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
 # trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't
@@ -66,11 +63,14 @@ def process_configuration() -> Dict[str, str]:
 
 
 @pytest.fixture
-def h_customer(process_configuration: Dict[str, str]) -> Hub:
+def h_customer(
+    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+) -> Hub:
     """Define h_customer test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
+        extract_start_timestamp: Timestamp fixture value.
 
     Returns:
         Deserialized hub h_customer.
@@ -112,18 +112,25 @@ def h_customer(process_configuration: Dict[str, str]) -> Hub:
         name="h_customer",
         fields=h_customer_fields,
     )
+    h_customer.staging_schema = "dv_stg"
+    h_customer.staging_table = (
+        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
+    )
     return h_customer
 
 
 @pytest.fixture
 def h_customer_test_role_playing(
-    process_configuration: Dict[str, str], h_customer: Hub
+    process_configuration: Dict[str, str],
+    h_customer: Hub,
+    extract_start_timestamp: datetime,
 ) -> RolePlayingHub:
     """Define h_customer_test_role_playing test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
         h_customer: Hub customer fixture value.
+        extract_start_timestamp: Timestamp fixture value.
 
     Returns:
         Deserialized role playing hub h_customer_test_role_playing.
@@ -166,6 +173,10 @@ def h_customer_test_role_playing(
         fields=h_customer_test_role_playing_fields,
     )
     h_customer_test_role_playing.parent_table = h_customer
+    h_customer_test_role_playing.staging_schema = "dv_stg"
+    h_customer_test_role_playing.staging_table = (
+        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
+    )
 
     return h_customer_test_role_playing
 
@@ -220,11 +231,14 @@ def h_order(process_configuration: Dict[str, str]) -> Hub:
 
 
 @pytest.fixture
-def l_order_customer(process_configuration: Dict[str, str]) -> Link:
+def l_order_customer(
+    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+) -> Link:
     """Define l_order_customer test link.
 
     Args:
         process_configuration: Process configuration fixture value.
+        extract_start_timestamp: Timestamp fixture value.
 
     Returns:
         Deserialized link l_order_customer.
@@ -302,6 +316,11 @@ def l_order_customer(process_configuration: Dict[str, str]) -> Link:
         name="l_order_customer",
         fields=l_order_customer_fields,
     )
+    l_order_customer.staging_schema = "dv_stg"
+    l_order_customer.staging_table = (
+        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
+    )
+
     return l_order_customer
 
 
@@ -392,11 +411,14 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
 
 
 @pytest.fixture
-def hs_customer(process_configuration: Dict[str, str]) -> Satellite:
+def hs_customer(
+    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+) -> Satellite:
     """Define hs_customer test satellite.
 
     Args:
         process_configuration: Process configuration fixture value.
+        extract_start_timestamp: Timestamp fixture value.
 
     Returns:
         Deserialized satellite hs_customer.
@@ -498,6 +520,11 @@ def hs_customer(process_configuration: Dict[str, str]) -> Satellite:
         name="hs_customer",
         fields=hs_customer_fields,
     )
+    hs_customer.staging_schema = "dv_stg"
+    hs_customer.staging_table = (
+        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
+    )
+
     return hs_customer
 
 
@@ -737,22 +764,3 @@ def data_vault_load_with_role_playing(
     return DataVaultLoad(
         **data_vault_load_configuration, extract_start_timestamp=extract_start_timestamp
     )
-
-
-def clean_sql(sql: str) -> str:
-    """Canonalize an SQL string by removing extra spaces and comments.
-
-    Removed comments use the `/*comment*/` format.
-
-    This is suitable for comparing SQL scripts.
-
-    Args:
-        sql: SQL command to be cleaned.
-
-    Returns:
-        Clean SQL command.
-    """
-    _sql = COMMENT_REGEX.sub("", sql)
-    _sql = " ".join(_sql.split()).replace(";", "")
-
-    return _sql

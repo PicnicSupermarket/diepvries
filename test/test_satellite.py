@@ -5,11 +5,9 @@ from picnic.data_vault import FieldRole
 from picnic.data_vault.data_vault_load import DataVaultLoad
 from picnic.data_vault.satellite import Satellite
 
-from .conftest import clean_sql
-
 
 def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLoad):
-    """Assert correctness of SQL generated in Satellite class.
+    """Assert correctness of SQL generated in Effectivity Satellite class.
 
      (for ls_order_customer_eff - effectivity satellite)
 
@@ -31,9 +29,20 @@ def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLo
         test_path / "sql" / "expected_results_effectivity_satellite.sql"
     ).read_text()
 
-    assert clean_sql(expected_results) == clean_sql(
-        effectivity_satellite.sql_load_statement
-    )
+    assert expected_results == effectivity_satellite.sql_load_statement
+
+
+def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
+    """Assert correctness of SQL generated in Satellite class.
+    Args:
+        test_path: Test path fixture value.
+        hs_customer: Satellite fixture value.
+    """
+    expected_results = (
+        test_path / "sql" / "expected_results_satellite.sql"
+    ).read_text()
+
+    assert expected_results == hs_customer.sql_load_statement
 
 
 def test_set_field_roles(hs_customer: Satellite):
@@ -101,4 +110,4 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
         "'(\\\\|~~\\\\|)+$', '')) AS hs_customer_hashdiff"
     )
 
-    assert clean_sql(expected_sql) == clean_sql(satellite.hashdiff_sql)
+    assert expected_sql == satellite.hashdiff_sql

@@ -1,4 +1,5 @@
 """Unit test for Link."""
+from pathlib import Path
 
 from picnic.data_vault import FieldRole
 from picnic.data_vault.link import Link
@@ -54,3 +55,13 @@ def test_parent_hub_names(l_order_customer: Link):
     expected_parent_hub_names = ["h_order", "h_customer"]
     for parent_hub in l_order_customer.parent_hub_names:
         assert parent_hub in expected_parent_hub_names
+
+
+def test_link_load_sql(test_path: Path, l_order_customer: Link):
+    """Assert correctness of SQL generated in Link class.
+
+    Args:
+        l_order_customer: l_order_customer fixture value.
+    """
+    expected_results = (test_path / "sql" / "expected_results_link.sql").read_text()
+    assert expected_results == l_order_customer.sql_load_statement

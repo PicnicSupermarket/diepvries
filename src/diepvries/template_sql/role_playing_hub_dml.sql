@@ -6,4 +6,4 @@ MERGE INTO {target_schema}.{data_vault_table} AS hub
         GROUP BY {hashkey_field}
     ) AS staging ON ({business_key_condition})
     WHEN NOT MATCHED THEN INSERT ({parent_hashkey_field}, {parent_non_hashkey_fields})
-        VALUES (staging.{hashkey_field}, {staging_non_hashkey_fields})
+        VALUES (staging.{hashkey_field}, {staging_non_hashkey_fields});

@@ -1,9 +1,10 @@
 """Unit tests for Hub."""
 
+from pathlib import Path
+
 from picnic.data_vault import FieldRole
 from picnic.data_vault.hub import Hub
-
-from .conftest import clean_sql
+from picnic.data_vault.role_playing_hub import RolePlayingHub
 
 
 def test_set_field_roles(h_order: Hub):
@@ -27,10 +28,34 @@ def test_set_field_roles(h_order: Hub):
 
 
 def test_hashkey_sql(h_order: Hub):
-    """Assert correctness of SQL generated in Hub class.
+    """Assert correctness of hashkey in Hub class.
 
     Args:
         h_order: h_order fixture value.
     """
     expected_sql = """MD5(COALESCE(order_id, 'dv_unknown')) AS h_order_hashkey"""
-    assert clean_sql(expected_sql) == clean_sql(h_order.hashkey_sql)
+    assert expected_sql == h_order.hashkey_sql
+
+
+def test_hub_load_sql(test_path: Path, h_customer: Hub):
+    """Assert correctness of SQL generated in Hub class.
+
+    Args:
+        h_customer: h_customer fixture value.
+    """
+    expected_results = (test_path / "sql" / "expected_results_hub.sql").read_text()
+    assert expected_results == h_customer.sql_load_statement
+
+
+def test_role_playing_hub_load_sql(
+    test_path: Path, h_customer_test_role_playing: RolePlayingHub
+):
+    """Assert correctness of SQL generated in role playing Hub class.
+
+    Args:
+        h_customer_test_role_playing: Role playing hub fixture value.
+    """
+    expected_results = (
+        test_path / "sql" / "expected_results_role_playing_hub.sql"
+    ).read_text()
+    assert expected_results == h_customer_test_role_playing.sql_load_statement
