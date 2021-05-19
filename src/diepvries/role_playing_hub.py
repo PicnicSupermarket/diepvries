@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 from . import TEMPLATES_DIR, FieldRole
-from .data_vault_field import DataVaultField
+from .field import Field
 from .hub import Hub
 from .template_sql.sql_formulas import format_fields_for_select
 
@@ -23,7 +23,7 @@ class RolePlayingHub(Hub):
     views pointing to the main hub.
     """
 
-    def __init__(self, schema: str, name: str, fields: List[DataVaultField]):
+    def __init__(self, schema: str, name: str, fields: List[Field]):
         """Instantiate a role RolePlayingHub.
 
         Args:
@@ -41,8 +41,8 @@ class RolePlayingHub(Hub):
 
         These placeholders are used to format the RolePlayingHub loading query.
 
-        The results are joined with the results from super().sql_placeholders(), as most
-        placeholders calculated in DataVaultTable (parent class) are applicable in a
+        The results are joined with the results from super().sql_placeholders(),
+        as most placeholders calculated in Table (parent class) are applicable in a
         RolePlayingHub. The only placeholder that is calculated in the parent class
         and replaced in this method is data_vault_table, that points to the parent
         hub in this case.

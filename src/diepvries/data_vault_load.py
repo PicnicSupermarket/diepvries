@@ -8,8 +8,8 @@ from typing import List, Optional
 from pytz import timezone
 
 from . import METADATA_FIELDS, TEMPLATES_DIR, FieldRole, FixedPrefixLoggerAdapter
-from .data_vault_field import DataVaultField
-from .data_vault_table import DataVaultTable
+from .field import Field
+from .table import Table
 from .hub import Hub
 from .link import Link
 from .satellite import Satellite
@@ -33,7 +33,7 @@ class DataVaultLoad:
         staging_schema: str,
         staging_table: str,
         extract_start_timestamp: datetime,
-        target_tables: List[DataVaultTable],
+        target_tables: List[Table],
         source: Optional[str] = None,
     ):
         """Instantiate a DataVaultLoad object and calculate additional fields.
@@ -86,7 +86,7 @@ class DataVaultLoad:
         return f"{type(self).__name__}: staging_table={self.staging_table}"
 
     @property
-    def target_tables(self) -> List[DataVaultTable]:
+    def target_tables(self) -> List[Table]:
         """Get target tables.
 
         Returns:
@@ -95,7 +95,7 @@ class DataVaultLoad:
         return self._target_tables
 
     @target_tables.setter
-    def target_tables(self, target_tables: List[DataVaultTable]):
+    def target_tables(self, target_tables: List[Table]):
         """Set target tables.
 
         Perform the following actions:
@@ -239,9 +239,7 @@ class DataVaultLoad:
 
         return data_vault_sql
 
-    def _get_staging_dml_expression(
-        self, field: DataVaultField, table: DataVaultTable
-    ) -> str:
+    def _get_staging_dml_expression(self, field: Field, table: Table) -> str:
         """Get the SQL expression to represent a field in the staging table.
 
         Args:
@@ -271,8 +269,8 @@ class DataVaultLoad:
         return field.name_in_staging
 
     @lru_cache(1)
-    def _get_target_table(self, target_table_name: str) -> DataVaultTable:
-        """Get a DataVaultTable object from target tables.
+    def _get_target_table(self, target_table_name: str) -> Table:
+        """Get a Table object from target tables.
 
         Args:
             target_table_name: Name of the table to be returned.

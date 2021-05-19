@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 class FieldDataType(Enum):
-    """Possible data types for a DataVaultField.
+    """Possible data types for a Field.
 
     These data types are mapped directly from Snowflake root data types (the ones
     that are actually stored in Snowflake metadata views).

@@ -3,7 +3,7 @@
 from typing import List, Union
 
 from .. import END_OF_TIME, HASH_DELIMITER, METADATA_FIELDS, UNKNOWN
-from ..data_vault_field import DataVaultField
+from ..field import Field
 from ..driving_key_field import DrivingKeyField
 
 # Formula used to COALESCE each business key to be included in staging table SELECT
@@ -86,7 +86,7 @@ STAGING_PHYSICAL_NAME_SQL_TEMPLATE = "{staging_table}_{staging_table_suffix}"
 
 
 def format_fields_for_join(
-    fields: List[Union[DataVaultField, DrivingKeyField]],
+    fields: List[Union[Field, DrivingKeyField]],
     table_1_alias: str,
     table_2_alias: str,
 ) -> List[str]:
@@ -113,7 +113,7 @@ def format_fields_for_join(
 
 
 def format_fields_for_select(
-    fields: List[Union[DataVaultField, DrivingKeyField]], table_alias: str = None
+    fields: List[Union[Field, DrivingKeyField]], table_alias: str = None
 ) -> List[str]:
     """Get formatted list of field names for SQL SELECT statement.
 

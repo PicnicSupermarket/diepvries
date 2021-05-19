@@ -10,8 +10,8 @@ from typing import Dict, List, Type
 from snowflake.connector import DictCursor, connect
 
 from .. import TABLE_PREFIXES, FieldDataType, FixedPrefixLoggerAdapter, TableType
-from ..data_vault_field import DataVaultField
-from ..data_vault_table import DataVaultTable
+from ..field import Field
+from ..table import Table
 from ..driving_key_field import DrivingKeyField
 from ..effectivity_satellite import EffectivitySatellite
 from ..hub import Hub
@@ -36,9 +36,9 @@ class SnowflakeDeserializer:
     """Deserialize a Data Vault model, based on Snowflake system metadata tables.
 
     The deserialization process will consist in converting the list of target table
-    names to a list of DataVaultTable instances.
+    names to a list of Table instances.
 
-    Each DataVaultTable will have a list of DataVaultField instances (representing
+    Each Table will have a list of Field instances (representing
     database table columns).
     """
 
@@ -97,7 +97,7 @@ class SnowflakeDeserializer:
             f"target_tables={';'.join(self.target_tables)}"
         )
 
-    def _deserialize_table(self, target_table_name: str) -> DataVaultTable:
+    def _deserialize_table(self, target_table_name: str) -> Table:
         """Instantiate a DataVault table.
 
         Args:
@@ -143,7 +143,7 @@ class SnowflakeDeserializer:
 
     @property
     @lru_cache(1)
-    def _fields(self) -> Dict[str, List[DataVaultField]]:
+    def _fields(self) -> Dict[str, List[Field]]:
         """Deserialize all fields present in `self.target_tables`.
 
         This deserialization will be done using Snowflake's `SHOW COLUMNS` command.
@@ -188,7 +188,7 @@ class SnowflakeDeserializer:
                 data_type_properties = json.loads(field["data_type"])
 
                 fields[table_name].append(
-                    DataVaultField(
+                    Field(
                         parent_table_name=table_name,
                         name=field["column_name"].lower(),
                         data_type=FieldDataType(
@@ -209,7 +209,7 @@ class SnowflakeDeserializer:
 
         return fields
 
-    def _get_table_type(self, target_table_name: str) -> Type[DataVaultTable]:
+    def _get_table_type(self, target_table_name: str) -> Type[Table]:
         """Get the type (class) that should be used to instantiate a given target table.
 
         The type is calculated based on the table prefix.
@@ -243,12 +243,12 @@ class SnowflakeDeserializer:
             return Satellite
 
         raise RuntimeError(
-            f"'{target_table_name}' is not a valid name for a DataVaultTable "
+            f"'{target_table_name}' is not a valid name for a Table "
             f"(check allowed prefixes in TABLE_PREFIXES enum)"
         )
 
     @property
-    def deserialized_target_tables(self) -> List[DataVaultTable]:
+    def deserialized_target_tables(self) -> List[Table]:
         """Deserialize all target tables passed as argument during instance creation.
 
         Returns:

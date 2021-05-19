@@ -7,7 +7,7 @@ from typing import Dict
 
 import pytest
 from picnic.data_vault import FieldDataType
-from picnic.data_vault.data_vault_field import DataVaultField
+from picnic.data_vault.field import Field
 from picnic.data_vault.data_vault_load import DataVaultLoad
 from picnic.data_vault.driving_key_field import DrivingKeyField
 from picnic.data_vault.effectivity_satellite import EffectivitySatellite
@@ -76,7 +76,7 @@ def h_customer(
         Deserialized hub h_customer.
     """
     h_customer_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="h_customer",
             name="h_customer_hashkey",
             data_type=FieldDataType.TEXT,
@@ -84,21 +84,21 @@ def h_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer",
             name="customer_id",
             data_type=FieldDataType.TEXT,
@@ -136,7 +136,7 @@ def h_customer_test_role_playing(
         Deserialized role playing hub h_customer_test_role_playing.
     """
     h_customer_test_role_playing_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="h_customer_test_role_playing",
             name="h_customer_test_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
@@ -144,21 +144,21 @@ def h_customer_test_role_playing(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer_test_role_playing",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer_test_role_playing",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_customer_test_role_playing",
             name="customer_test_role_playing_id",
             data_type=FieldDataType.TEXT,
@@ -192,7 +192,7 @@ def h_order(process_configuration: Dict[str, str]) -> Hub:
         Deserialized hub h_order.
     """
     h_order_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="h_order",
             name="h_order_hashkey",
             data_type=FieldDataType.TEXT,
@@ -200,21 +200,21 @@ def h_order(process_configuration: Dict[str, str]) -> Hub:
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_order",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_order",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="h_order",
             name="order_id",
             data_type=FieldDataType.TEXT,
@@ -244,7 +244,7 @@ def l_order_customer(
         Deserialized link l_order_customer.
     """
     l_order_customer_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="l_order_customer_hashkey",
             data_type=FieldDataType.TEXT,
@@ -252,7 +252,7 @@ def l_order_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="h_order_hashkey",
             data_type=FieldDataType.TEXT,
@@ -260,7 +260,7 @@ def l_order_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="h_customer_hashkey",
             data_type=FieldDataType.TEXT,
@@ -268,42 +268,42 @@ def l_order_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="order_id",
             data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="customer_id",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="ck_test_string",
             data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="ck_test_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=7,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer",
             name="r_source",
             data_type=FieldDataType.TEXT,
@@ -335,7 +335,7 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
         Deserialized link l_order_customer_test_role_playing.
     """
     l_order_customer_test_role_playing_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="l_order_customer_test_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
@@ -343,7 +343,7 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="h_order_hashkey",
             data_type=FieldDataType.TEXT,
@@ -351,7 +351,7 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="h_customer_test_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
@@ -359,42 +359,42 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="order_id",
             data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="customer_test_role_playing_id",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="ck_test_string",
             data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="ck_test_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=7,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="l_order_customer_test_role_playing",
             name="r_source",
             data_type=FieldDataType.TEXT,
@@ -424,7 +424,7 @@ def hs_customer(
         Deserialized satellite hs_customer.
     """
     hs_customer_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="h_customer_hashkey",
             data_type=FieldDataType.TEXT,
@@ -432,7 +432,7 @@ def hs_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="s_hashdiff",
             data_type=FieldDataType.TEXT,
@@ -440,49 +440,49 @@ def hs_customer(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="r_timestamp_end",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="test_string",
             data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=False,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="test_date",
             data_type=FieldDataType.DATE,
             position=7,
             is_mandatory=False,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="test_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=False,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="test_integer",
             data_type=FieldDataType.NUMBER,
@@ -491,7 +491,7 @@ def hs_customer(
             precision=38,
             scale=0,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="test_decimal",
             data_type=FieldDataType.NUMBER,
@@ -500,14 +500,14 @@ def hs_customer(
             precision=18,
             scale=8,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="x_customer_id",
             data_type=FieldDataType.TEXT,
             position=11,
             is_mandatory=False,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="hs_customer",
             name="grouping_key",
             data_type=FieldDataType.TEXT,
@@ -541,7 +541,7 @@ def ls_order_customer_eff(
         Deserialized effectivity satellite ls_order_customer_eff.
     """
     ls_order_customer_eff_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="l_order_customer_hashkey",
             data_type=FieldDataType.TEXT,
@@ -549,7 +549,7 @@ def ls_order_customer_eff(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="s_hashdiff",
             data_type=FieldDataType.TEXT,
@@ -557,28 +557,28 @@ def ls_order_customer_eff(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="r_timestamp_end",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_eff",
             name="dummy_descriptive_field",
             data_type=FieldDataType.TEXT,
@@ -617,7 +617,7 @@ def ls_order_customer_test_role_playing_eff(
         Deserialized effectivity satellite ls_order_customer_test_role_playing_eff.
     """
     ls_order_customer_test_role_playing_eff_fields = [
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="l_order_customer_test_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
@@ -625,7 +625,7 @@ def ls_order_customer_test_role_playing_eff(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="s_hashdiff",
             data_type=FieldDataType.TEXT,
@@ -633,28 +633,28 @@ def ls_order_customer_test_role_playing_eff(
             is_mandatory=True,
             length=32,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="r_timestamp_end",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
-        DataVaultField(
+        Field(
             parent_table_name="ls_order_customer_test_role_playing_eff",
             name="dummy_descriptive_field",
             data_type=FieldDataType.TEXT,

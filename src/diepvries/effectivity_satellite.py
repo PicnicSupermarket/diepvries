@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 from . import TEMPLATES_DIR
-from .data_vault_field import DataVaultField
+from .field import Field
 from .driving_key_field import DrivingKeyField
 from .satellite import Satellite
 from .template_sql.sql_formulas import (
@@ -30,7 +30,7 @@ class EffectivitySatellite(Satellite):
         self,
         schema: str,
         name: str,
-        fields: List[DataVaultField],
+        fields: List[Field],
         driving_keys: List[DrivingKeyField],
         *args,
         **kwargs,

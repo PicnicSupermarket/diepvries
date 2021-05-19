@@ -12,7 +12,7 @@ from . import (
 )
 
 
-class DataVaultField:
+class Field:
     """A field in a Data Vault model."""
 
     def __init__(
@@ -26,7 +26,7 @@ class DataVaultField:
         scale: int = None,
         length: int = None,
     ):
-        """Instantiate a DataVaultField.
+        """Instantiate a Field.
 
         Convert both name and parent_table_name to lower case.
 
@@ -61,12 +61,12 @@ class DataVaultField:
         return self.name_in_staging == other.name_in_staging
 
     def __str__(self) -> str:
-        """Representation of a DataVaultField object as a string.
+        """Representation of a Field object as a string.
 
         This helps the tracking of logging events per entity.
 
         Returns:
-            String representation for the `DataVaultField` object.
+            String representation for the `Field` object.
         """
         return f"{type(self).__name__}: {self.name}"
 

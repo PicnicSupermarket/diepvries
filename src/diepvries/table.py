@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
-from .data_vault_field import DataVaultField
+from .field import Field
 from .template_sql.sql_formulas import (
     BUSINESS_KEY_SQL_TEMPLATE,
     CHILD_KEY_SQL_TEMPLATE,
@@ -15,30 +15,28 @@ from .template_sql.sql_formulas import (
 )
 
 
-class DataVaultTable(ABC):
+class Table(ABC):
     """A Data Vault table.
 
-    Abstract class DataVaultTable. It holds common properties between all subclasses:
+    Abstract class Table. It holds common properties between all subclasses:
     Hub, Link and Satellite.
     """
 
     _fields = None
 
-    def __init__(
-        self, schema: str, name: str, fields: List[DataVaultField], *_args, **_kwargs
-    ):
+    def __init__(self, schema: str, name: str, fields: List[Field], *_args, **_kwargs):
         """Instantiate a Data Vault table.
 
         Besides setting each __init__ argument as class attributes, it also performs
         the following actions:
-        - Calculate fields_by_name: dictionary with each DataVaultField as values and
-        its name as key;
-        - Calculate fields_by_role: dictionary with a list of DataVaultField as values
-        and its role as key;
-        - Check if table structure is valid: in this class, only generic checks
-        (applicable to all DataVaultTable subclasses). Each subclass will call
-        super()._validate before starting each specific test (only applicable
-        to instances of the subclass).
+        - Calculate fields_by_name: dictionary with each Field as values and its name
+          as key;
+        - Calculate fields_by_role: dictionary with a list of Field as values and its
+          role as key;
+        - Check if table structure is valid: in this class, only generic checks (
+          applicable to all Table subclasses). Each subclass will call ``super(
+          )._validate`` before starting each specific test (only applicable to instances
+          of the subclass).
 
         Args:
             schema: Data Vault schema name.
@@ -64,12 +62,12 @@ class DataVaultTable(ABC):
         self._logger.info("Instance of (%s) created", type(self))
 
     def __str__(self) -> str:
-        """Representation of a DataVaultTable object as a string.
+        """Representation of a Table object as a string.
 
         This helps the tracking of logging events per entity.
 
         Returns:
-            String representation of a DataVaultTable.
+            String representation of a Table.
         """
         return f"{type(self).__name__}: {self.schema}.{self.name}"
 
@@ -79,7 +77,7 @@ class DataVaultTable(ABC):
         """Get loading order."""
 
     @property
-    def fields(self) -> List[DataVaultField]:
+    def fields(self) -> List[Field]:
         """Get fields list for the current table.
 
         Returns:
@@ -88,7 +86,7 @@ class DataVaultTable(ABC):
         return self._fields
 
     @fields.setter
-    def fields(self, fields: List[DataVaultField]):
+    def fields(self, fields: List[Field]):
         """Set fields.
 
         Besides the setting of fields property, this method also sorts current table
@@ -104,7 +102,7 @@ class DataVaultTable(ABC):
 
     @property
     @lru_cache(1)
-    def fields_by_name(self) -> Dict[str, DataVaultField]:
+    def fields_by_name(self) -> Dict[str, Field]:
         """Get a dictionary of fields, indexed by their names.
 
         Returns:
@@ -119,7 +117,7 @@ class DataVaultTable(ABC):
 
     @property
     @lru_cache(1)
-    def fields_by_role(self) -> Dict[FieldRole, List[DataVaultField]]:
+    def fields_by_role(self) -> Dict[FieldRole, List[Field]]:
         """Get a dictionary of fields, indexed by their roles.
 
         See _fields_by_role_as_dict.
@@ -154,10 +152,10 @@ class DataVaultTable(ABC):
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
-        """Get common placeholders needed to generate SQL for this DataVaultTable.
+        """Get common placeholders needed to generate SQL for this Table.
 
         Returns:
-            Common placeholders to be used in all DataVaultTable SQL scripts.
+            Common placeholders to be used in all Table SQL scripts.
         """
         query_args = {
             "target_schema": self.schema,
@@ -173,7 +171,7 @@ class DataVaultTable(ABC):
     def _validate(self):
         """Validate table fields.
 
-        Perform the following checks (common to all DataVaultTable subclasses):
+        Perform the following checks (common to all Table subclasses):
         1. Table has one start_timestamp field - name defined in METADATA_FIELDS.
         2. Table has one source field - name defined in METADATA_FIELDS.
 

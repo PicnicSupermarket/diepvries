@@ -3,7 +3,7 @@
 from typing import Dict
 
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
-from .data_vault_table import DataVaultTable
+from .table import Table
 from .template_sql.sql_formulas import (
     BUSINESS_KEY_SQL_TEMPLATE,
     CHILD_KEY_SQL_TEMPLATE,
@@ -15,7 +15,7 @@ from .template_sql.sql_formulas import (
 )
 
 
-class Satellite(DataVaultTable):
+class Satellite(Table):
     """A Satellite.
 
     A Satellite is a Data Vault table that contains all properties of a link or a
@@ -179,7 +179,7 @@ class Satellite(DataVaultTable):
         These placeholders are used to format the Satellite loading query.
 
         The results are joined with the results from super().sql_placeholders(), as all
-        placeholders calculated in DataVaultTable (parent class) are applicable in a
+        placeholders calculated in Table (parent class) are applicable in a
         Satellite.
 
         Returns:

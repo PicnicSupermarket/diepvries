@@ -3,14 +3,14 @@
 from typing import Dict, List
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
-from .data_vault_table import DataVaultTable
+from .table import Table
 from .template_sql.sql_formulas import (
     FIELDS_AGGREGATION_SQL_TEMPLATE,
     format_fields_for_select,
 )
 
 
-class Link(DataVaultTable):
+class Link(Table):
     """A link."""
 
     @property
@@ -87,14 +87,13 @@ class Link(DataVaultTable):
     def sql_placeholders(self) -> Dict[str, str]:
         """Link specific SQL placeholders.
 
-        These placeholders are used to format the link loading query.
+        These placeholders are used to format the Link loading query.
 
         The results are joined with the results from super().sql_placeholders(), as all
-        placeholders calculated in DataVaultTable (parent class) are applicable in a
-        Satellite.
+        placeholders calculated in Table (parent class) are applicable in a Link.
 
         Returns:
-            Satellite specific SQL placeholders.
+            Link specific SQL placeholders.
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
