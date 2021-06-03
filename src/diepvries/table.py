@@ -29,14 +29,15 @@ class Table(ABC):
 
         Besides setting each __init__ argument as class attributes, it also performs
         the following actions:
+
         - Calculate fields_by_name: dictionary with each Field as values and its name
           as key;
         - Calculate fields_by_role: dictionary with a list of Field as values and its
           role as key;
-        - Check if table structure is valid: in this class, only generic checks (
-          applicable to all Table subclasses). Each subclass will call ``super(
-          )._validate`` before starting each specific test (only applicable to instances
-          of the subclass).
+        - Check if table structure is valid: in this class, only generic checks
+          (applicable to all Table subclasses). Each subclass will call
+          ``super()._validate`` before starting each specific test (only applicable to
+          instances of the subclass).
 
         Args:
             schema: Data Vault schema name.
