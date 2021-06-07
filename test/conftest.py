@@ -1,21 +1,19 @@
 """Pytest fixtures."""
 
-import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import pytest
 from picnic.data_vault import FieldDataType
-from picnic.data_vault.field import Field
 from picnic.data_vault.data_vault_load import DataVaultLoad
 from picnic.data_vault.driving_key_field import DrivingKeyField
 from picnic.data_vault.effectivity_satellite import EffectivitySatellite
+from picnic.data_vault.field import Field
 from picnic.data_vault.hub import Hub
 from picnic.data_vault.link import Link
 from picnic.data_vault.role_playing_hub import RolePlayingHub
 from picnic.data_vault.satellite import Satellite
-
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
 # trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't
@@ -60,6 +58,30 @@ def process_configuration() -> Dict[str, str]:
         "target_schema": "dv",
     }
     return config
+
+
+@pytest.fixture
+def ls_order_customer_eff_driving_keys() -> List[DrivingKeyField]:
+    """Build dictionary of driving keys, indexed by the satellite name."""
+    return [
+        DrivingKeyField(
+            name="h_customer_hashkey",
+            parent_table_name="l_order_customer",
+            satellite_name="ls_order_customer_eff",
+        )
+    ]
+
+
+@pytest.fixture
+def ls_order_customer_role_playing_eff_driving_keys() -> List[DrivingKeyField]:
+    """Build dictionary of driving keys, indexed by the satellite name."""
+    return [
+        DrivingKeyField(
+            name="h_customer_role_playing_hashkey",
+            parent_table_name="l_order_customer_role_playing",
+            satellite_name="ls_order_customer_role_playing_eff",
+        )
+    ]
 
 
 @pytest.fixture
@@ -120,12 +142,12 @@ def h_customer(
 
 
 @pytest.fixture
-def h_customer_test_role_playing(
+def h_customer_role_playing(
     process_configuration: Dict[str, str],
     h_customer: Hub,
     extract_start_timestamp: datetime,
 ) -> RolePlayingHub:
-    """Define h_customer_test_role_playing test hub.
+    """Define h_customer_role_playing test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
@@ -133,52 +155,52 @@ def h_customer_test_role_playing(
         extract_start_timestamp: Timestamp fixture value.
 
     Returns:
-        Deserialized role playing hub h_customer_test_role_playing.
+        Deserialized role playing hub h_customer_role_playing.
     """
-    h_customer_test_role_playing_fields = [
+    h_customer_role_playing_fields = [
         Field(
-            parent_table_name="h_customer_test_role_playing",
-            name="h_customer_test_role_playing_hashkey",
+            parent_table_name="h_customer_role_playing",
+            name="h_customer_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
             length=32,
         ),
         Field(
-            parent_table_name="h_customer_test_role_playing",
+            parent_table_name="h_customer_role_playing",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=2,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="h_customer_test_role_playing",
+            parent_table_name="h_customer_role_playing",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="h_customer_test_role_playing",
-            name="customer_test_role_playing_id",
+            parent_table_name="h_customer_role_playing",
+            name="customer_role_playing_id",
             data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
     ]
 
-    h_customer_test_role_playing = RolePlayingHub(
+    h_customer_role_playing = RolePlayingHub(
         schema=process_configuration["target_schema"],
-        name="h_customer_test_role_playing",
-        fields=h_customer_test_role_playing_fields,
+        name="h_customer_role_playing",
+        fields=h_customer_role_playing_fields,
     )
-    h_customer_test_role_playing.parent_table = h_customer
-    h_customer_test_role_playing.staging_schema = "dv_stg"
-    h_customer_test_role_playing.staging_table = (
+    h_customer_role_playing.parent_table = h_customer
+    h_customer_role_playing.staging_schema = "dv_stg"
+    h_customer_role_playing.staging_table = (
         f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
     )
 
-    return h_customer_test_role_playing
+    return h_customer_role_playing
 
 
 @pytest.fixture
@@ -325,26 +347,26 @@ def l_order_customer(
 
 
 @pytest.fixture
-def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) -> Link:
-    """Define l_order_customer_test_role_playing test link.
+def l_order_customer_role_playing(process_configuration: Dict[str, str]) -> Link:
+    """Define l_order_customer_role_playing test link.
 
     Args:
         process_configuration: Process configuration fixture value.
 
     Returns:
-        Deserialized link l_order_customer_test_role_playing.
+        Deserialized link l_order_customer_role_playing.
     """
-    l_order_customer_test_role_playing_fields = [
+    l_order_customer_role_playing_fields = [
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
-            name="l_order_customer_test_role_playing_hashkey",
+            parent_table_name="l_order_customer_role_playing",
+            name="l_order_customer_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
             length=32,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="h_order_hashkey",
             data_type=FieldDataType.TEXT,
             position=2,
@@ -352,62 +374,62 @@ def l_order_customer_test_role_playing(process_configuration: Dict[str, str]) ->
             length=32,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
-            name="h_customer_test_role_playing_hashkey",
+            parent_table_name="l_order_customer_role_playing",
+            name="h_customer_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
             position=3,
             is_mandatory=True,
             length=32,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="order_id",
             data_type=FieldDataType.TEXT,
             position=4,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
-            name="customer_test_role_playing_id",
+            parent_table_name="l_order_customer_role_playing",
+            name="customer_role_playing_id",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="ck_test_string",
             data_type=FieldDataType.TEXT,
             position=6,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="ck_test_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=7,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=8,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="l_order_customer_test_role_playing",
+            parent_table_name="l_order_customer_role_playing",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=9,
             is_mandatory=True,
         ),
     ]
-    l_order_customer_test_role_playing = Link(
+    l_order_customer_role_playing = Link(
         schema=process_configuration["target_schema"],
-        name="l_order_customer_test_role_playing",
-        fields=l_order_customer_test_role_playing_fields,
+        name="l_order_customer_role_playing",
+        fields=l_order_customer_role_playing_fields,
     )
-    return l_order_customer_test_role_playing
+    return l_order_customer_role_playing
 
 
 @pytest.fixture
@@ -530,12 +552,14 @@ def hs_customer(
 
 @pytest.fixture
 def ls_order_customer_eff(
-    process_configuration: Dict[str, str]
+    process_configuration: Dict[str, str],
+    ls_order_customer_eff_driving_keys,
 ) -> EffectivitySatellite:
     """Define ls_order_customer_eff test (effectivity) satellite.
 
     Args:
         process_configuration: Process configuration fixture value.
+        ls_order_customer_eff_driving_keys: Driving key for satellite.
 
     Returns:
         Deserialized effectivity satellite ls_order_customer_eff.
@@ -587,46 +611,40 @@ def ls_order_customer_eff(
         ),
     ]
 
-    driving_keys = [
-        DrivingKeyField(
-            name="h_customer_hashkey",
-            parent_table_name="l_order_customer",
-            satellite_name="ls_order_customer_eff",
-        )
-    ]
-
     ls_order_customer_eff = EffectivitySatellite(
         schema=process_configuration["target_schema"],
         name="ls_order_customer_eff",
         fields=ls_order_customer_eff_fields,
-        driving_keys=driving_keys,
+        driving_keys=ls_order_customer_eff_driving_keys,
     )
     return ls_order_customer_eff
 
 
 @pytest.fixture
-def ls_order_customer_test_role_playing_eff(
-    process_configuration: Dict[str, str]
+def ls_order_customer_role_playing_eff(
+    process_configuration: Dict[str, str],
+    ls_order_customer_role_playing_eff_driving_keys,
 ) -> EffectivitySatellite:
-    """Define ls_order_customer_test_role_playing_eff test (effectivity) satellite.
+    """Define ls_order_customer_role_playing_eff test (effectivity) satellite.
 
     Args:
         process_configuration: Process configuration fixture value.
+        ls_order_customer_role_playing_eff_driving_keys: Driving key for satellite.
 
     Returns:
-        Deserialized effectivity satellite ls_order_customer_test_role_playing_eff.
+        Deserialized effectivity satellite ls_order_customer_role_playing_eff.
     """
-    ls_order_customer_test_role_playing_eff_fields = [
+    ls_order_customer_role_playing_eff_fields = [
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
-            name="l_order_customer_test_role_playing_hashkey",
+            parent_table_name="ls_order_customer_role_playing_eff",
+            name="l_order_customer_role_playing_hashkey",
             data_type=FieldDataType.TEXT,
             position=1,
             is_mandatory=True,
             length=32,
         ),
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
+            parent_table_name="ls_order_customer_role_playing_eff",
             name="s_hashdiff",
             data_type=FieldDataType.TEXT,
             position=2,
@@ -634,28 +652,28 @@ def ls_order_customer_test_role_playing_eff(
             length=32,
         ),
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
+            parent_table_name="ls_order_customer_role_playing_eff",
             name="r_timestamp",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=3,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
+            parent_table_name="ls_order_customer_role_playing_eff",
             name="r_timestamp_end",
             data_type=FieldDataType.TIMESTAMP_NTZ,
             position=4,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
+            parent_table_name="ls_order_customer_role_playing_eff",
             name="r_source",
             data_type=FieldDataType.TEXT,
             position=5,
             is_mandatory=True,
         ),
         Field(
-            parent_table_name="ls_order_customer_test_role_playing_eff",
+            parent_table_name="ls_order_customer_role_playing_eff",
             name="dummy_descriptive_field",
             data_type=FieldDataType.TEXT,
             position=6,
@@ -663,21 +681,13 @@ def ls_order_customer_test_role_playing_eff(
         ),
     ]
 
-    driving_keys = [
-        DrivingKeyField(
-            name="h_customer_test_role_playing_hashkey",
-            parent_table_name="l_order_customer_test_role_playing",
-            satellite_name="ls_order_customer_test_role_playing_eff",
-        )
-    ]
-
-    ls_order_customer_test_role_playing_eff = EffectivitySatellite(
+    ls_order_customer_role_playing_eff = EffectivitySatellite(
         schema=process_configuration["target_schema"],
-        name="ls_order_customer_test_role_playing_eff",
-        fields=ls_order_customer_test_role_playing_eff_fields,
-        driving_keys=driving_keys,
+        name="ls_order_customer_role_playing_eff",
+        fields=ls_order_customer_role_playing_eff_fields,
+        driving_keys=ls_order_customer_role_playing_eff_driving_keys,
     )
-    return ls_order_customer_test_role_playing_eff
+    return ls_order_customer_role_playing_eff
 
 
 @pytest.fixture
@@ -728,30 +738,30 @@ def data_vault_load(
 def data_vault_load_with_role_playing(
     process_configuration: Dict[str, str],
     extract_start_timestamp: datetime,
-    h_customer_test_role_playing: Hub,
+    h_customer_role_playing: Hub,
     h_order: Hub,
-    l_order_customer_test_role_playing: Link,
-    ls_order_customer_test_role_playing_eff: EffectivitySatellite,
+    l_order_customer_role_playing: Link,
+    ls_order_customer_role_playing_eff: EffectivitySatellite,
 ) -> DataVaultLoad:
     """Define an instance of DataVaultLoad for a model with a role playing hub.
 
     Args:
         process_configuration: Process configuration fixture value.
         extract_start_timestamp: Extraction start timestamp fixture value.
-        h_customer_test_role_playing: Deserialized hub h_customer.
+        h_customer_role_playing: Deserialized hub h_customer.
         h_order: Deserialized hub h_order.
-        l_order_customer_test_role_playing: Deserialized link l_order_customer.
-        ls_order_customer_test_role_playing_eff: Deserialized effectivity satellite
+        l_order_customer_role_playing: Deserialized link l_order_customer.
+        ls_order_customer_role_playing_eff: Deserialized effectivity satellite
             ls_order_customer_eff.
 
     Returns:
         Instance of DataVaultLoad with role playing hub.
     """
     target_tables = [
-        h_customer_test_role_playing,
+        h_customer_role_playing,
         h_order,
-        l_order_customer_test_role_playing,
-        ls_order_customer_test_role_playing_eff,
+        l_order_customer_role_playing,
+        ls_order_customer_role_playing_eff,
     ]
     data_vault_load_configuration = {
         "extract_schema": process_configuration["extract_schema"],

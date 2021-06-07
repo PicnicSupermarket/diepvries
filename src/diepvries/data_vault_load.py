@@ -9,10 +9,10 @@ from pytz import timezone
 
 from . import METADATA_FIELDS, TEMPLATES_DIR, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .table import Table
 from .hub import Hub
 from .link import Link
 from .satellite import Satellite
+from .table import Table
 from .template_sql.sql_formulas import (
     ALIASED_BUSINESS_KEY_SQL_TEMPLATE,
     RECORD_START_TIMESTAMP_SQL_TEMPLATE,

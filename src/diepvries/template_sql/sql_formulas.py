@@ -3,8 +3,8 @@
 from typing import List, Union
 
 from .. import END_OF_TIME, HASH_DELIMITER, METADATA_FIELDS, UNKNOWN
-from ..field import Field
 from ..driving_key_field import DrivingKeyField
+from ..field import Field
 
 # Formula used to COALESCE each business key to be included in staging table SELECT
 # statement.

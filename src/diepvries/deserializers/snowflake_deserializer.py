@@ -10,15 +10,17 @@ from typing import Dict, List, Type
 from snowflake.connector import DictCursor, connect
 
 from .. import TABLE_PREFIXES, FieldDataType, FixedPrefixLoggerAdapter, TableType
-from ..field import Field
-from ..table import Table
 from ..driving_key_field import DrivingKeyField
 from ..effectivity_satellite import EffectivitySatellite
+from ..field import Field
 from ..hub import Hub
 from ..link import Link
 from ..role_playing_hub import RolePlayingHub
 from ..satellite import Satellite
+from ..table import Table
 from . import DESERIALIZERS_DIR
+
+METADATA_SQL_FILE_PATH = DESERIALIZERS_DIR / "snowflake_model_metadata.sql"
 
 
 @dataclass
@@ -41,8 +43,6 @@ class SnowflakeDeserializer:
     Each Table will have a list of Field instances (representing
     database table columns).
     """
-
-    _target_tables = None
 
     def __init__(
         self,
@@ -72,10 +72,10 @@ class SnowflakeDeserializer:
                 and the parent table as value.
         """
         self.target_schema = target_schema
-        self.target_tables = target_tables
+        self.target_tables = [table.lower() for table in target_tables]
         self.target_database = database_configuration.database
         self.driving_keys = driving_keys or []
-        self.role_playing_hubs = role_playing_hubs or []
+        self.role_playing_hubs = role_playing_hubs or {}
 
         # Create Snowflake database connection.
         self.database_connection = connect(**asdict(database_configuration))
@@ -156,12 +156,8 @@ class SnowflakeDeserializer:
         else:
             tables = self.target_tables
 
-        model_metadata_sql = (
-            (DESERIALIZERS_DIR / "snowflake_model_metadata.sql")
-            .read_text()
-            .format(
-                target_database=self.target_database, target_schema=self.target_schema
-            )
+        model_metadata_sql = METADATA_SQL_FILE_PATH.read_text().format(
+            target_database=self.target_database, target_schema=self.target_schema
         )
         with self.database_connection.cursor(DictCursor) as cursor:
             # Get model properties from database metadata (for all tables in
@@ -225,10 +221,9 @@ class SnowflakeDeserializer:
                 prefix).
         """
         table_prefix = next(split_part for split_part in target_table_name.split("_"))
-        role_playing_hubs = self.role_playing_hubs or {}
         if (
             table_prefix in TABLE_PREFIXES[TableType.HUB]
-            and target_table_name in role_playing_hubs.keys()
+            and target_table_name in self.role_playing_hubs.keys()
         ):
             return RolePlayingHub
         if table_prefix in TABLE_PREFIXES[TableType.HUB]:
@@ -266,23 +261,3 @@ class SnowflakeDeserializer:
             rph.parent_table = self._deserialize_table(self.role_playing_hubs[rph.name])
 
         return deserialized_target_tables
-
-    @property
-    def target_tables(self) -> List[str]:
-        """List of target table names.
-
-        This is needed because we want to lower case the table names in property setter.
-
-        Returns:
-            List of target tables names to deserialize.
-        """
-        return self._target_tables
-
-    @target_tables.setter
-    def target_tables(self, target_tables: List[str]):
-        """Set target tables, lowering the case of their names.
-
-        Args:
-            target_tables: Target table names list.
-        """
-        self._target_tables = [table.lower() for table in target_tables]

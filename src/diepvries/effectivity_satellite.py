@@ -3,8 +3,8 @@
 from typing import Dict, List
 
 from . import TEMPLATES_DIR
-from .field import Field
 from .driving_key_field import DrivingKeyField
+from .field import Field
 from .satellite import Satellite
 from .template_sql.sql_formulas import (
     RECORD_END_TIMESTAMP_SQL_TEMPLATE,

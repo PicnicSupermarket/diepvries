@@ -41,21 +41,21 @@ def test_hub_load_sql(test_path: Path, h_customer: Hub):
     """Assert correctness of SQL generated in Hub class.
 
     Args:
+        test_path: Test path fixture value.
         h_customer: h_customer fixture value.
     """
     expected_results = (test_path / "sql" / "expected_results_hub.sql").read_text()
     assert expected_results == h_customer.sql_load_statement
 
 
-def test_role_playing_hub_load_sql(
-    test_path: Path, h_customer_test_role_playing: RolePlayingHub
-):
+def role_playing_hub_load_sql(test_path: Path, h_customer_role_playing: RolePlayingHub):
     """Assert correctness of SQL generated in role playing Hub class.
 
     Args:
-        h_customer_test_role_playing: Role playing hub fixture value.
+        test_path: Test path fixture value.
+        h_customer_role_playing: Role playing hub fixture value.
     """
     expected_results = (
         test_path / "sql" / "expected_results_role_playing_hub.sql"
     ).read_text()
-    assert expected_results == h_customer_test_role_playing.sql_load_statement
+    assert expected_results == h_customer_role_playing.sql_load_statement
