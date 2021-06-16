@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+venv/
+
+# Python packaging
+build/
+dist/
+src/diepvries.egg-info/
+
+# Misc
+*~

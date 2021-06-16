@@ -1,0 +1,7 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]~=6.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+tag_regex = "^diepvries/(?P<version>[0-9\\.]+)$"  # backslash needs to be escaped in TOML
+local_scheme = "no-local-version"
