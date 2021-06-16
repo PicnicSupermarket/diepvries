@@ -77,7 +77,7 @@ expects the following inputs:
    will create this table, suffixed by the extraction timestamp), but
    the input should always be the same, for the same DV model.
 
-6. **Target tables list**: list of :class:`picnic.data_vault.table.Table`,
+6. **Target tables list**: list of :class:`diepvries.table.Table`,
    representing all target tables to be populated in current Data
    Vault load.
 

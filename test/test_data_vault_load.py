@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from picnic.data_vault.data_vault_load import DataVaultLoad
+from diepvries.data_vault_load import DataVaultLoad
 
 
 def test_staging_table_sql(test_path: Path, data_vault_load: DataVaultLoad):
