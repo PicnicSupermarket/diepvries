@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 
-from picnic.data_vault import FieldDataType
-from picnic.data_vault.field import Field
-from picnic.data_vault.data_vault_load import DataVaultLoad
-from picnic.data_vault.hub import Hub
-from picnic.data_vault.satellite import Satellite
+from diepvries import FieldDataType
+from diepvries.field import Field
+from diepvries.data_vault_load import DataVaultLoad
+from diepvries.hub import Hub
+from diepvries.satellite import Satellite
 
 
 def prepare_sql():

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-from picnic.data_vault.data_vault_load import DataVaultLoad
-from picnic.data_vault.deserializers.snowflake_deserializer import (
+from diepvries.data_vault_load import DataVaultLoad
+from diepvries.deserializers.snowflake_deserializer import (
     DatabaseConfiguration,
     SnowflakeDeserializer,
 )

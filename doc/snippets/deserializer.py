@@ -1,4 +1,4 @@
-from picnic.data_vault.deserializers.snowflake_deserializer import (
+from diepvries.deserializers.snowflake_deserializer import (
     DatabaseConfiguration,
     SnowflakeDeserializer,
 )

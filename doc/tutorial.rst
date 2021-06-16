@@ -152,18 +152,18 @@ satellites.
 A few things are going on in this script:
 
 - We prepare a
-  :class:`~picnic.data_vault.deserializers.snowflake_deserializer.DatabaseConfiguration`
+  :class:`~diepvries.deserializers.snowflake_deserializer.DatabaseConfiguration`
   to hold the Snowflake parameters.
 
 - We instantiate a
-  :class:`~picnic.data_vault.deserializers.snowflake_deserializer.SnowflakeDeserializer`. This
+  :class:`~diepvries.deserializers.snowflake_deserializer.SnowflakeDeserializer`. This
   object will deserialize the given tables into Python objects,
   through Snowflake introspection. We gave as a parameter the list of
   target tables we're interested in, the 2 hubs and the 2 hub
   satellites.
 
 - We instantiate a
-  :class:`~picnic.data_vault.data_vault_load.DataVaultLoad`. This is
+  :class:`~diepvries.data_vault_load.DataVaultLoad`. This is
   the main entry point to the framework. Let's look at its parameters:
 
   - ``extract_schema``: The schema where the raw data lives,

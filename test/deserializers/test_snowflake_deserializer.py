@@ -5,15 +5,15 @@ from unittest import mock
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
-from picnic.data_vault.deserializers.snowflake_deserializer import SnowflakeDeserializer
-from picnic.data_vault.driving_key_field import DrivingKeyField
-from picnic.data_vault.effectivity_satellite import EffectivitySatellite
-from picnic.data_vault.field import Field
-from picnic.data_vault.hub import Hub
-from picnic.data_vault.link import Link
-from picnic.data_vault.role_playing_hub import RolePlayingHub
-from picnic.data_vault.satellite import Satellite
-from picnic.data_vault.table import Table
+from diepvries.deserializers.snowflake_deserializer import SnowflakeDeserializer
+from diepvries.driving_key_field import DrivingKeyField
+from diepvries.effectivity_satellite import EffectivitySatellite
+from diepvries.field import Field
+from diepvries.hub import Hub
+from diepvries.link import Link
+from diepvries.role_playing_hub import RolePlayingHub
+from diepvries.satellite import Satellite
+from diepvries.table import Table
 from snowflake.connector.cursor import SnowflakeCursor
 
 # pylint: disable=protected-access

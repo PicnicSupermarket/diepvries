@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from picnic.data_vault import FieldRole
-from picnic.data_vault.hub import Hub
-from picnic.data_vault.role_playing_hub import RolePlayingHub
+from diepvries import FieldRole
+from diepvries.hub import Hub
+from diepvries.role_playing_hub import RolePlayingHub
 
 
 def test_set_field_roles(h_order: Hub):

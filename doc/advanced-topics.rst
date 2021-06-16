@@ -7,9 +7,9 @@ Using the Snowflake deserializer
 ``diepvries`` is bundled with a deserializer: it is able to extract
 metadata from Snowflake in order to automatically instantiate Data
 Vault entities. As long as tables follow the naming conventions,
-:class:`~picnic.data_vault.hub.Hub`,
-:class:`~picnic.data_vault.satellite.Satellite` and
-:class:`~picnic.data_vault.link.Link` objects can be created
+:class:`~diepvries.hub.Hub`,
+:class:`~diepvries.satellite.Satellite` and
+:class:`~diepvries.link.Link` objects can be created
 automatically.
 
 
@@ -27,8 +27,8 @@ Here's how to use the deserializer:
 
     % python3 deserializer.py
     [
-      <picnic.data_vault.hub.Hub object at 0x7fbe3cc5baf0>,
-      <picnic.data_vault.satellite.Satellite object at 0x7fbe3cc5be20>
+      <diepvries.hub.Hub object at 0x7fbe3cc5baf0>,
+      <diepvries.satellite.Satellite object at 0x7fbe3cc5be20>
     ]
     ['h_customer', 'hs_customer']
 
@@ -74,9 +74,9 @@ supports them:
 
     % python3 rph_deserializer.py
     [
-      <picnic.data_vault.hub.Hub object at 0x7fb83c455250>,
-      <picnic.data_vault.role_playing_hub.RolePlayingHub object at 0x7fb83e7ae700>,
-      <picnic.data_vault.role_playing_hub.RolePlayingHub object at 0x7fb83e7ae640>
+      <diepvries.hub.Hub object at 0x7fb83c455250>,
+      <diepvries.role_playing_hub.RolePlayingHub object at 0x7fb83e7ae700>,
+      <diepvries.role_playing_hub.RolePlayingHub object at 0x7fb83e7ae640>
     ]
     ['h_account', 'h_account_supplier', 'h_account_transporter']
 
@@ -105,8 +105,8 @@ This is also supported by ``diepvries``:
 
     % python3 effsat_deserializer.py
     [
-      <picnic.data_vault.link.Link object at 0x7fd64db22520>,
-      <picnic.data_vault.effectivity_satellite.EffectivitySatellite object at 0x7fd64db22ac0>
+      <diepvries.link.Link object at 0x7fd64db22520>,
+      <diepvries.effectivity_satellite.EffectivitySatellite object at 0x7fd64db22ac0>
     ]
     ['l_foo_bar', 'ls_foo_bar_eff']
 

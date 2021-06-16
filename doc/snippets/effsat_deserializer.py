@@ -1,5 +1,5 @@
-from picnic.data_vault.driving_key_field import DrivingKeyField
-from picnic.data_vault.deserializers.snowflake_deserializer import (
+from diepvries.driving_key_field import DrivingKeyField
+from diepvries.deserializers.snowflake_deserializer import (
     DatabaseConfiguration,
     SnowflakeDeserializer,
 )

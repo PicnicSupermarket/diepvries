@@ -5,15 +5,15 @@ from pathlib import Path
 from typing import Dict, List
 
 import pytest
-from picnic.data_vault import FieldDataType
-from picnic.data_vault.data_vault_load import DataVaultLoad
-from picnic.data_vault.driving_key_field import DrivingKeyField
-from picnic.data_vault.effectivity_satellite import EffectivitySatellite
-from picnic.data_vault.field import Field
-from picnic.data_vault.hub import Hub
-from picnic.data_vault.link import Link
-from picnic.data_vault.role_playing_hub import RolePlayingHub
-from picnic.data_vault.satellite import Satellite
+from diepvries import FieldDataType
+from diepvries.data_vault_load import DataVaultLoad
+from diepvries.driving_key_field import DrivingKeyField
+from diepvries.effectivity_satellite import EffectivitySatellite
+from diepvries.field import Field
+from diepvries.hub import Hub
+from diepvries.link import Link
+from diepvries.role_playing_hub import RolePlayingHub
+from diepvries.satellite import Satellite
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
 # trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't

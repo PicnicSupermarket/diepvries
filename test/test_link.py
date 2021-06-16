@@ -1,8 +1,8 @@
 """Unit test for Link."""
 from pathlib import Path
 
-from picnic.data_vault import FieldRole
-from picnic.data_vault.link import Link
+from diepvries import FieldRole
+from diepvries.link import Link
 
 
 def test_set_field_roles(l_order_customer: Link):

@@ -1,9 +1,9 @@
 """Unit test for Satellite."""
 from pathlib import Path
 
-from picnic.data_vault import FieldRole
-from picnic.data_vault.data_vault_load import DataVaultLoad
-from picnic.data_vault.satellite import Satellite
+from diepvries import FieldRole
+from diepvries.data_vault_load import DataVaultLoad
+from diepvries.satellite import Satellite
 
 
 def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLoad):

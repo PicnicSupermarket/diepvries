@@ -7,18 +7,18 @@ from unittest import mock
 from unittest.mock import Mock
 
 import pytest
-from picnic.data_vault.deserializers.snowflake_deserializer import (
+from diepvries.deserializers.snowflake_deserializer import (
     METADATA_SQL_FILE_PATH,
     DatabaseConfiguration,
     SnowflakeDeserializer,
 )
-from picnic.data_vault.driving_key_field import DrivingKeyField
-from picnic.data_vault.effectivity_satellite import EffectivitySatellite
-from picnic.data_vault.field import Field
-from picnic.data_vault.hub import Hub
-from picnic.data_vault.link import Link
-from picnic.data_vault.role_playing_hub import RolePlayingHub
-from picnic.data_vault.satellite import Satellite
+from diepvries.driving_key_field import DrivingKeyField
+from diepvries.effectivity_satellite import EffectivitySatellite
+from diepvries.field import Field
+from diepvries.hub import Hub
+from diepvries.link import Link
+from diepvries.role_playing_hub import RolePlayingHub
+from diepvries.satellite import Satellite
 from snowflake.connector import SnowflakeConnection
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
@@ -150,7 +150,7 @@ def snowflake_deserializer(
     `connect` method from the Snowflake connector is mocked.
     """
     with mock.patch(
-        "picnic.data_vault.deserializers.snowflake_deserializer.connect",
+        "diepvries.deserializers.snowflake_deserializer.connect",
         return_value=Mock(SnowflakeConnection),
     ):
         yield SnowflakeDeserializer(
