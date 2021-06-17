@@ -60,8 +60,8 @@ class Satellite(Table):
             self.fields_by_name[METADATA_FIELDS["record_end_timestamp"]]
         except KeyError as e:
             raise KeyError(
-                f"'{self.name}': No field named '{METADATA_FIELDS['record_end_timestamp']}' "
-                f"found"
+                f"'{self.name}': No field named "
+                f"'{METADATA_FIELDS['record_end_timestamp']}' found"
             ) from e
 
         hashdiff_name = f"s_{FIELD_SUFFIX[FieldRole.HASHDIFF]}"
