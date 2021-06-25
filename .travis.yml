@@ -10,3 +10,13 @@ matrix:
       python: 3.8
     - env: TOXENV=py39,lint
       python: 3.9
+
+deploy:
+  fqdn: diepvries.picnic.tech
+  local_dir: doc/html
+  provider: pages
+  skip_cleanup: true
+  github_token: ${DEPLOY_GITHUB_TOKEN}
+  keep_history: true
+  on:
+    branch: matthieucan/doc-website
