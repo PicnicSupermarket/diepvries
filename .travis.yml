@@ -8,7 +8,7 @@ matrix:
   include:
     - env: TOXENV=py38,lint
       python: 3.8
-    - env: TOXENV=py39,lint,doc
+    - env: TOXENV=py39,lint,doc DEPLOY=true
       python: 3.9
 
 deploy:
@@ -20,3 +20,4 @@ deploy:
   keep_history: true
   on:
     branch: matthieucan/doc-website
+    condition: ${DEPLOY} = true
