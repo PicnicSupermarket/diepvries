@@ -19,5 +19,5 @@ deploy:
   github_token: ${DEPLOY_GITHUB_TOKEN}
   keep_history: true
   on:
-    branch: matthieucan/doc-website
+    tags: true
     condition: ${DEPLOY} = true
