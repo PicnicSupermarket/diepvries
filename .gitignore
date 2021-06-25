@@ -16,4 +16,5 @@ src/diepvries.egg-info/
 
 
 # Generated documentation
-doc/
+doc/api/
+doc/html/
