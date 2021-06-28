@@ -13,3 +13,7 @@ src/diepvries.egg-info/
 # Misc
 *~
 .idea/
+
+# Generated documentation
+doc/api/
+doc/html/
