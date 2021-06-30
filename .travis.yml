@@ -25,6 +25,6 @@ deploy:
   - provider: script
     script: tox -e build -e upload
     on:
-      branch: matthieucan/deploy-on-tag
+      branch: master
       tags: true
       condition: ${DEPLOY} = true
