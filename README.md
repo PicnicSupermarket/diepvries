@@ -10,21 +10,21 @@ Welcome to `diepvries`, a Python library to generate
 
 ## What does it do?
 
-`diepvries` takes as input a Data Vault model (a list of hubs, links and satellites),
+`diepvries` takes as input a Data Vault model (a list of hubs, links and satellites tables),
 and generates SQL statements to load data in those tables. For that purpose, it relies
 on naming conventions for tables and columns. There are 2 ways to feed a Data Vault
 model to `diepvries`:
 
 - Either declaratively, by enumerating tables and columns;
-- Or automatically, by building those structures using the database metadata.
+- Or automatically, by building these structures using the database metadata.
 
 At the moment, `diepvries` is only compatible with
 [Snowflake](https://www.snowflake.com/).
 
 ## Getting started
 
-`diepvries` is distributed as a Python wheel on Pypi. In a virtual environment, you can
-grab the latest version by running
+`diepvries` is distributed as a Python wheel on PyPI. In a virtual environment, you can
+grab the latest version by running:
 
 ```shell
 pip install diepvries

@@ -64,7 +64,7 @@ to install this library as a development package.
 
 In this environment, you can now run any script using this framework.
 
-To run the test suite and the linters, the easiest is to install tox:
+ The easiest way to run the test suite and the linters is to install **tox**:
 
 ```shell
 pip install -U tox
