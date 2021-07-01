@@ -32,7 +32,7 @@ Pull Requests fall into 2 categories:
   you to discuss this with us beforehand. To do so, simply create a new Issue with all
   the relevant information and rationale. It's better to discuss big changes beforehand,
   to give everyone the opportunity to participate to the conversation, reach agreements
-  for how things should be done, and avoid you work that might end up being rejected.
+  for how things should be done, and avoid work that might end up being rejected.
 
 When you open a Pull Request, the build script will ensure Python style guidelines are
 followed. You can look at our various linter configurations for more details, but in a
@@ -50,8 +50,8 @@ In order to develop this framework locally, start by creating a virtual environm
 can use your favourite tool, or:
 
 ```shell
-python3 -n venv VENV
-source VENV/bin/activate
+python3 -m venv ../diepvries-venv
+source ../diepvries-venv/bin/activate
 ```
 
 Once your virtual environment is active, run:
@@ -64,10 +64,16 @@ to install this library as a development package.
 
 In this environment, you can now run any script using this framework.
 
-Last but not least, this is how you can run the tests suite:
+ The easiest way to run the test suite and the linters is to install **tox**:
 
 ```shell
-pytest
+pip install -U tox
+```
+
+And then run everything with:
+
+```shell
+tox
 ```
 
 If you have any question or doubt, don't hesitate to open an Issue, we're happy to help!
