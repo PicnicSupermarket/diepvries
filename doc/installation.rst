@@ -1,11 +1,11 @@
 Installation
 ============
 
-Diepvries is a Python library with very few dependencies, packaged
+``diepvries`` is a Python library with very few dependencies, packaged
 with `pip`. The recommended way to install it is through a Python
-wheel, by pointing your dependency manager to diepvries.
+wheel, by pointing your dependency manager to ``diepvries``.
 
-Diepvries releases are versioned according to `Semantic versioning
+``diepvries`` releases are versioned according to `Semantic versioning
 <https://semver.org/>`_. This means you can use the compatibility
 operator when specifying the version you want to use.
 
@@ -33,7 +33,7 @@ Installation with bare pip
 Installing a development version
 --------------------------------
 
-This installation method should be used when developing on Diepvries,
+This installation method should be used when developing on `diepvries``,
 not for regular use.
 
 .. code-block:: shell
