@@ -60,7 +60,7 @@ hub.
 
 .. topic:: Example
 
-   A hub satellite for customers address details would be named:
+   A hub satellite for customers' address details would be named:
    ``hs_customer_address_details``.
 
 Link satellites are prefixed with ``ls_`` and are named after the link
