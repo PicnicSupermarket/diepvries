@@ -1,7 +1,7 @@
 language: python
 
 install:
-  - apt install -y graphviz  # Needed for documentation schemas
+  - sudo apt install -y graphviz  # Needed for documentation schemas
   - pip install tox
 
 script: tox
