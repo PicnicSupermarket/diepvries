@@ -33,7 +33,7 @@ Installation with bare pip
 Installing a development version
 --------------------------------
 
-This installation method should be used when developing on `diepvries``,
+This installation method should be used when developing on ``diepvries``,
 not for regular use.
 
 .. code-block:: shell

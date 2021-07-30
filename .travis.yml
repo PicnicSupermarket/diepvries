@@ -1,6 +1,10 @@
+dist: focal
 language: python
 
-install: pip install tox
+install:
+  - sudo apt update
+  - sudo apt install -y graphviz  # Needed for documentation schemas
+  - pip install tox
 
 script: tox
 
