@@ -2,20 +2,15 @@ MERGE INTO dv.hs_customer AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT * FROM (
-            SELECT
-              staging.*,
-              ROW_NUMBER() OVER (PARTITION BY h_customer_hashkey ORDER BY r_source, hs_customer_hashdiff) = 1 AS _rank
-            FROM dv_stg.orders_20190806_000000 AS staging
-              CROSS JOIN (
-                           SELECT
-                             MAX(r_timestamp) AS max_r_timestamp
-                           FROM dv.hs_customer
-                         ) AS max_satellite_timestamp
-            WHERE staging.r_timestamp >=
-                  COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
-        )
-        WHERE _rank=1
+        SELECT
+          staging.*
+        FROM dv_stg.orders_20190806_000000 AS staging
+          CROSS JOIN (
+                       SELECT
+                         MAX(r_timestamp) AS max_r_timestamp
+                       FROM dv.hs_customer
+                     ) AS max_satellite_timestamp
+        WHERE staging.r_timestamp >= COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
       ),
       staging_satellite_affected_records AS (
         /* Records that will be inserted (don't exist in target table or exist
