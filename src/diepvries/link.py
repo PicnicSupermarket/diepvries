@@ -135,7 +135,9 @@ class Link(Table):
             SQL query to load target link.
         """
         sql_load_statement = (
-            (TEMPLATES_DIR / "hub_link_dml.sql").read_text().format(**self.sql_placeholders)
+            (TEMPLATES_DIR / "hub_link_dml.sql")
+            .read_text()
+            .format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for link (%s) generated.", self.name)
