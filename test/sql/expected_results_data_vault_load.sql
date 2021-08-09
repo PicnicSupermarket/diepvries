@@ -3,35 +3,38 @@ CREATE OR REPLACE TABLE dv_stg.orders_20190806_000000
   SELECT MD5(COALESCE(customer_id, 'dv_unknown')) AS h_customer_hashkey, CAST('2019-08-06T00:00:00.000000Z' AS TIMESTAMP) AS r_timestamp, 'test' AS r_source, COALESCE(customer_id, 'dv_unknown') AS customer_id, MD5(COALESCE(order_id, 'dv_unknown')) AS h_order_hashkey, COALESCE(order_id, 'dv_unknown') AS order_id, MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS VARCHAR), '')||'|~~|'||COALESCE(CAST(ck_test_timestamp AS VARCHAR), '')) AS l_order_customer_hashkey, ck_test_string, ck_test_timestamp, MD5(REGEXP_REPLACE(COALESCE(customer_id, 'dv_unknown')||'|~~|'||COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||COALESCE(CAST(test_date AS VARCHAR), '')||'|~~|'||COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||COALESCE(CAST(test_decimal AS VARCHAR), '')||'|~~|'||COALESCE(CAST(x_customer_id AS VARCHAR), '')||'|~~|'||COALESCE(CAST(grouping_key AS VARCHAR), ''), '(\\|~~\\|)+$', '')) AS hs_customer_hashdiff, test_string, test_date, test_timestamp, test_integer, test_decimal, x_customer_id, grouping_key, MD5(REGEXP_REPLACE(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS VARCHAR), '')||'|~~|'||COALESCE(CAST(ck_test_timestamp AS VARCHAR), '')||'|~~|'||COALESCE(CAST(dummy_descriptive_field AS VARCHAR), ''), '(\\|~~\\|)+$', '')) AS ls_order_customer_eff_hashdiff, dummy_descriptive_field
   FROM dv_extract.extract_orders;
 
-MERGE INTO dv.h_customer AS hub
-    USING (
-        SELECT h_customer_hashkey,
-               MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source,MIN(customer_id) AS customer_id
+MERGE INTO dv.h_customer AS target
+  USING (
+        SELECT
+          h_customer_hashkey,
+          MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source,MIN(customer_id) AS customer_id
         FROM dv_stg.orders_20190806_000000
         GROUP BY h_customer_hashkey
-    ) AS staging ON (hub.customer_id = staging.customer_id)
-    WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp,r_source,customer_id)
-        VALUES (staging.h_customer_hashkey, staging.r_timestamp,staging.r_source,staging.customer_id);
+        ) AS staging ON (target.h_customer_hashkey = staging.h_customer_hashkey)
+  WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp,r_source,customer_id)
+    VALUES (staging.h_customer_hashkey, staging.r_timestamp,staging.r_source,staging.customer_id);
 
-MERGE INTO dv.h_order AS hub
-    USING (
-        SELECT h_order_hashkey,
-               MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source,MIN(order_id) AS order_id
+MERGE INTO dv.h_order AS target
+  USING (
+        SELECT
+          h_order_hashkey,
+          MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source,MIN(order_id) AS order_id
         FROM dv_stg.orders_20190806_000000
         GROUP BY h_order_hashkey
-    ) AS staging ON (hub.order_id = staging.order_id)
-    WHEN NOT MATCHED THEN INSERT (h_order_hashkey, r_timestamp,r_source,order_id)
-        VALUES (staging.h_order_hashkey, staging.r_timestamp,staging.r_source,staging.order_id);
+        ) AS staging ON (target.h_order_hashkey = staging.h_order_hashkey)
+  WHEN NOT MATCHED THEN INSERT (h_order_hashkey, r_timestamp,r_source,order_id)
+    VALUES (staging.h_order_hashkey, staging.r_timestamp,staging.r_source,staging.order_id);
 
-MERGE INTO dv.l_order_customer AS link
-    USING (
-        SELECT l_order_customer_hashkey,
-               MIN(h_order_hashkey) AS h_order_hashkey,MIN(h_customer_hashkey) AS h_customer_hashkey,MIN(order_id) AS order_id,MIN(customer_id) AS customer_id,MIN(ck_test_string) AS ck_test_string,MIN(ck_test_timestamp) AS ck_test_timestamp,MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source
+MERGE INTO dv.l_order_customer AS target
+  USING (
+        SELECT
+          l_order_customer_hashkey,
+          MIN(h_order_hashkey) AS h_order_hashkey,MIN(h_customer_hashkey) AS h_customer_hashkey,MIN(order_id) AS order_id,MIN(customer_id) AS customer_id,MIN(ck_test_string) AS ck_test_string,MIN(ck_test_timestamp) AS ck_test_timestamp,MIN(r_timestamp) AS r_timestamp,MIN(r_source) AS r_source
         FROM dv_stg.orders_20190806_000000
         GROUP BY l_order_customer_hashkey
-    ) AS staging ON (link.l_order_customer_hashkey = staging.l_order_customer_hashkey)
-    WHEN NOT MATCHED THEN INSERT (l_order_customer_hashkey, h_order_hashkey,h_customer_hashkey,order_id,customer_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source)
-        VALUES (staging.l_order_customer_hashkey, staging.h_order_hashkey,staging.h_customer_hashkey,staging.order_id,staging.customer_id,staging.ck_test_string,staging.ck_test_timestamp,staging.r_timestamp,staging.r_source);
+        ) AS staging ON (target.l_order_customer_hashkey = staging.l_order_customer_hashkey)
+  WHEN NOT MATCHED THEN INSERT (l_order_customer_hashkey, h_order_hashkey,h_customer_hashkey,order_id,customer_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source)
+    VALUES (staging.l_order_customer_hashkey, staging.h_order_hashkey,staging.h_customer_hashkey,staging.order_id,staging.customer_id,staging.ck_test_string,staging.ck_test_timestamp,staging.r_timestamp,staging.r_source);
 
 MERGE INTO dv.hs_customer AS satellite
   USING (
