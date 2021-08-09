@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import pytest
+
 from diepvries import FieldDataType
 from diepvries.data_vault_load import DataVaultLoad
 from diepvries.driving_key_field import DrivingKeyField
@@ -553,7 +554,7 @@ def hs_customer(
 @pytest.fixture
 def ls_order_customer_eff(
     process_configuration: Dict[str, str],
-    ls_order_customer_eff_driving_keys,
+    ls_order_customer_eff_driving_keys: List[DrivingKeyField],
 ) -> EffectivitySatellite:
     """Define ls_order_customer_eff test (effectivity) satellite.
 
@@ -623,7 +624,7 @@ def ls_order_customer_eff(
 @pytest.fixture
 def ls_order_customer_role_playing_eff(
     process_configuration: Dict[str, str],
-    ls_order_customer_role_playing_eff_driving_keys,
+    ls_order_customer_role_playing_eff_driving_keys: List[DrivingKeyField],
 ) -> EffectivitySatellite:
     """Define ls_order_customer_role_playing_eff test (effectivity) satellite.
 
