@@ -97,8 +97,6 @@ class Link(Table):
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        hashkey_condition = f"link.{hashkey.name} = staging.{hashkey.name}"
-
         non_hashkey_fields = [
             field for field in self.fields if field.role != FieldRole.HASHKEY
         ]
@@ -108,19 +106,19 @@ class Link(Table):
                 for field in format_fields_for_select(fields=non_hashkey_fields)
             ]
         )
-        link_non_hashkey_fields = ",".join(
+        target_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields)
         )
-        staging_non_hashkey_fields = ",".join(
+        source_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields, table_alias="staging")
         )
 
         sql_placeholders = {
-            "hashkey_field": hashkey.name,
-            "non_hashkey_fields": link_non_hashkey_fields,
+            "source_hashkey_field": hashkey.name,
+            "target_hashkey_field": hashkey.name,
+            "source_non_hashkey_fields": source_non_hashkey_fields,
+            "target_non_hashkey_fields": target_non_hashkey_fields,
             "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
-            "hashkey_condition": hashkey_condition,
-            "staging_non_hashkey_fields": staging_non_hashkey_fields,
         }
         sql_placeholders.update(super().sql_placeholders)
 
@@ -131,13 +129,13 @@ class Link(Table):
         """Get the SQL query to populate current link.
 
         All needed placeholders are calculated, in order to match template SQL
-        (check template_sql.link_dml.sql).
+        (check template_sql.hub_link_dml.sql).
 
         Returns:
             SQL query to load target link.
         """
         sql_load_statement = (
-            (TEMPLATES_DIR / "link_dml.sql").read_text().format(**self.sql_placeholders)
+            (TEMPLATES_DIR / "hub_link_dml.sql").read_text().format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for link (%s) generated.", self.name)
