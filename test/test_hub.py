@@ -48,7 +48,7 @@ def test_hub_load_sql(test_path: Path, h_customer: Hub):
     assert expected_results == h_customer.sql_load_statement
 
 
-def role_playing_hub_load_sql(test_path: Path, h_customer_role_playing: RolePlayingHub):
+def test_role_playing_hub_load_sql(test_path: Path, h_customer_role_playing: RolePlayingHub):
     """Assert correctness of SQL generated in role playing Hub class.
 
     Args:
