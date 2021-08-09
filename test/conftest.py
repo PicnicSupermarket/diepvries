@@ -695,10 +695,13 @@ def data_vault_load(
     process_configuration: Dict[str, str],
     extract_start_timestamp: datetime,
     h_customer: Hub,
+    h_customer_role_playing: RolePlayingHub,
     h_order: Hub,
     l_order_customer: Link,
+    l_order_customer_role_playing: Link,
     hs_customer: Satellite,
     ls_order_customer_eff: EffectivitySatellite,
+    ls_order_customer_role_playing_eff: EffectivitySatellite,
 ) -> DataVaultLoad:
     """Define an instance of DataVaultLoad that includes all test tables.
 
@@ -706,61 +709,26 @@ def data_vault_load(
         process_configuration: Process configuration fixture value.
         extract_start_timestamp: Extraction start timestamp fixture value.
         h_customer: Deserialized hub h_customer.
+        h_customer_role_playing: Deserialized hub h_customer_role_playing.
         h_order: Deserialized hub h_order.
         l_order_customer: Deserialized link l_order_customer.
+        l_order_customer_role_playing: Deserialized link l_order_customer_role_playing.
         hs_customer: Deserialized satellite hs_customer.
         ls_order_customer_eff: Deserialized effectivity satellite ls_order_customer_eff.
+        ls_order_customer_role_playing_eff: Deserialized effectivity satellite
+            ls_order_customer_role_playing_eff.
 
     Returns:
         Instance of DataVaultLoad suitable for testing.
     """
     target_tables = [
         h_customer,
-        h_order,
-        l_order_customer,
-        hs_customer,
-        ls_order_customer_eff,
-    ]
-    data_vault_load_configuration = {
-        "extract_schema": process_configuration["extract_schema"],
-        "extract_table": process_configuration["extract_table"],
-        "staging_schema": process_configuration["staging_schema"],
-        "staging_table": process_configuration["staging_table"],
-        "target_tables": target_tables,
-        "source": process_configuration["source"],
-    }
-    return DataVaultLoad(
-        **data_vault_load_configuration, extract_start_timestamp=extract_start_timestamp
-    )
-
-
-@pytest.fixture
-def data_vault_load_with_role_playing(
-    process_configuration: Dict[str, str],
-    extract_start_timestamp: datetime,
-    h_customer_role_playing: Hub,
-    h_order: Hub,
-    l_order_customer_role_playing: Link,
-    ls_order_customer_role_playing_eff: EffectivitySatellite,
-) -> DataVaultLoad:
-    """Define an instance of DataVaultLoad for a model with a role playing hub.
-
-    Args:
-        process_configuration: Process configuration fixture value.
-        extract_start_timestamp: Extraction start timestamp fixture value.
-        h_customer_role_playing: Deserialized hub h_customer.
-        h_order: Deserialized hub h_order.
-        l_order_customer_role_playing: Deserialized link l_order_customer.
-        ls_order_customer_role_playing_eff: Deserialized effectivity satellite
-            ls_order_customer_eff.
-
-    Returns:
-        Instance of DataVaultLoad with role playing hub.
-    """
-    target_tables = [
         h_customer_role_playing,
         h_order,
+        l_order_customer,
         l_order_customer_role_playing,
+        hs_customer,
+        ls_order_customer_eff,
         ls_order_customer_role_playing_eff,
     ]
     data_vault_load_configuration = {
