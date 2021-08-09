@@ -1,4 +1,4 @@
-MERGE INTO {target_schema}.{data_vault_table} AS satellite
+MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
     WITH
       filtered_staging AS (
@@ -8,7 +8,7 @@ MERGE INTO {target_schema}.{data_vault_table} AS satellite
           CROSS JOIN (
                        SELECT
                          MAX({record_start_timestamp}) AS max_r_timestamp
-                       FROM {target_schema}.{data_vault_table}
+                       FROM {target_schema}.{target_table}
                      ) AS max_satellite_timestamp
         WHERE staging.{record_start_timestamp} >= COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
       ),
@@ -24,7 +24,7 @@ MERGE INTO {target_schema}.{data_vault_table} AS satellite
           staging.{record_source}
           {staging_descriptive_fields}
         FROM filtered_staging AS staging
-          LEFT OUTER JOIN {target_schema}.{data_vault_table} AS satellite
+          LEFT OUTER JOIN {target_schema}.{target_table} AS satellite
                           ON (staging.{hashkey_field} = satellite.{hashkey_field}
                               AND satellite.{record_end_timestamp_name} = {end_of_time})
         WHERE satellite.{hashkey_field} IS NULL
@@ -40,7 +40,7 @@ MERGE INTO {target_schema}.{data_vault_table} AS satellite
           satellite.{record_start_timestamp},
           satellite.{record_source}
           {satellite_descriptive_fields}
-        FROM {target_schema}.{data_vault_table} AS satellite
+        FROM {target_schema}.{target_table} AS satellite
           INNER JOIN filtered_staging AS staging
                      ON (staging.{hashkey_field} = satellite.{hashkey_field}
                       AND satellite.{record_end_timestamp_name} = {end_of_time})

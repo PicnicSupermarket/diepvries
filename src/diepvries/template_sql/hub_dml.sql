@@ -1,4 +1,4 @@
-MERGE INTO {target_schema}.{data_vault_table} AS hub
+MERGE INTO {target_schema}.{target_table} AS hub
     USING (
         SELECT {hashkey_field},
                {non_hashkey_fields_aggregation}

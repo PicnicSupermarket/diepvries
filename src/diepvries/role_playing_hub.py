@@ -44,7 +44,7 @@ class RolePlayingHub(Hub):
         The results are joined with the results from super().sql_placeholders(),
         as most placeholders calculated in Table (parent class) are applicable in a
         RolePlayingHub. The only placeholder that is calculated in the parent class
-        and replaced in this method is data_vault_table, that points to the parent
+        and replaced in this method is target_table, that points to the parent
         hub in this case.
 
         Returns:
@@ -78,7 +78,7 @@ class RolePlayingHub(Hub):
         )
 
         new_sql_placeholders = {
-            "data_vault_table": self.parent_table.name,
+            "target_table": self.parent_table.name,
             "business_key_condition": business_key_condition,
             "parent_hashkey_field": parent_hashkey.name,
             "parent_non_hashkey_fields": parent_non_hashkey_fields,

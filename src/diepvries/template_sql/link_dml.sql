@@ -1,4 +1,4 @@
-MERGE INTO {target_schema}.{data_vault_table} AS link
+MERGE INTO {target_schema}.{target_table} AS link
     USING (
         SELECT {hashkey_field},
                {non_hashkey_fields_aggregation}
