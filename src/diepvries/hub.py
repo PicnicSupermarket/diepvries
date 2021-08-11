@@ -6,7 +6,6 @@ from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .table import Table
 from .template_sql.sql_formulas import (
     FIELDS_AGGREGATION_SQL_TEMPLATE,
-    format_fields_for_join,
     format_fields_for_select,
 )
 
@@ -85,14 +84,6 @@ class Hub(Table):
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        business_key_condition = "AND".join(
-            format_fields_for_join(
-                fields=self.fields_by_role[FieldRole.BUSINESS_KEY],
-                table_1_alias="hub",
-                table_2_alias="staging",
-            )
-        )
-
         non_hashkey_fields = [
             field for field in self.fields if field.role != FieldRole.HASHKEY
         ]
@@ -102,19 +93,19 @@ class Hub(Table):
                 for field in format_fields_for_select(fields=non_hashkey_fields)
             ]
         )
-        hub_non_hashkey_fields = ",".join(
+        target_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields)
         )
-        staging_non_hashkey_fields = ",".join(
+        source_non_hashkey_fields = ",".join(
             format_fields_for_select(fields=non_hashkey_fields, table_alias="staging")
         )
 
         sql_placeholders = {
-            "hashkey_field": hashkey.name,
-            "non_hashkey_fields": hub_non_hashkey_fields,
+            "source_hashkey_field": hashkey.name,
+            "target_hashkey_field": hashkey.name,
+            "source_non_hashkey_fields": source_non_hashkey_fields,
+            "target_non_hashkey_fields": target_non_hashkey_fields,
             "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
-            "business_key_condition": business_key_condition,
-            "staging_non_hashkey_fields": staging_non_hashkey_fields,
         }
         sql_placeholders.update(super().sql_placeholders)
 
@@ -125,13 +116,15 @@ class Hub(Table):
         """Get the SQL query to populate current hub.
 
         All needed placeholders are calculated, in order to match template SQL
-        (check template_sql.hub_dml.sql).
+        (check template_sql.hub_link_dml.sql).
 
         Returns:
             SQL query to load target hub.
         """
         sql_load_statement = (
-            (TEMPLATES_DIR / "hub_dml.sql").read_text().format(**self.sql_placeholders)
+            (TEMPLATES_DIR / "hub_link_dml.sql")
+            .read_text()
+            .format(**self.sql_placeholders)
         )
 
         self._logger.info("Loading SQL for hub (%s) generated.", self.name)

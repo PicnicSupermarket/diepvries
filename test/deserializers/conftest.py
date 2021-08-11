@@ -7,6 +7,8 @@ from unittest import mock
 from unittest.mock import Mock
 
 import pytest
+from snowflake.connector import SnowflakeConnection
+
 from diepvries.deserializers.snowflake_deserializer import (
     METADATA_SQL_FILE_PATH,
     DatabaseConfiguration,
@@ -19,7 +21,6 @@ from diepvries.hub import Hub
 from diepvries.link import Link
 from diepvries.role_playing_hub import RolePlayingHub
 from diepvries.satellite import Satellite
-from snowflake.connector import SnowflakeConnection
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
 # trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't

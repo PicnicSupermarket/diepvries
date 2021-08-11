@@ -160,7 +160,7 @@ class Table(ABC):
         """
         query_args = {
             "target_schema": self.schema,
-            "data_vault_table": self.name,
+            "target_table": self.name,
             "staging_schema": self.staging_schema,
             "staging_table": self.staging_table,
             "record_start_timestamp": METADATA_FIELDS["record_start_timestamp"],

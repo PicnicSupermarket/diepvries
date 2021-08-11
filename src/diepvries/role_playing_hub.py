@@ -44,7 +44,7 @@ class RolePlayingHub(Hub):
         The results are joined with the results from super().sql_placeholders(),
         as most placeholders calculated in Table (parent class) are applicable in a
         RolePlayingHub. The only placeholder that is calculated in the parent class
-        and replaced in this method is data_vault_table, that points to the parent
+        and replaced in this method is target_table, that points to the parent
         hub in this case.
 
         Returns:
@@ -52,22 +52,11 @@ class RolePlayingHub(Hub):
         """
         sql_placeholders = super().sql_placeholders
 
-        parent_hub_business_key = next(
-            business_key
-            for business_key in self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY]
-        )
-        business_key = next(
-            business_key for business_key in self.fields_by_role[FieldRole.BUSINESS_KEY]
-        )
-        business_key_condition = (
-            f"hub.{parent_hub_business_key.name} = staging.{business_key.name}"
-        )
-
-        parent_hashkey = next(
+        target_hashkey = next(
             hashkey for hashkey in self.parent_table.fields_by_role[FieldRole.HASHKEY]
         )
 
-        parent_non_hashkey_fields = ",".join(
+        target_non_hashkey_fields = ",".join(
             format_fields_for_select(
                 fields=[
                     field
@@ -78,10 +67,9 @@ class RolePlayingHub(Hub):
         )
 
         new_sql_placeholders = {
-            "data_vault_table": self.parent_table.name,
-            "business_key_condition": business_key_condition,
-            "parent_hashkey_field": parent_hashkey.name,
-            "parent_non_hashkey_fields": parent_non_hashkey_fields,
+            "target_table": self.parent_table.name,
+            "target_hashkey_field": target_hashkey.name,
+            "target_non_hashkey_fields": target_non_hashkey_fields,
         }
         sql_placeholders.update(new_sql_placeholders)
 
@@ -94,13 +82,13 @@ class RolePlayingHub(Hub):
         If table has a parent table - role playing hub.
 
         All needed placeholders are calculated, in order to match template SQL (check
-        template_sql.role_playing_hub_dml.sql).
+        template_sql.hub_link_dml.sql).
 
         Returns:
             SQL query to load target hub.
         """
         sql_load_statement = (
-            (TEMPLATES_DIR / "role_playing_hub_dml.sql")
+            (TEMPLATES_DIR / "hub_link_dml.sql")
             .read_text()
             .format(**self.sql_placeholders)
         )

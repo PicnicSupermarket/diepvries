@@ -5,6 +5,8 @@ from unittest import mock
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
+from snowflake.connector.cursor import SnowflakeCursor
+
 from diepvries.deserializers.snowflake_deserializer import SnowflakeDeserializer
 from diepvries.driving_key_field import DrivingKeyField
 from diepvries.effectivity_satellite import EffectivitySatellite
@@ -14,7 +16,6 @@ from diepvries.link import Link
 from diepvries.role_playing_hub import RolePlayingHub
 from diepvries.satellite import Satellite
 from diepvries.table import Table
-from snowflake.connector.cursor import SnowflakeCursor
 
 # pylint: disable=protected-access
 
