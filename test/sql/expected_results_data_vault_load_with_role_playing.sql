@@ -37,20 +37,15 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT * FROM (
-            SELECT
-              staging.*,
-              ROW_NUMBER() OVER (PARTITION BY staging.h_customer_role_playing_hashkey ORDER BY r_source, ls_order_customer_role_playing_eff_hashdiff) = 1 AS _rank
-            FROM dv_stg.orders_20190806_000000 AS staging
-              CROSS JOIN (
-                           SELECT
-                             MAX(r_timestamp) AS max_r_timestamp
-                           FROM dv.ls_order_customer_role_playing_eff
-                         ) AS max_satellite_timestamp
-            WHERE staging.r_timestamp >=
-                  COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
-        )
-        WHERE _rank=1
+        SELECT
+          staging.*
+        FROM dv_stg.orders_20190806_000000 AS staging
+          CROSS JOIN (
+                       SELECT
+                         MAX(r_timestamp) AS max_r_timestamp
+                       FROM dv.ls_order_customer_role_playing_eff
+                     ) AS max_satellite_timestamp
+        WHERE staging.r_timestamp >= COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
       ),
       effectivity_satellite AS (
         SELECT

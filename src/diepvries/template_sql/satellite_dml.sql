@@ -2,20 +2,15 @@ MERGE INTO {target_schema}.{data_vault_table} AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT * FROM (
-            SELECT
-              staging.*,
-              ROW_NUMBER() OVER (PARTITION BY {hashkey_field} ORDER BY {record_source}, {staging_hashdiff_field}) = 1 AS _rank
-            FROM {staging_schema}.{staging_table} AS staging
-              CROSS JOIN (
-                           SELECT
-                             MAX({record_start_timestamp}) AS max_r_timestamp
-                           FROM {target_schema}.{data_vault_table}
-                         ) AS max_satellite_timestamp
-            WHERE staging.{record_start_timestamp} >=
-                  COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
-        )
-        WHERE _rank=1
+        SELECT
+          staging.*
+        FROM {staging_schema}.{staging_table} AS staging
+          CROSS JOIN (
+                       SELECT
+                         MAX({record_start_timestamp}) AS max_r_timestamp
+                       FROM {target_schema}.{data_vault_table}
+                     ) AS max_satellite_timestamp
+        WHERE staging.{record_start_timestamp} >= COALESCE(max_satellite_timestamp.max_r_timestamp, '1970-01-01 00:00:00')
       ),
       staging_satellite_affected_records AS (
         /* Records that will be inserted (don't exist in target table or exist
