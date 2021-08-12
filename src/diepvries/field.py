@@ -6,6 +6,7 @@ from . import (
     FIELD_SUFFIX,
     METADATA_FIELDS,
     TABLE_PREFIXES,
+    UNKNOWN,
     FieldDataType,
     FieldRole,
     TableType,
@@ -71,6 +72,43 @@ class Field:
         return f"{type(self).__name__}: {self.name}"
 
     @property
+    def data_type_sql(self) -> str:
+        if self.data_type == FieldDataType.NUMBER:
+            return f"{self.data_type.value} ({self.precision}, {self.scale})"
+        if self.data_type == FieldDataType.TEXT and self.length:
+            return f"{self.data_type.value} ({self.length})"
+
+        return f"{self.data_type.name}"
+
+    @property
+    def hash_concatenation_sql(self) -> str:
+        hash_concatenation_sql = ""
+
+        if self.data_type in (FieldDataType.TIMESTAMP_LTZ, FieldDataType.TIMESTAMP_TZ):
+            hash_concatenation_sql = (
+                f"TO_CHAR(CAST({self.name} AS {self.data_type_sql}), "
+                f"'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm')"
+            )
+
+        elif self.data_type == FieldDataType.TIMESTAMP_NTZ:
+            hash_concatenation_sql = (
+                f"TO_CHAR(CAST({self.name} AS {self.data_type_sql}), "
+                f"'yyyy-mm-dd hh24:mi:ss.ff9')"
+            )
+        elif self.data_type == FieldDataType.GEOGRAPHY:
+            hash_concatenation_sql = (
+                f"ST_ASTEXT(CAST({self.name} AS {self.data_type_sql}))"
+            )
+        else:
+            hash_concatenation_sql = (
+                f"CAST(CAST({self.name} AS {self.data_type_sql}) AS TEXT)"
+            )
+
+        default_value = UNKNOWN if self.role == FieldRole.BUSINESS_KEY else ""
+
+        return f"COALESCE({hash_concatenation_sql}, '{self.default_value}')"
+
+    @property
     def suffix(self) -> str:
         """Get field suffix.
 
@@ -126,23 +164,8 @@ class Field:
         Returns:
             The DDL expression for this field.
         """
-        if (
-            self.data_type == FieldDataType.NUMBER
-            and self.scale is not None
-            and self.precision is not None
-        ):
-            return (
-                f"{self.name_in_staging} {self.data_type.value} "
-                f"({self.precision}, {self.scale}) "
-                f"{'NOT NULL' if self.is_mandatory else ''}"
-            )
-        if self.data_type == FieldDataType.TEXT and self.length:
-            return (
-                f"{self.name_in_staging} {self.data_type.value} "
-                f"({self.length}) {'NOT NULL' if self.is_mandatory else ''}"
-            )
         return (
-            f"{self.name_in_staging} {self.data_type.name} "
+            f"{self.name_in_staging} {self.data_type_sql} "
             f"{'NOT NULL' if self.is_mandatory else ''}"
         )
 
