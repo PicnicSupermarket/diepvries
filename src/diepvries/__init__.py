@@ -17,6 +17,7 @@ class FieldDataType(Enum):
     BOOLEAN = "BOOLEAN"
     DATE = "DATE"
     FLOAT = "FLOAT"
+    GEOGRAPHY = "GEOGRAPHY"
     NUMBER = "NUMBER"
     OBJECT = "OBJECT"
     TEXT = "TEXT"
