@@ -106,7 +106,7 @@ class Field:
 
         default_value = UNKNOWN if self.role == FieldRole.BUSINESS_KEY else ""
 
-        return f"COALESCE({hash_concatenation_sql}, '{self.default_value}')"
+        return f"COALESCE({hash_concatenation_sql}, '{default_value}')"
 
     @property
     def suffix(self) -> str:
