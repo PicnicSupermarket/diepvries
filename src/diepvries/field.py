@@ -83,28 +83,35 @@ class Field:
     @property
     def hash_concatenation_sql(self) -> str:
         hash_concatenation_sql = ""
+        date_format = "yyyy-mm-dd"
+        time_format = "hh24:mi:ss.ff9"
+        timezone_format = "tzhtzm"
+        cast_expression = (
+            f"CAST({self.name} AS {self.data_type_sql})"
+            if self.data_type != FieldDataType.GEOGRAPHY
+            else f"TO_GEOGRAPHY({self.name})"
+        )
 
         if self.data_type in (FieldDataType.TIMESTAMP_LTZ, FieldDataType.TIMESTAMP_TZ):
             hash_concatenation_sql = (
-                f"TO_CHAR(CAST({self.name} AS {self.data_type_sql}), "
-                f"'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm')"
+                f"TO_CHAR({cast_expression}, "
+                f"'{date_format} {time_format} {timezone_format}')"
             )
 
         elif self.data_type == FieldDataType.TIMESTAMP_NTZ:
             hash_concatenation_sql = (
-                f"TO_CHAR(CAST({self.name} AS {self.data_type_sql}), "
-                f"'yyyy-mm-dd hh24:mi:ss.ff9')"
+                f"TO_CHAR({cast_expression}, '{date_format} {time_format}')"
             )
+        elif self.data_type == FieldDataType.DATE:
+            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{date_format}')"
+        elif self.data_type == FieldDataType.TIME:
+            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{time_format}')"
         elif self.data_type == FieldDataType.TEXT:
-            hash_concatenation_sql = f"CAST({self.name} AS {self.data_type_sql})"
+            hash_concatenation_sql = self.name
         elif self.data_type == FieldDataType.GEOGRAPHY:
-            hash_concatenation_sql = (
-                f"ST_ASTEXT(CAST({self.name} AS {self.data_type_sql}))"
-            )
+            hash_concatenation_sql = f"ST_ASTEXT({cast_expression})"
         else:
-            hash_concatenation_sql = (
-                f"CAST(CAST({self.name} AS {self.data_type_sql}) AS TEXT)"
-            )
+            hash_concatenation_sql = f"CAST({cast_expression} AS TEXT)"
 
         default_value = UNKNOWN if self.role == FieldRole.BUSINESS_KEY else ""
 
