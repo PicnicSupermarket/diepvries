@@ -7,12 +7,7 @@ from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .template_sql.sql_formulas import (
-    BUSINESS_KEY_SQL_TEMPLATE,
-    CHILD_KEY_SQL_TEMPLATE,
-    HASHKEY_SQL_TEMPLATE,
-    format_fields_for_select,
-)
+from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE, format_fields_for_select
 
 
 class Table(ABC):
@@ -204,30 +199,21 @@ class Table(ABC):
         Returns:
             Hashkey SQL expression.
         """
-        hashkey = next(
-            hashkey
-            for hashkey in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.HASHKEY]
-            )
-        )
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
         fields_for_hashkey = [
-            BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
-            for field in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.BUSINESS_KEY]
-            )
+            field.hash_concatenation_sql
+            for field in self.fields_by_role[FieldRole.BUSINESS_KEY]
         ]
         fields_for_hashkey.extend(
             [
-                CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
-                for field in format_fields_for_select(
-                    fields=self.fields_by_role[FieldRole.CHILD_KEY]
-                )
+                field.hash_concatenation_sql
+                for field in self.fields_by_role[FieldRole.CHILD_KEY]
             ]
         )
 
         hashkey_sql = HASHKEY_SQL_TEMPLATE.format(
             hashkey_expression=f"||'{HASH_DELIMITER}'||".join(fields_for_hashkey),
-            hashkey=hashkey,
+            hashkey=hashkey.name,
         )
         self._logger.debug(
             "Hashkey SQL expression for table (%s) is '(%s)'", self.name, hashkey_sql

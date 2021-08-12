@@ -5,9 +5,6 @@ from typing import Dict
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
 from .table import Table
 from .template_sql.sql_formulas import (
-    BUSINESS_KEY_SQL_TEMPLATE,
-    CHILD_KEY_SQL_TEMPLATE,
-    DESCRIPTIVE_FIELD_SQL_TEMPLATE,
     END_OF_TIME_SQL_TEMPLATE,
     HASHDIFF_SQL_TEMPLATE,
     RECORD_END_TIMESTAMP_SQL_TEMPLATE,
@@ -139,25 +136,19 @@ class Satellite(Table):
             hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
         fields_for_hashdiff = [
-            BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
-            for field in format_fields_for_select(
-                fields=self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY]
-            )
+            field.hash_concatenation_sql
+            for field in self.parent_table.fields_by_role[FieldRole.BUSINESS_KEY]
         ]
         fields_for_hashdiff.extend(
             [
-                CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
-                for field in format_fields_for_select(
-                    fields=self.parent_table.fields_by_role[FieldRole.CHILD_KEY]
-                )
+                field.hash_concatenation_sql
+                for field in self.parent_table.fields_by_role[FieldRole.CHILD_KEY]
             ]
         )
         fields_for_hashdiff.extend(
             [
-                DESCRIPTIVE_FIELD_SQL_TEMPLATE.format(descriptive_field=field)
-                for field in format_fields_for_select(
-                    fields=self.fields_by_role[FieldRole.DESCRIPTIVE]
-                )
+                field.hash_concatenation_sql
+                for field in self.fields_by_role[FieldRole.DESCRIPTIVE]
             ]
         )
 
