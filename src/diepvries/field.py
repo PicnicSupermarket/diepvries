@@ -95,6 +95,8 @@ class Field:
                 f"TO_CHAR(CAST({self.name} AS {self.data_type_sql}), "
                 f"'yyyy-mm-dd hh24:mi:ss.ff9')"
             )
+        elif self.data_type == FieldDataType.TEXT:
+            hash_concatenation_sql = f"CAST({self.name} AS {self.data_type_sql})"
         elif self.data_type == FieldDataType.GEOGRAPHY:
             hash_concatenation_sql = (
                 f"ST_ASTEXT(CAST({self.name} AS {self.data_type_sql}))"
