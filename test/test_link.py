@@ -37,9 +37,11 @@ def test_hashkey_sql(l_order_customer: Link):
         l_order_customer: l_order_customer fixture value.
     """
     expected_sql = (
-        "MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, "
-        "'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(ck_test_timestamp AS VARCHAR), '')) AS l_order_customer_hashkey"
+        "MD5(COALESCE(order_id, 'dv_unknown')"
+        "||'|~~|'||COALESCE(customer_id, 'dv_unknown')"
+        "||'|~~|'||COALESCE(ck_test_string, '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), "
+        "'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_hashkey"
     )
     assert expected_sql == l_order_customer.hashkey_sql
 

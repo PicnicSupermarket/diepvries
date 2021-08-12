@@ -59,11 +59,18 @@ def test_set_field_roles(hs_customer: Satellite):
         {"field": "s_hashdiff", "role": FieldRole.HASHDIFF},
         {"field": "test_date", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_string", "role": FieldRole.DESCRIPTIVE},
-        {"field": "test_timestamp", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_ntz", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_integer", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_decimal", "role": FieldRole.DESCRIPTIVE},
         {"field": "x_customer_id", "role": FieldRole.DESCRIPTIVE},
         {"field": "grouping_key", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_geography", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_array", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_object", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_variant", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_tz", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_ltz", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_time", "role": FieldRole.DESCRIPTIVE},
     ]
 
     for field in hs_customer.fields:
@@ -99,14 +106,24 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
     assert isinstance(satellite, Satellite)
 
     expected_sql = (
-        "MD5(REGEXP_REPLACE(COALESCE(customer_id, 'dv_unknown')||'|~~|'||"
-        "COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_date AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_decimal AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(x_customer_id AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(grouping_key AS VARCHAR), ''), "
+        "MD5(REGEXP_REPLACE("
+        "COALESCE(customer_id, 'dv_unknown')"
+        "||'|~~|'||COALESCE(test_string, '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_date AS DATE), 'yyyy-mm-dd'), '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ntz AS TIMESTAMP_NTZ), "
+        "'yyyy-mm-dd hh24:mi:ss.ff9'), '')"
+        "||'|~~|'||COALESCE(CAST(CAST(test_integer AS NUMBER (38, 0)) AS TEXT), '')"
+        "||'|~~|'||COALESCE(CAST(CAST(test_decimal AS NUMBER (18, 8)) AS TEXT), '')"
+        "||'|~~|'||COALESCE(x_customer_id, '')||'|~~|'||COALESCE(grouping_key, '')"
+        "||'|~~|'||COALESCE(ST_ASTEXT(TO_GEOGRAPHY(test_geography)), '')"
+        "||'|~~|'||COALESCE(CAST(CAST(test_array AS ARRAY) AS TEXT), '')"
+        "||'|~~|'||COALESCE(CAST(CAST(test_object AS OBJECT) AS TEXT), '')"
+        "||'|~~|'||COALESCE(CAST(CAST(test_variant AS VARIANT) AS TEXT), '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_tz AS TIMESTAMP_TZ), "
+        "'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ltz AS TIMESTAMP_LTZ), "
+        "'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')"
+        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_time AS TIME), 'hh24:mi:ss.ff9'), ''), "
         "'(\\\\|~~\\\\|)+$', '')) AS hs_customer_hashdiff"
     )
 
