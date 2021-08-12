@@ -83,7 +83,7 @@ class Field:
 
     @property
     def hash_concatenation_sql(self) -> str:
-        """Build SQL to convert the field to a deterministic string representation.
+        """Build SQL expression to deterministically represent the field as a string.
 
         This expression is needed to produce hashes (hashkey/hashdiff) that are
         consistent, independently on the data type used to store the field in the
@@ -97,7 +97,7 @@ class Field:
         3. Ensure the result of step 2 never returns NULL.
 
         Returns:
-            SQL expression used when a field is used to produce hashes.
+            SQL expression to deterministically represent the field as a string.
         """
         hash_concatenation_sql = ""
         date_format = "yyyy-mm-dd"
