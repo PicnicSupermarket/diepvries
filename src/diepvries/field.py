@@ -73,6 +73,7 @@ class Field:
 
     @property
     def data_type_sql(self) -> str:
+        """Build SQL expression to represent the field data type."""
         if self.data_type == FieldDataType.NUMBER:
             return f"{self.data_type.value} ({self.precision}, {self.scale})"
         if self.data_type == FieldDataType.TEXT and self.length:
@@ -82,6 +83,22 @@ class Field:
 
     @property
     def hash_concatenation_sql(self) -> str:
+        """Build SQL to convert the field to a deterministic string representation.
+
+        This expression is needed to produce hashes (hashkey/hashdiff) that are
+        consistent, independently on the data type used to store the field in the
+        extraction table.
+
+        The SQL expression does the following steps:
+
+        1. Cast field to its data type in the DV model.
+        2. Produce a consistent string representation of the result of step 1, depending
+        on the field data type.
+        3. Ensure the result of step 2 never returns NULL.
+
+        Returns:
+            SQL expression used when a field is used to produce hashes.
+        """
         hash_concatenation_sql = ""
         date_format = "yyyy-mm-dd"
         time_format = "hh24:mi:ss.ff9"
