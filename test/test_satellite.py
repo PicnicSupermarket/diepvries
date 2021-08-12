@@ -25,11 +25,11 @@ def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLo
         )
     )
 
-    expected_results = (
-        test_path / "sql" / "expected_results_effectivity_satellite.sql"
+    expected_result = (
+        test_path / "sql" / "expected_result_effectivity_satellite.sql"
     ).read_text()
 
-    assert expected_results == effectivity_satellite.sql_load_statement
+    assert effectivity_satellite.sql_load_statement == expected_result
 
 
 def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
@@ -38,11 +38,9 @@ def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
         test_path: Test path fixture value.
         hs_customer: Satellite fixture value.
     """
-    expected_results = (
-        test_path / "sql" / "expected_results_satellite.sql"
-    ).read_text()
+    expected_result = (test_path / "sql" / "expected_result_satellite.sql").read_text()
 
-    assert expected_results == hs_customer.sql_load_statement
+    assert hs_customer.sql_load_statement == expected_result
 
 
 def test_set_field_roles(hs_customer: Satellite):
@@ -77,7 +75,7 @@ def test_set_field_roles(hs_customer: Satellite):
         expected_role = next(
             role["role"] for role in expected_roles if role["field"] == field.name
         )
-        assert expected_role == field.role
+        assert field.role == expected_role
 
 
 def test_parent_table_name(hs_customer: Satellite):
@@ -105,7 +103,7 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
     )
     assert isinstance(satellite, Satellite)
 
-    expected_sql = (
+    expected_result = (
         "MD5(REGEXP_REPLACE("
         "COALESCE(customer_id, 'dv_unknown')"
         "||'|~~|'||COALESCE(test_string, '')"
@@ -127,4 +125,4 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
         "'(\\\\|~~\\\\|)+$', '')) AS hs_customer_hashdiff"
     )
 
-    assert expected_sql == satellite.hashdiff_sql
+    assert satellite.hashdiff_sql == expected_result
