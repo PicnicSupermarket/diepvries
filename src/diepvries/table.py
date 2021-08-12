@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE, format_fields_for_select
+from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
 
 
 class Table(ABC):
