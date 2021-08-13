@@ -49,3 +49,8 @@ list of naming conventions, and more!
 
 Want to fix a bug, improve the docs, or add a new feature? That's awesome! Please read
 the [contributing document](https://github.com/PicnicSupermarket/diepvries/blob/master/CONTRIBUTING.md).
+
+## Changelog
+
+You can find the changelog of this package in
+[`CHANGELOG.md`](https://github.com/PicnicSupermarket/diepvries/blob/master/CHANGELOG.md).

@@ -44,6 +44,9 @@ nutshell:
 - [darglint](https://github.com/terrencepreilly/darglint) and
   [pydocstyle](http://www.pydocstyle.org/en/stable/) for docstrings.
 
+After you have opened a pull request, please add a line in `CHANGELOG.md`
+"Unreleased" section.
+
 ## Local environment
 
 In order to develop this framework locally, start by creating a virtual environment. You
