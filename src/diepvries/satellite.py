@@ -1,8 +1,10 @@
 """A Satellite."""
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
+from .hub import Hub
+from .link import Link
 from .table import Table
 from .template_sql.sql_formulas import (
     END_OF_TIME_SQL_TEMPLATE,
@@ -25,7 +27,7 @@ class Satellite(Table):
     """
 
     # Parent table is set after instantiation.
-    parent_table: Optional[Table] = None
+    parent_table: Optional[Union[Link, Hub]] = None
 
     @property
     def loading_order(self) -> int:

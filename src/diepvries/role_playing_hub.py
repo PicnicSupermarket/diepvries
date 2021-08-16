@@ -33,7 +33,7 @@ class RolePlayingHub(Hub):
         """
         super().__init__(schema, name, fields)
         # Parent table is set just after instantiation.
-        self.parent_table: Optional[Table] = None
+        self.parent_table: Optional[Hub] = None
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:
