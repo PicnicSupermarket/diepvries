@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from functools import lru_cache
+from functools import cached_property
 from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
@@ -96,8 +96,7 @@ class Table(ABC):
         """
         self._fields = sorted(fields, key=lambda x: x.position)
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def fields_by_name(self) -> Dict[str, Field]:
         """Get a dictionary of fields, indexed by their names.
 
@@ -111,8 +110,7 @@ class Table(ABC):
 
         return fields_by_name_as_dict
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def fields_by_role(self) -> Dict[FieldRole, List[Field]]:
         """Get a dictionary of fields, indexed by their roles.
 
