@@ -1,6 +1,6 @@
 """A Satellite."""
 
-from typing import Dict
+from typing import Dict, Optional
 
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
 from .table import Table
@@ -25,7 +25,7 @@ class Satellite(Table):
     """
 
     # Parent table is set after instantiation.
-    parent_table = None
+    parent_table: Optional[Table] = None
 
     @property
     def loading_order(self) -> int:
