@@ -191,8 +191,8 @@ class Field:
             The DDL expression for this field.
         """
         return (
-            f"{self.name_in_staging} {self.data_type_sql} "
-            f"{'NOT NULL' if self.is_mandatory else ''}"
+            f"{self.name_in_staging} {self.data_type_sql}"
+            f"{' NOT NULL' if self.is_mandatory else ''}"
         )
 
     @property
