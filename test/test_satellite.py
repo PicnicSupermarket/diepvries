@@ -39,7 +39,6 @@ def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
         hs_customer: Satellite fixture value.
     """
     expected_result = (test_path / "sql" / "expected_result_satellite.sql").read_text()
-
     assert hs_customer.sql_load_statement == expected_result
 
 
@@ -69,6 +68,8 @@ def test_set_field_roles(hs_customer: Satellite):
         {"field": "test_timestamp_tz", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_timestamp_ltz", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_time", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_boolean", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_real", "role": FieldRole.DESCRIPTIVE},
     ]
 
     for field in hs_customer.fields:
@@ -87,7 +88,7 @@ def test_parent_table_name(hs_customer: Satellite):
     assert hs_customer.parent_table_name == "h_customer"
 
 
-def test_hashdiff_sql(data_vault_load: DataVaultLoad):
+def test_hashdiff_sql(test_path: Path, data_vault_load: DataVaultLoad):
     """Assert correctness of SQL generated in Satellite class.
 
      (for hs_customer hashdiff)
@@ -103,26 +104,5 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
     )
     assert isinstance(satellite, Satellite)
 
-    expected_result = (
-        "MD5(REGEXP_REPLACE("
-        "COALESCE(customer_id, 'dv_unknown')"
-        "||'|~~|'||COALESCE(test_string, '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_date AS DATE), 'yyyy-mm-dd'), '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ntz AS TIMESTAMP_NTZ), "
-        "'yyyy-mm-dd hh24:mi:ss.ff9'), '')"
-        "||'|~~|'||COALESCE(CAST(CAST(test_integer AS NUMBER (38, 0)) AS TEXT), '')"
-        "||'|~~|'||COALESCE(CAST(CAST(test_decimal AS NUMBER (18, 8)) AS TEXT), '')"
-        "||'|~~|'||COALESCE(x_customer_id, '')||'|~~|'||COALESCE(grouping_key, '')"
-        "||'|~~|'||COALESCE(ST_ASTEXT(TO_GEOGRAPHY(test_geography)), '')"
-        "||'|~~|'||COALESCE(CAST(CAST(test_array AS ARRAY) AS TEXT), '')"
-        "||'|~~|'||COALESCE(CAST(CAST(test_object AS OBJECT) AS TEXT), '')"
-        "||'|~~|'||COALESCE(CAST(CAST(test_variant AS VARIANT) AS TEXT), '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_tz AS TIMESTAMP_TZ), "
-        "'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ltz AS TIMESTAMP_LTZ), "
-        "'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(test_time AS TIME), 'hh24:mi:ss.ff9'), ''), "
-        "'(\\\\|~~\\\\|)+$', '')) AS hs_customer_hashdiff"
-    )
-
-    assert satellite.hashdiff_sql == expected_result
+    expected_result = (test_path / "sql" / "expected_result_hashdiff.sql").read_text()
+    assert satellite.hashdiff_sql == expected_result.rstrip("\n")

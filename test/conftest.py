@@ -586,6 +586,20 @@ def hs_customer(
             position=19,
             is_mandatory=False,
         ),
+        Field(
+            parent_table_name="hs_customer",
+            name="test_boolean",
+            data_type=FieldDataType.BOOLEAN,
+            position=20,
+            is_mandatory=False,
+        ),
+        Field(
+            parent_table_name="hs_customer",
+            name="test_real",
+            data_type=FieldDataType.REAL,
+            position=21,
+            is_mandatory=False,
+        ),
     ]
     hs_customer = Satellite(
         schema=process_configuration["target_schema"],

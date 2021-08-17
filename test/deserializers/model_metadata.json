@@ -247,6 +247,32 @@
     "autoincrement": ""
   },
   {
+    "table_name": "HS_CUSTOMER",
+    "schema_name": "DV",
+    "column_name": "TEST_BOOLEAN",
+    "data_type": "{\"type\":\"BOOLEAN\",\"nullable\":true}",
+    "null?": "true",
+    "default": "",
+    "kind": "COLUMN",
+    "expression": "",
+    "comment": "",
+    "database_name": "SOME_DATABASE",
+    "autoincrement": ""
+  },
+  {
+    "table_name": "HS_CUSTOMER",
+    "schema_name": "DV",
+    "column_name": "TEST_REAL",
+    "data_type": "{\"type\":\"REAL\",\"nullable\":true}",
+    "null?": "true",
+    "default": "",
+    "kind": "COLUMN",
+    "expression": "",
+    "comment": "",
+    "database_name": "SOME_DATABASE",
+    "autoincrement": ""
+  },
+  {
     "table_name": "H_CUSTOMER",
     "schema_name": "DV",
     "column_name": "H_CUSTOMER_HASHKEY",

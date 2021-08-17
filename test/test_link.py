@@ -30,20 +30,14 @@ def test_set_field_roles(l_order_customer: Link):
         assert field.role == expected_role
 
 
-def test_hashkey_sql(l_order_customer: Link):
+def test_hashkey_sql(test_path: Path, l_order_customer: Link):
     """Assert correctness of SQL generated in Link class (for l_order_customer_hashkey).
 
     Args:
         l_order_customer: l_order_customer fixture value.
     """
-    expected_result = (
-        "MD5(COALESCE(order_id, 'dv_unknown')"
-        "||'|~~|'||COALESCE(customer_id, 'dv_unknown')"
-        "||'|~~|'||COALESCE(ck_test_string, '')"
-        "||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), "
-        "'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_hashkey"
-    )
-    assert l_order_customer.hashkey_sql == expected_result
+    expected_result = (test_path / "sql" / "expected_result_hashkey.sql").read_text()
+    assert l_order_customer.hashkey_sql == expected_result.rstrip("\n")
 
 
 def test_parent_hub_names(l_order_customer: Link):
