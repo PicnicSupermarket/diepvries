@@ -15,19 +15,6 @@ ALIASED_BUSINESS_KEY_SQL_TEMPLATE = (
 # Field with alias prepended.
 ALIASED_FIELD_SQL_TEMPLATE = "{table_alias}.{field_name}"
 
-# Formula used to COALESCE each business key before concatenating them to produce
-# hashes. Data Vault does not accept NULL business keys in a Data Vault model.
-BUSINESS_KEY_SQL_TEMPLATE = f"COALESCE({{business_key}}, '{UNKNOWN}')"
-
-# Formula used to COALESCE each child key before concatenating them to produce hashes.
-# We default the child key to empty string as there is no default value for them.
-CHILD_KEY_SQL_TEMPLATE = "COALESCE(CAST({child_key} AS VARCHAR), '')"
-
-# Formula used to COALESCE each descriptive field before concatenating them to produce
-# hashes.e default each descriptive field to empty string as there is no default value
-# for them, to avoid concatenation with NULL.
-DESCRIPTIVE_FIELD_SQL_TEMPLATE = "COALESCE(CAST({descriptive_field} AS VARCHAR), '')"
-
 # SQL expression that should be used to represent the end of times (9999-12-31)
 # in SQL query filters.
 END_OF_TIME_SQL_TEMPLATE = (
