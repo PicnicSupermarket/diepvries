@@ -97,17 +97,28 @@ class Link(Table):
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        fields = ",".join(format_fields_for_select(fields=self.fields))
-        staging_fields = ",".join(
-            format_fields_for_select(fields=self.fields, table_alias="staging")
+        non_hashkey_fields = [
+            field for field in self.fields if field.role != FieldRole.HASHKEY
+        ]
+        non_hashkey_fields_aggregation = ",".join(
+            [
+                FIELDS_AGGREGATION_SQL_TEMPLATE.format(field=field)
+                for field in format_fields_for_select(fields=non_hashkey_fields)
+            ]
+        )
+        target_non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields)
+        )
+        source_non_hashkey_fields = ",".join(
+            format_fields_for_select(fields=non_hashkey_fields, table_alias="staging")
         )
 
         sql_placeholders = {
             "source_hashkey_field": hashkey.name,
             "target_hashkey_field": hashkey.name,
-            "source_fields": fields,
-            "target_fields": fields,
-            "staging_source_fields": staging_fields,
+            "source_non_hashkey_fields": source_non_hashkey_fields,
+            "target_non_hashkey_fields": target_non_hashkey_fields,
+            "non_hashkey_fields_aggregation": non_hashkey_fields_aggregation,
         }
         sql_placeholders.update(super().sql_placeholders)
 
