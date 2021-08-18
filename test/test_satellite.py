@@ -28,7 +28,6 @@ def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLo
     expected_result = (
         test_path / "sql" / "expected_result_effectivity_satellite.sql"
     ).read_text()
-
     assert effectivity_satellite.sql_load_statement == expected_result
 
 

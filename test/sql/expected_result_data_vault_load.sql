@@ -6,47 +6,47 @@ CREATE OR REPLACE TABLE dv_stg.orders_20190806_000000
 MERGE INTO dv.h_customer AS target
   USING (
         SELECT DISTINCT
-          h_customer_hashkey,r_timestamp,r_source,customer_id
+          h_customer_hashkey, r_timestamp, r_source, customer_id
         FROM dv_stg.orders_20190806_000000
         ) AS staging ON (target.h_customer_hashkey = staging.h_customer_hashkey)
-  WHEN NOT MATCHED THEN INSERT (h_customer_hashkey,r_timestamp,r_source,customer_id)
-    VALUES (staging.h_customer_hashkey,staging.r_timestamp,staging.r_source,staging.customer_id);
+  WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp, r_source, customer_id)
+    VALUES (staging.h_customer_hashkey, staging.r_timestamp, staging.r_source, staging.customer_id);
 
 MERGE INTO dv.h_customer AS target
   USING (
         SELECT DISTINCT
-          h_customer_role_playing_hashkey,r_timestamp,r_source,customer_role_playing_id
+          h_customer_role_playing_hashkey, r_timestamp, r_source, customer_role_playing_id
         FROM dv_stg.orders_20190806_000000
         ) AS staging ON (target.h_customer_hashkey = staging.h_customer_role_playing_hashkey)
-  WHEN NOT MATCHED THEN INSERT (h_customer_hashkey,r_timestamp,r_source,customer_id)
-    VALUES (staging.h_customer_role_playing_hashkey,staging.r_timestamp,staging.r_source,staging.customer_role_playing_id);
+  WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp, r_source, customer_id)
+    VALUES (staging.h_customer_role_playing_hashkey, staging.r_timestamp, staging.r_source, staging.customer_role_playing_id);
 
 MERGE INTO dv.h_order AS target
   USING (
         SELECT DISTINCT
-          h_order_hashkey,r_timestamp,r_source,order_id
+          h_order_hashkey, r_timestamp, r_source, order_id
         FROM dv_stg.orders_20190806_000000
         ) AS staging ON (target.h_order_hashkey = staging.h_order_hashkey)
-  WHEN NOT MATCHED THEN INSERT (h_order_hashkey,r_timestamp,r_source,order_id)
-    VALUES (staging.h_order_hashkey,staging.r_timestamp,staging.r_source,staging.order_id);
+  WHEN NOT MATCHED THEN INSERT (h_order_hashkey, r_timestamp, r_source, order_id)
+    VALUES (staging.h_order_hashkey, staging.r_timestamp, staging.r_source, staging.order_id);
 
 MERGE INTO dv.l_order_customer AS target
   USING (
         SELECT DISTINCT
-          l_order_customer_hashkey,h_order_hashkey,h_customer_hashkey,order_id,customer_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source
+          l_order_customer_hashkey, h_order_hashkey, h_customer_hashkey, order_id, customer_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source
         FROM dv_stg.orders_20190806_000000
         ) AS staging ON (target.l_order_customer_hashkey = staging.l_order_customer_hashkey)
-  WHEN NOT MATCHED THEN INSERT (l_order_customer_hashkey,h_order_hashkey,h_customer_hashkey,order_id,customer_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source)
-    VALUES (staging.l_order_customer_hashkey,staging.h_order_hashkey,staging.h_customer_hashkey,staging.order_id,staging.customer_id,staging.ck_test_string,staging.ck_test_timestamp,staging.r_timestamp,staging.r_source);
+  WHEN NOT MATCHED THEN INSERT (l_order_customer_hashkey, h_order_hashkey, h_customer_hashkey, order_id, customer_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source)
+    VALUES (staging.l_order_customer_hashkey, staging.h_order_hashkey, staging.h_customer_hashkey, staging.order_id, staging.customer_id, staging.ck_test_string, staging.ck_test_timestamp, staging.r_timestamp, staging.r_source);
 
 MERGE INTO dv.l_order_customer_role_playing AS target
   USING (
         SELECT DISTINCT
-          l_order_customer_role_playing_hashkey,h_order_hashkey,h_customer_role_playing_hashkey,order_id,customer_role_playing_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source
+          l_order_customer_role_playing_hashkey, h_order_hashkey, h_customer_role_playing_hashkey, order_id, customer_role_playing_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source
         FROM dv_stg.orders_20190806_000000
         ) AS staging ON (target.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey)
-  WHEN NOT MATCHED THEN INSERT (l_order_customer_role_playing_hashkey,h_order_hashkey,h_customer_role_playing_hashkey,order_id,customer_role_playing_id,ck_test_string,ck_test_timestamp,r_timestamp,r_source)
-    VALUES (staging.l_order_customer_role_playing_hashkey,staging.h_order_hashkey,staging.h_customer_role_playing_hashkey,staging.order_id,staging.customer_role_playing_id,staging.ck_test_string,staging.ck_test_timestamp,staging.r_timestamp,staging.r_source);
+  WHEN NOT MATCHED THEN INSERT (l_order_customer_role_playing_hashkey, h_order_hashkey, h_customer_role_playing_hashkey, order_id, customer_role_playing_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source)
+    VALUES (staging.l_order_customer_role_playing_hashkey, staging.h_order_hashkey, staging.h_customer_role_playing_hashkey, staging.order_id, staging.customer_role_playing_id, staging.ck_test_string, staging.ck_test_timestamp, staging.r_timestamp, staging.r_source);
 
 MERGE INTO dv.hs_customer AS satellite
   USING (
@@ -57,7 +57,7 @@ MERGE INTO dv.hs_customer AS satellite
           staging.hs_customer_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.test_string,staging.test_date,staging.test_timestamp_ntz,staging.test_integer,staging.test_decimal,staging.x_customer_id,staging.grouping_key,staging.test_geography,staging.test_array,staging.test_object,staging.test_variant,staging.test_timestamp_tz,staging.test_timestamp_ltz,staging.test_time,staging.test_boolean,staging.test_real
+          , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -76,7 +76,7 @@ MERGE INTO dv.hs_customer AS satellite
           staging.hs_customer_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.test_string,staging.test_date,staging.test_timestamp_ntz,staging.test_integer,staging.test_decimal,staging.x_customer_id,staging.grouping_key,staging.test_geography,staging.test_array,staging.test_object,staging.test_variant,staging.test_timestamp_tz,staging.test_timestamp_ltz,staging.test_time,staging.test_boolean,staging.test_real
+          , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
         FROM filtered_staging AS staging
           LEFT OUTER JOIN dv.hs_customer AS satellite
                           ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
@@ -93,7 +93,7 @@ MERGE INTO dv.hs_customer AS satellite
           satellite.s_hashdiff,
           satellite.r_timestamp,
           satellite.r_source
-          ,satellite.test_string,satellite.test_date,satellite.test_timestamp_ntz,satellite.test_integer,satellite.test_decimal,satellite.x_customer_id,satellite.grouping_key,satellite.test_geography,satellite.test_array,satellite.test_object,satellite.test_variant,satellite.test_timestamp_tz,satellite.test_timestamp_ltz,satellite.test_time,satellite.test_boolean,satellite.test_real
+          , satellite.test_string, satellite.test_date, satellite.test_timestamp_ntz, satellite.test_integer, satellite.test_decimal, satellite.x_customer_id, satellite.grouping_key, satellite.test_geography, satellite.test_array, satellite.test_object, satellite.test_variant, satellite.test_timestamp_tz, satellite.test_timestamp_ltz, satellite.test_time, satellite.test_boolean, satellite.test_real
         FROM dv.hs_customer AS satellite
           INNER JOIN filtered_staging AS staging
                      ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
@@ -106,7 +106,7 @@ MERGE INTO dv.hs_customer AS satellite
       r_timestamp AS r_timestamp,
       LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
       r_source
-      ,test_string,test_date,test_timestamp_ntz,test_integer,test_decimal,x_customer_id,grouping_key,test_geography,test_array,test_object,test_variant,test_timestamp_tz,test_timestamp_ltz,test_time,test_boolean,test_real
+      , test_string, test_date, test_timestamp_ntz, test_integer, test_decimal, x_customer_id, grouping_key, test_geography, test_array, test_object, test_variant, test_timestamp_tz, test_timestamp_ltz, test_time, test_boolean, test_real
     FROM staging_satellite_affected_records
   ) AS staging
   ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
@@ -115,14 +115,14 @@ MERGE INTO dv.hs_customer AS satellite
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
     THEN
-    INSERT (h_customer_hashkey,s_hashdiff,r_timestamp,r_timestamp_end,r_source,test_string,test_date,test_timestamp_ntz,test_integer,test_decimal,x_customer_id,grouping_key,test_geography,test_array,test_object,test_variant,test_timestamp_tz,test_timestamp_ltz,test_time,test_boolean,test_real)
+    INSERT (h_customer_hashkey, s_hashdiff, r_timestamp, r_timestamp_end, r_source, test_string, test_date, test_timestamp_ntz, test_integer, test_decimal, x_customer_id, grouping_key, test_geography, test_array, test_object, test_variant, test_timestamp_tz, test_timestamp_ltz, test_time, test_boolean, test_real)
       VALUES (
                staging.h_customer_hashkey,
                staging.hs_customer_hashdiff,
                staging.r_timestamp,
                staging.r_timestamp_end,
                staging.r_source
-               ,staging.test_string,staging.test_date,staging.test_timestamp_ntz,staging.test_integer,staging.test_decimal,staging.x_customer_id,staging.grouping_key,staging.test_geography,staging.test_array,staging.test_object,staging.test_variant,staging.test_timestamp_tz,staging.test_timestamp_ltz,staging.test_time,staging.test_boolean,staging.test_real);
+               , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real);
 
 MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
@@ -134,7 +134,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           staging.ls_order_customer_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -165,7 +165,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           staging.ls_order_customer_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM filtered_staging AS staging
           LEFT JOIN effectivity_satellite AS satellite
                     ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
@@ -182,7 +182,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           satellite.s_hashdiff AS ls_order_customer_eff_hashdiff,
           satellite.r_timestamp,
           satellite.r_source
-          ,satellite.dummy_descriptive_field
+          , satellite.dummy_descriptive_field
         FROM filtered_staging AS staging
           INNER JOIN effectivity_satellite AS satellite
                      ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
@@ -194,7 +194,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
       r_timestamp AS r_timestamp,
       LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
       r_source
-      ,dummy_descriptive_field
+      , dummy_descriptive_field
     FROM staging_satellite_affected_records
   ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
@@ -203,14 +203,14 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
     THEN
-    INSERT (l_order_customer_hashkey,s_hashdiff,r_timestamp,r_timestamp_end,r_source,dummy_descriptive_field)
+    INSERT (l_order_customer_hashkey, s_hashdiff, r_timestamp, r_timestamp_end, r_source, dummy_descriptive_field)
       VALUES (
                staging.l_order_customer_hashkey,
                staging.ls_order_customer_eff_hashdiff,
                staging.r_timestamp,
                staging.r_timestamp_end,
                staging.r_source
-               ,staging.dummy_descriptive_field);
+               , staging.dummy_descriptive_field);
 
 MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
@@ -222,7 +222,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           staging.ls_order_customer_role_playing_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -253,7 +253,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           staging.ls_order_customer_role_playing_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM filtered_staging AS staging
           LEFT JOIN effectivity_satellite AS satellite
                     ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
@@ -270,7 +270,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           satellite.s_hashdiff AS ls_order_customer_role_playing_eff_hashdiff,
           satellite.r_timestamp,
           satellite.r_source
-          ,satellite.dummy_descriptive_field
+          , satellite.dummy_descriptive_field
         FROM filtered_staging AS staging
           INNER JOIN effectivity_satellite AS satellite
                      ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
@@ -282,7 +282,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
       r_timestamp AS r_timestamp,
       LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_role_playing_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
       r_source
-      ,dummy_descriptive_field
+      , dummy_descriptive_field
     FROM staging_satellite_affected_records
   ) AS staging
   ON (satellite.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey
@@ -291,11 +291,11 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
     THEN
-    INSERT (l_order_customer_role_playing_hashkey,s_hashdiff,r_timestamp,r_timestamp_end,r_source,dummy_descriptive_field)
+    INSERT (l_order_customer_role_playing_hashkey, s_hashdiff, r_timestamp, r_timestamp_end, r_source, dummy_descriptive_field)
       VALUES (
                staging.l_order_customer_role_playing_hashkey,
                staging.ls_order_customer_role_playing_eff_hashdiff,
                staging.r_timestamp,
                staging.r_timestamp_end,
                staging.r_source
-               ,staging.dummy_descriptive_field);
+               , staging.dummy_descriptive_field);
