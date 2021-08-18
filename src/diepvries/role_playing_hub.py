@@ -56,14 +56,20 @@ class RolePlayingHub(Hub):
             hashkey for hashkey in self.parent_table.fields_by_role[FieldRole.HASHKEY]
         )
 
-        target_fields = ",".join(
-            format_fields_for_select(fields=self.parent_table.fields)
+        target_non_hashkey_fields = ",".join(
+            format_fields_for_select(
+                fields=[
+                    field
+                    for field in self.parent_table.fields
+                    if field.role != FieldRole.HASHKEY
+                ]
+            )
         )
 
         new_sql_placeholders = {
             "target_table": self.parent_table.name,
             "target_hashkey_field": target_hashkey.name,
-            "target_fields": target_fields,
+            "target_non_hashkey_fields": target_non_hashkey_fields,
         }
         sql_placeholders.update(new_sql_placeholders)
 
