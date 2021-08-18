@@ -142,7 +142,7 @@ def test_data_type_sql(input_field, output_string):
                 position=1,
                 is_mandatory=False,
             ),
-            "COALESCE(test_text, '')",
+            "COALESCE(CAST(test_text AS TEXT), '')",
         ),
         (
             Field(
@@ -205,7 +205,7 @@ def test_data_type_sql(input_field, output_string):
                 position=2,
                 is_mandatory=False,
             ),
-            "COALESCE(customer_id, 'dv_unknown')",
+            "COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')",
         ),
     ],
 )

@@ -104,4 +104,5 @@ def test_hashdiff_sql(test_path: Path, data_vault_load: DataVaultLoad):
     assert isinstance(satellite, Satellite)
 
     expected_result = (test_path / "sql" / "expected_result_hashdiff.sql").read_text()
+    print(satellite.hashdiff_sql)
     assert satellite.hashdiff_sql == expected_result.rstrip("\n")

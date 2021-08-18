@@ -13,6 +13,7 @@ def test_staging_table_sql(test_path: Path, data_vault_load: DataVaultLoad):
         data_vault_load: Data vault load fixture value.
     """
     expected_result = (test_path / "sql" / "expected_result_staging.sql").read_text()
+    print(data_vault_load.staging_create_sql_statement)
     assert data_vault_load.staging_create_sql_statement == expected_result
 
 
