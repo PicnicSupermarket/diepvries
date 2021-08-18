@@ -27,21 +27,17 @@ def test_set_field_roles(l_order_customer: Link):
         expected_role = next(
             role["role"] for role in expected_roles if role["field"] == field.name
         )
-        assert expected_role == field.role
+        assert field.role == expected_role
 
 
-def test_hashkey_sql(l_order_customer: Link):
+def test_hashkey_sql(test_path: Path, l_order_customer: Link):
     """Assert correctness of SQL generated in Link class (for l_order_customer_hashkey).
 
     Args:
         l_order_customer: l_order_customer fixture value.
     """
-    expected_sql = (
-        "MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, "
-        "'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(ck_test_timestamp AS VARCHAR), '')) AS l_order_customer_hashkey"
-    )
-    assert expected_sql == l_order_customer.hashkey_sql
+    expected_result = (test_path / "sql" / "expected_result_hashkey.sql").read_text()
+    assert l_order_customer.hashkey_sql == expected_result.rstrip("\n")
 
 
 def test_parent_hub_names(l_order_customer: Link):
@@ -64,5 +60,5 @@ def test_link_load_sql(test_path: Path, l_order_customer: Link):
         test_path: Test path fixture value.
         l_order_customer: l_order_customer fixture value.
     """
-    expected_results = (test_path / "sql" / "expected_results_link.sql").read_text()
-    assert expected_results == l_order_customer.sql_load_statement
+    expected_result = (test_path / "sql" / "expected_result_link.sql").read_text()
+    assert l_order_customer.sql_load_statement == expected_result

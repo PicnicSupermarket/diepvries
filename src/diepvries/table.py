@@ -2,17 +2,12 @@
 
 import logging
 from abc import ABC, abstractmethod
-from functools import lru_cache
+from functools import cached_property
 from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .template_sql.sql_formulas import (
-    BUSINESS_KEY_SQL_TEMPLATE,
-    CHILD_KEY_SQL_TEMPLATE,
-    HASHKEY_SQL_TEMPLATE,
-    format_fields_for_select,
-)
+from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
 
 
 class Table(ABC):
@@ -101,8 +96,7 @@ class Table(ABC):
         """
         self._fields = sorted(fields, key=lambda x: x.position)
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def fields_by_name(self) -> Dict[str, Field]:
         """Get a dictionary of fields, indexed by their names.
 
@@ -116,8 +110,7 @@ class Table(ABC):
 
         return fields_by_name_as_dict
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def fields_by_role(self) -> Dict[FieldRole, List[Field]]:
         """Get a dictionary of fields, indexed by their roles.
 
@@ -204,30 +197,21 @@ class Table(ABC):
         Returns:
             Hashkey SQL expression.
         """
-        hashkey = next(
-            hashkey
-            for hashkey in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.HASHKEY]
-            )
-        )
+        hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
         fields_for_hashkey = [
-            BUSINESS_KEY_SQL_TEMPLATE.format(business_key=field)
-            for field in format_fields_for_select(
-                fields=self.fields_by_role[FieldRole.BUSINESS_KEY]
-            )
+            field.hash_concatenation_sql
+            for field in self.fields_by_role[FieldRole.BUSINESS_KEY]
         ]
         fields_for_hashkey.extend(
             [
-                CHILD_KEY_SQL_TEMPLATE.format(child_key=field)
-                for field in format_fields_for_select(
-                    fields=self.fields_by_role[FieldRole.CHILD_KEY]
-                )
+                field.hash_concatenation_sql
+                for field in self.fields_by_role[FieldRole.CHILD_KEY]
             ]
         )
 
         hashkey_sql = HASHKEY_SQL_TEMPLATE.format(
             hashkey_expression=f"||'{HASH_DELIMITER}'||".join(fields_for_hashkey),
-            hashkey=hashkey,
+            hashkey=hashkey.name,
         )
         self._logger.debug(
             "Hashkey SQL expression for table (%s) is '(%s)'", self.name, hashkey_sql

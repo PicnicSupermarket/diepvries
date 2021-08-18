@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
-from functools import lru_cache
+from functools import cached_property
 from typing import Dict, List, Type
 
 from snowflake.connector import DictCursor, connect
@@ -118,8 +118,7 @@ class SnowflakeDeserializer:
 
         return self._get_table_type(target_table_name)(**table_args)
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def _driving_keys_by_table(self) -> Dict[str, List[DrivingKeyField]]:
         """Get mapping between a satellite and its driving keys.
 
@@ -141,8 +140,7 @@ class SnowflakeDeserializer:
 
         return driving_keys_by_table
 
-    @property
-    @lru_cache(1)
+    @cached_property
     def _fields(self) -> Dict[str, List[Field]]:
         """Deserialize all fields present in `self.target_tables`.
 

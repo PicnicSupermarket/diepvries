@@ -1,6 +1,6 @@
 """A role playing Hub."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from . import TEMPLATES_DIR, FieldRole
 from .field import Field
@@ -33,7 +33,7 @@ class RolePlayingHub(Hub):
         """
         super().__init__(schema, name, fields)
         # Parent table is set just after instantiation.
-        self.parent_table = None
+        self.parent_table: Optional[Hub] = None
 
     @property
     def sql_placeholders(self) -> Dict[str, str]:

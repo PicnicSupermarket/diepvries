@@ -1,8 +1,8 @@
-from diepvries.driving_key_field import DrivingKeyField
 from diepvries.deserializers.snowflake_deserializer import (
     DatabaseConfiguration,
     SnowflakeDeserializer,
 )
+from diepvries.driving_key_field import DrivingKeyField
 
 
 def deserialize():

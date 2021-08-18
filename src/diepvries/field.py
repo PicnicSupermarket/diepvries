@@ -6,6 +6,7 @@ from . import (
     FIELD_SUFFIX,
     METADATA_FIELDS,
     TABLE_PREFIXES,
+    UNKNOWN,
     FieldDataType,
     FieldRole,
     TableType,
@@ -71,6 +72,69 @@ class Field:
         return f"{type(self).__name__}: {self.name}"
 
     @property
+    def data_type_sql(self) -> str:
+        """Build SQL expression to represent the field data type."""
+        if self.data_type == FieldDataType.NUMBER:
+            return f"{self.data_type.value} ({self.precision}, {self.scale})"
+        if self.data_type == FieldDataType.TEXT and self.length:
+            return f"{self.data_type.value} ({self.length})"
+
+        return f"{self.data_type.name}"
+
+    @property
+    def hash_concatenation_sql(self) -> str:
+        """Build SQL expression to deterministically represent the field as a string.
+
+        This expression is needed to produce hashes (hashkey/hashdiff) that are
+        consistent, independently on the data type used to store the field in the
+        extraction table.
+
+        The SQL expression does the following steps:
+
+        1. Cast field to its data type in the DV model.
+        2. Produce a consistent string representation of the result of step 1, depending
+        on the field data type.
+        3. Ensure the result of step 2 never returns NULL.
+
+        Returns:
+            SQL expression to deterministically represent the field as a string.
+        """
+        hash_concatenation_sql = ""
+        date_format = "yyyy-mm-dd"
+        time_format = "hh24:mi:ss.ff9"
+        timezone_format = "tzhtzm"
+        cast_expression = (
+            f"CAST({self.name} AS {self.data_type_sql})"
+            if self.data_type != FieldDataType.GEOGRAPHY
+            else f"TO_GEOGRAPHY({self.name})"
+        )
+
+        if self.data_type in (FieldDataType.TIMESTAMP_LTZ, FieldDataType.TIMESTAMP_TZ):
+            hash_concatenation_sql = (
+                f"TO_CHAR({cast_expression}, "
+                f"'{date_format} {time_format} {timezone_format}')"
+            )
+
+        elif self.data_type == FieldDataType.TIMESTAMP_NTZ:
+            hash_concatenation_sql = (
+                f"TO_CHAR({cast_expression}, '{date_format} {time_format}')"
+            )
+        elif self.data_type == FieldDataType.DATE:
+            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{date_format}')"
+        elif self.data_type == FieldDataType.TIME:
+            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{time_format}')"
+        elif self.data_type == FieldDataType.TEXT:
+            hash_concatenation_sql = self.name
+        elif self.data_type == FieldDataType.GEOGRAPHY:
+            hash_concatenation_sql = f"ST_ASTEXT({cast_expression})"
+        else:
+            hash_concatenation_sql = f"CAST({cast_expression} AS TEXT)"
+
+        default_value = UNKNOWN if self.role == FieldRole.BUSINESS_KEY else ""
+
+        return f"COALESCE({hash_concatenation_sql}, '{default_value}')"
+
+    @property
     def suffix(self) -> str:
         """Get field suffix.
 
@@ -126,24 +190,9 @@ class Field:
         Returns:
             The DDL expression for this field.
         """
-        if (
-            self.data_type == FieldDataType.NUMBER
-            and self.scale is not None
-            and self.precision is not None
-        ):
-            return (
-                f"{self.name_in_staging} {self.data_type.value} "
-                f"({self.precision}, {self.scale}) "
-                f"{'NOT NULL' if self.is_mandatory else ''}"
-            )
-        if self.data_type == FieldDataType.TEXT and self.length:
-            return (
-                f"{self.name_in_staging} {self.data_type.value} "
-                f"({self.length}) {'NOT NULL' if self.is_mandatory else ''}"
-            )
         return (
-            f"{self.name_in_staging} {self.data_type.name} "
-            f"{'NOT NULL' if self.is_mandatory else ''}"
+            f"{self.name_in_staging} {self.data_type_sql}"
+            f"{' NOT NULL' if self.is_mandatory else ''}"
         )
 
     @property

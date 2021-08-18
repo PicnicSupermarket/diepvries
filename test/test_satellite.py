@@ -25,11 +25,11 @@ def test_effectivity_satellite_sql(test_path: Path, data_vault_load: DataVaultLo
         )
     )
 
-    expected_results = (
-        test_path / "sql" / "expected_results_effectivity_satellite.sql"
+    expected_result = (
+        test_path / "sql" / "expected_result_effectivity_satellite.sql"
     ).read_text()
 
-    assert expected_results == effectivity_satellite.sql_load_statement
+    assert effectivity_satellite.sql_load_statement == expected_result
 
 
 def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
@@ -38,11 +38,8 @@ def test_satellite_load_sql(test_path: Path, hs_customer: Satellite):
         test_path: Test path fixture value.
         hs_customer: Satellite fixture value.
     """
-    expected_results = (
-        test_path / "sql" / "expected_results_satellite.sql"
-    ).read_text()
-
-    assert expected_results == hs_customer.sql_load_statement
+    expected_result = (test_path / "sql" / "expected_result_satellite.sql").read_text()
+    assert hs_customer.sql_load_statement == expected_result
 
 
 def test_set_field_roles(hs_customer: Satellite):
@@ -59,18 +56,27 @@ def test_set_field_roles(hs_customer: Satellite):
         {"field": "s_hashdiff", "role": FieldRole.HASHDIFF},
         {"field": "test_date", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_string", "role": FieldRole.DESCRIPTIVE},
-        {"field": "test_timestamp", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_ntz", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_integer", "role": FieldRole.DESCRIPTIVE},
         {"field": "test_decimal", "role": FieldRole.DESCRIPTIVE},
         {"field": "x_customer_id", "role": FieldRole.DESCRIPTIVE},
         {"field": "grouping_key", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_geography", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_array", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_object", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_variant", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_tz", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_timestamp_ltz", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_time", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_boolean", "role": FieldRole.DESCRIPTIVE},
+        {"field": "test_real", "role": FieldRole.DESCRIPTIVE},
     ]
 
     for field in hs_customer.fields:
         expected_role = next(
             role["role"] for role in expected_roles if role["field"] == field.name
         )
-        assert expected_role == field.role
+        assert field.role == expected_role
 
 
 def test_parent_table_name(hs_customer: Satellite):
@@ -82,7 +88,7 @@ def test_parent_table_name(hs_customer: Satellite):
     assert hs_customer.parent_table_name == "h_customer"
 
 
-def test_hashdiff_sql(data_vault_load: DataVaultLoad):
+def test_hashdiff_sql(test_path: Path, data_vault_load: DataVaultLoad):
     """Assert correctness of SQL generated in Satellite class.
 
      (for hs_customer hashdiff)
@@ -98,16 +104,5 @@ def test_hashdiff_sql(data_vault_load: DataVaultLoad):
     )
     assert isinstance(satellite, Satellite)
 
-    expected_sql = (
-        "MD5(REGEXP_REPLACE(COALESCE(customer_id, 'dv_unknown')||'|~~|'||"
-        "COALESCE(CAST(test_string AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_date AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_timestamp AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_integer AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(test_decimal AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(x_customer_id AS VARCHAR), '')||'|~~|'||"
-        "COALESCE(CAST(grouping_key AS VARCHAR), ''), "
-        "'(\\\\|~~\\\\|)+$', '')) AS hs_customer_hashdiff"
-    )
-
-    assert expected_sql == satellite.hashdiff_sql
+    expected_result = (test_path / "sql" / "expected_result_hashdiff.sql").read_text()
+    assert satellite.hashdiff_sql == expected_result.rstrip("\n")

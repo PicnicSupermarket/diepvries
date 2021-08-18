@@ -268,7 +268,7 @@ class DataVaultLoad:
             return table.hashdiff_sql
         return field.name_in_staging
 
-    @lru_cache(1)
+    @lru_cache
     def _get_target_table(self, target_table_name: str) -> Table:
         """Get a Table object from target tables.
 

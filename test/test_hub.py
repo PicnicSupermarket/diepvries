@@ -24,7 +24,7 @@ def test_set_field_roles(h_order: Hub):
         expected_role = next(
             role["role"] for role in expected_roles if role["field"] == field.name
         )
-        assert expected_role == field.role
+        assert field.role == expected_role
 
 
 def test_hashkey_sql(h_order: Hub):
@@ -33,8 +33,8 @@ def test_hashkey_sql(h_order: Hub):
     Args:
         h_order: h_order fixture value.
     """
-    expected_sql = """MD5(COALESCE(order_id, 'dv_unknown')) AS h_order_hashkey"""
-    assert expected_sql == h_order.hashkey_sql
+    expected_result = """MD5(COALESCE(order_id, 'dv_unknown')) AS h_order_hashkey"""
+    assert h_order.hashkey_sql == expected_result
 
 
 def test_hub_load_sql(test_path: Path, h_customer: Hub):
@@ -44,8 +44,8 @@ def test_hub_load_sql(test_path: Path, h_customer: Hub):
         test_path: Test path fixture value.
         h_customer: h_customer fixture value.
     """
-    expected_results = (test_path / "sql" / "expected_results_hub.sql").read_text()
-    assert expected_results == h_customer.sql_load_statement
+    expected_result = (test_path / "sql" / "expected_result_hub.sql").read_text()
+    assert h_customer.sql_load_statement == expected_result
 
 
 def test_role_playing_hub_load_sql(
@@ -57,7 +57,7 @@ def test_role_playing_hub_load_sql(
         test_path: Test path fixture value.
         h_customer_role_playing: Role playing hub fixture value.
     """
-    expected_results = (
-        test_path / "sql" / "expected_results_role_playing_hub.sql"
+    expected_result = (
+        test_path / "sql" / "expected_result_role_playing_hub.sql"
     ).read_text()
-    assert expected_results == h_customer_role_playing.sql_load_statement
+    assert h_customer_role_playing.sql_load_statement == expected_result
