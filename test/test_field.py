@@ -1,4 +1,5 @@
 """Unit tests for Field."""
+
 import pytest
 
 from diepvries import METADATA_FIELDS, FieldDataType, FieldRole, TableType
