@@ -88,18 +88,18 @@ class EffectivitySatellite(Satellite):
                 satellites.
         """
         record_end_timestamp = RECORD_END_TIMESTAMP_SQL_TEMPLATE.format(
-            key_fields=",".join(format_fields_for_select(fields=self.driving_keys))
+            key_fields=", ".join(format_fields_for_select(fields=self.driving_keys))
         )
         # Handle driving_keys fields query placeholders.
-        driving_keys_sql = ",".join(format_fields_for_select(fields=self.driving_keys))
-        satellite_driving_keys_sql = ",".join(
+        driving_keys_sql = ", ".join(format_fields_for_select(fields=self.driving_keys))
+        satellite_driving_keys_sql = ", ".join(
             format_fields_for_select(fields=self.driving_keys, table_alias="satellite")
         )
-        staging_driving_keys_sql = ",".join(
+        staging_driving_keys_sql = ", ".join(
             format_fields_for_select(fields=self.driving_keys, table_alias="staging")
         )
 
-        link_driving_keys_sql = ",".join(
+        link_driving_keys_sql = ", ".join(
             format_fields_for_select(fields=self.driving_keys, table_alias="l")
         )
 

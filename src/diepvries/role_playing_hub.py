@@ -56,7 +56,7 @@ class RolePlayingHub(Hub):
             hashkey for hashkey in self.parent_table.fields_by_role[FieldRole.HASHKEY]
         )
 
-        target_fields = ",".join(
+        target_fields = ", ".join(
             format_fields_for_select(fields=self.parent_table.fields)
         )
 

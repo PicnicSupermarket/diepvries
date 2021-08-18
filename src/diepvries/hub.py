@@ -81,8 +81,8 @@ class Hub(Table):
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        fields = ",".join(format_fields_for_select(fields=self.fields))
-        staging_fields = ",".join(
+        fields = ", ".join(format_fields_for_select(fields=self.fields))
+        staging_fields = ", ".join(
             format_fields_for_select(fields=self.fields, table_alias="staging")
         )
 
