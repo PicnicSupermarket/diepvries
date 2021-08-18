@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `CHANGELOG.md` (#16).
 - Make hashkey and hashdiff generation deterministic (#17).
 - Add DISTINCT to filtered_staging in satellite MERGE statement (#18).
+- Change link/hub DML to apply a DISTINCT instead of a MIN (#19).
 
 ## [0.5.2] - 2021-07-30
 ### Changed
