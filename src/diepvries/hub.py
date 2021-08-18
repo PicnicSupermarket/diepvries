@@ -4,10 +4,7 @@ from typing import Dict
 
 from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
 from .table import Table
-from .template_sql.sql_formulas import (
-    FIELDS_AGGREGATION_SQL_TEMPLATE,
-    format_fields_for_select,
-)
+from .template_sql.sql_formulas import format_fields_for_select
 
 
 class Hub(Table):
