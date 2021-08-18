@@ -62,8 +62,12 @@ MERGE INTO dv.hs_customer AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT
-          staging.*
+        SELECT DISTINCT
+          staging.h_customer_hashkey,
+          staging.hs_customer_hashdiff,
+          staging.r_timestamp,
+          staging.r_source
+          ,staging.test_string,staging.test_date,staging.test_timestamp_ntz,staging.test_integer,staging.test_decimal,staging.x_customer_id,staging.grouping_key,staging.test_geography,staging.test_array,staging.test_object,staging.test_variant,staging.test_timestamp_tz,staging.test_timestamp_ltz,staging.test_time,staging.test_boolean,staging.test_real
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -134,8 +138,13 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT
-          staging.*
+        SELECT DISTINCT
+          staging.h_customer_hashkey,
+          staging.l_order_customer_hashkey,
+          staging.ls_order_customer_eff_hashdiff,
+          staging.r_timestamp,
+          staging.r_source
+          ,staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -217,8 +226,13 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT
-          staging.*
+        SELECT DISTINCT
+          staging.h_customer_role_playing_hashkey,
+          staging.l_order_customer_role_playing_hashkey,
+          staging.ls_order_customer_role_playing_eff_hashdiff,
+          staging.r_timestamp,
+          staging.r_source
+          ,staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT

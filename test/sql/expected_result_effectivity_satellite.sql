@@ -2,8 +2,13 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT
-          staging.*
+        SELECT DISTINCT
+          staging.h_customer_hashkey,
+          staging.l_order_customer_hashkey,
+          staging.ls_order_customer_eff_hashdiff,
+          staging.r_timestamp,
+          staging.r_source
+          ,staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT

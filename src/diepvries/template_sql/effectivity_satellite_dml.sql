@@ -2,8 +2,13 @@ MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
     WITH
       filtered_staging AS (
-        SELECT
-          staging.*
+        SELECT DISTINCT
+          {staging_driving_keys},
+          staging.{hashkey_field},
+          staging.{staging_hashdiff_field},
+          staging.{record_start_timestamp},
+          staging.{record_source}
+          {staging_descriptive_fields}
         FROM {staging_schema}.{staging_table} AS staging
           CROSS JOIN (
                        SELECT
