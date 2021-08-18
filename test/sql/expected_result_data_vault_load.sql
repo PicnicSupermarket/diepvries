@@ -81,7 +81,7 @@ MERGE INTO dv.hs_customer AS satellite
           in the target table but the hashdiff changed). As the r_timestamp is fetched
           from the staging table, these records will always be included in the
           WHEN NOT MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           staging.h_customer_hashkey,
           staging.hs_customer_hashdiff,
           staging.r_timestamp,
@@ -98,7 +98,7 @@ MERGE INTO dv.hs_customer AS satellite
           (hashkey already exists in target table, but hashdiff changed). As the
           r_timestamp is fetched from the target table, these records will always be
           included in the WHEN MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           satellite.h_customer_hashkey,
           satellite.s_hashdiff,
           satellite.r_timestamp,
@@ -169,7 +169,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           in the target table but the hashdiff changed). As the r_timestamp is fetched
           from the staging table, these records will always be included in the
           WHEN NOT MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           staging.h_customer_hashkey,
           staging.l_order_customer_hashkey,
           staging.ls_order_customer_eff_hashdiff,
@@ -186,7 +186,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           (hashkey already exists in target table, but hashdiff changed). As the
           r_timestamp is fetched from the target table, these records will always be
           included in the WHEN MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           satellite.h_customer_hashkey,
           satellite.l_order_customer_hashkey,
           satellite.s_hashdiff AS ls_order_customer_eff_hashdiff,
@@ -257,7 +257,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           in the target table but the hashdiff changed). As the r_timestamp is fetched
           from the staging table, these records will always be included in the
           WHEN NOT MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           staging.h_customer_role_playing_hashkey,
           staging.l_order_customer_role_playing_hashkey,
           staging.ls_order_customer_role_playing_eff_hashdiff,
@@ -274,7 +274,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           (hashkey already exists in target table, but hashdiff changed). As the
           r_timestamp is fetched from the target table, these records will always be
           included in the WHEN MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           satellite.h_customer_role_playing_hashkey,
           satellite.l_order_customer_role_playing_hashkey,
           satellite.s_hashdiff AS ls_order_customer_role_playing_eff_hashdiff,
