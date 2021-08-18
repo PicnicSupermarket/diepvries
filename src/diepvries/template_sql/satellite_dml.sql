@@ -17,7 +17,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           in the target table but the hashdiff changed). As the r_timestamp is fetched
           from the staging table, these records will always be included in the
           WHEN NOT MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           staging.{hashkey_field},
           staging.{staging_hashdiff_field},
           staging.{record_start_timestamp},
@@ -34,7 +34,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           (hashkey already exists in target table, but hashdiff changed). As the
           r_timestamp is fetched from the target table, these records will always be
           included in the WHEN MATCHED condition of the MERGE command. */
-        SELECT
+        SELECT DISTINCT
           satellite.{hashkey_field},
           satellite.{hashdiff_field},
           satellite.{record_start_timestamp},
