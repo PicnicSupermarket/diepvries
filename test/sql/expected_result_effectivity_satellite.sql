@@ -8,7 +8,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           staging.ls_order_customer_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM dv_stg.orders_20190806_000000 AS staging
           CROSS JOIN (
                        SELECT
@@ -39,7 +39,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           staging.ls_order_customer_eff_hashdiff,
           staging.r_timestamp,
           staging.r_source
-          ,staging.dummy_descriptive_field
+          , staging.dummy_descriptive_field
         FROM filtered_staging AS staging
           LEFT JOIN effectivity_satellite AS satellite
                     ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
@@ -56,7 +56,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           satellite.s_hashdiff AS ls_order_customer_eff_hashdiff,
           satellite.r_timestamp,
           satellite.r_source
-          ,satellite.dummy_descriptive_field
+          , satellite.dummy_descriptive_field
         FROM filtered_staging AS staging
           INNER JOIN effectivity_satellite AS satellite
                      ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
@@ -68,7 +68,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
       r_timestamp AS r_timestamp,
       LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
       r_source
-      ,dummy_descriptive_field
+      , dummy_descriptive_field
     FROM staging_satellite_affected_records
   ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
@@ -77,11 +77,11 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
     THEN
-    INSERT (l_order_customer_hashkey,s_hashdiff,r_timestamp,r_timestamp_end,r_source,dummy_descriptive_field)
+    INSERT (l_order_customer_hashkey, s_hashdiff, r_timestamp, r_timestamp_end, r_source, dummy_descriptive_field)
       VALUES (
                staging.l_order_customer_hashkey,
                staging.ls_order_customer_eff_hashdiff,
                staging.r_timestamp,
                staging.r_timestamp_end,
                staging.r_source
-               ,staging.dummy_descriptive_field);
+               , staging.dummy_descriptive_field);

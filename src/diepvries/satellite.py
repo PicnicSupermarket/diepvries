@@ -188,26 +188,26 @@ class Satellite(Table):
         hashdiff = next(
             hashdiff for hashdiff in self.fields_by_role[FieldRole.HASHDIFF]
         )
-        fields = ",".join(format_fields_for_select(fields=self.fields))
-        descriptive_fields = ",".join(
+        fields = ", ".join(format_fields_for_select(fields=self.fields))
+        descriptive_fields = ", ".join(
             format_fields_for_select(fields=self.fields_by_role[FieldRole.DESCRIPTIVE])
         )
-        satellite_descriptive_fields = ",".join(
+        satellite_descriptive_fields = ", ".join(
             format_fields_for_select(
                 fields=self.fields_by_role[FieldRole.DESCRIPTIVE],
                 table_alias="satellite",
             )
         )
-        staging_descriptive_fields = ",".join(
+        staging_descriptive_fields = ", ".join(
             format_fields_for_select(
                 fields=self.fields_by_role[FieldRole.DESCRIPTIVE], table_alias="staging"
             )
         )
 
         if self.fields_by_role[FieldRole.DESCRIPTIVE]:
-            descriptive_fields = f",{descriptive_fields}"
-            satellite_descriptive_fields = f",{satellite_descriptive_fields}"
-            staging_descriptive_fields = f",{staging_descriptive_fields}"
+            descriptive_fields = f", {descriptive_fields}"
+            satellite_descriptive_fields = f", {satellite_descriptive_fields}"
+            staging_descriptive_fields = f", {staging_descriptive_fields}"
 
         sql_placeholders = {
             "fields": fields,
