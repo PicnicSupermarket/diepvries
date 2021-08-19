@@ -1,1 +1,1 @@
-MD5(COALESCE(order_id, 'dv_unknown')||'|~~|'||COALESCE(customer_id, 'dv_unknown')||'|~~|'||COALESCE(ck_test_string, '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_hashkey
+MD5(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_hashkey

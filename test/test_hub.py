@@ -33,7 +33,9 @@ def test_hashkey_sql(h_order: Hub):
     Args:
         h_order: h_order fixture value.
     """
-    expected_result = """MD5(COALESCE(order_id, 'dv_unknown')) AS h_order_hashkey"""
+    expected_result = (
+        "MD5(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')) AS h_order_hashkey"
+    )
     assert h_order.hashkey_sql == expected_result
 
 

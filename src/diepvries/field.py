@@ -124,7 +124,7 @@ class Field:
         elif self.data_type == FieldDataType.TIME:
             hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{time_format}')"
         elif self.data_type == FieldDataType.TEXT:
-            hash_concatenation_sql = self.name
+            hash_concatenation_sql = cast_expression
         elif self.data_type == FieldDataType.GEOGRAPHY:
             hash_concatenation_sql = f"ST_ASTEXT({cast_expression})"
         else:
