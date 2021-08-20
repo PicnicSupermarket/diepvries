@@ -2,7 +2,7 @@
 
 [![PyPI version shields.io](https://img.shields.io/pypi/v/diepvries.svg)](https://pypi.python.org/pypi/diepvries/)
 [![PyPI license](https://img.shields.io/pypi/l/diepvries.svg)](https://pypi.python.org/pypi/diepvries/)
-[![Travis build](https://img.shields.io/travis/com/PicnicSupermarket/diepvries/master)](https://travis.com/PicnicSupermarket/diepvries)
+[![Travis build](https://img.shields.io/travis/com/PicnicSupermarket/diepvries/master)](https://travis-ci.com/PicnicSupermarket/diepvries)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 Welcome to `diepvries`, a Python library to generate
