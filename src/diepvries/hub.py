@@ -85,19 +85,20 @@ class Hub(Table):
         staging_fields = ", ".join(
             format_fields_for_select(fields=self.fields, table_alias="staging")
         )
-        source_fields = [
-            field
-            for field in self.fields
-            if field.role != FieldRole.HASHKEY
-            and field.name != METADATA_FIELDS["record_source"]
-        ]
-        source_fields_sql = ", ".join(format_fields_for_select(fields=source_fields))
+        source_fields = ", ".join(
+            [
+                field.name
+                for field in self.fields
+                if field.role != FieldRole.HASHKEY
+                and field.name != METADATA_FIELDS["record_source"]
+            ]
+        )
 
         sql_placeholders = {
             "source_hashkey_field": hashkey.name,
             "target_hashkey_field": hashkey.name,
             "record_source_field": METADATA_FIELDS["record_source"],
-            "source_fields": source_fields_sql,
+            "source_fields": source_fields,
             "target_fields": target_fields,
             "staging_source_fields": staging_fields,
         }
