@@ -2,7 +2,7 @@
 
 from typing import Dict, List
 
-from . import FIELD_SUFFIX, TEMPLATES_DIR, FieldRole
+from . import FIELD_SUFFIX, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
 from .table import Table
 from .template_sql.sql_formulas import format_fields_for_select
 
@@ -94,16 +94,24 @@ class Link(Table):
         """
         hashkey = next(hashkey for hashkey in self.fields_by_role[FieldRole.HASHKEY])
 
-        fields = ", ".join(format_fields_for_select(fields=self.fields))
+        target_fields = ", ".join(format_fields_for_select(fields=self.fields))
         staging_fields = ", ".join(
             format_fields_for_select(fields=self.fields, table_alias="staging")
         )
+        source_fields = [
+            field
+            for field in self.fields
+            if field.role != FieldRole.HASHKEY
+            and field.name != METADATA_FIELDS["record_source"]
+        ]
+        source_fields_sql = ", ".join(format_fields_for_select(fields=source_fields))
 
         sql_placeholders = {
             "source_hashkey_field": hashkey.name,
             "target_hashkey_field": hashkey.name,
-            "source_fields": fields,
-            "target_fields": fields,
+            "record_source_field": METADATA_FIELDS["record_source"],
+            "source_fields": source_fields_sql,
+            "target_fields": target_fields,
             "staging_source_fields": staging_fields,
         }
         sql_placeholders.update(super().sql_placeholders)
