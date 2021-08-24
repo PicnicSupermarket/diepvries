@@ -5,6 +5,8 @@
 [![Travis build](https://img.shields.io/travis/com/PicnicSupermarket/diepvries/master)](https://app.travis-ci.com/github/PicnicSupermarket/diepvries)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
+<img src="doc/static/diepvries.svg" alt="diepvries logo" width=200>
+
 Welcome to `diepvries`, a Python library to generate
 [Data Vault](https://en.wikipedia.org/wiki/Data_vault_modeling) SQL statements.
 
