@@ -24,7 +24,6 @@ deploy:
     keep_history: true
     on:
       branch: master
-      tags: true
       condition: ${DEPLOY} = true
   - provider: script
     script: tox -e build -e upload
