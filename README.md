@@ -23,6 +23,8 @@ model to `diepvries`:
 At the moment, `diepvries` is only compatible with
 [Snowflake](https://www.snowflake.com/).
 
+`diepvries` works with Python 3.8 and 3.9.
+
 ## Getting started
 
 `diepvries` is distributed as a Python wheel on PyPI. In a virtual environment, you can
