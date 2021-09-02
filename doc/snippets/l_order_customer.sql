@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS dv.l_order_customer (
   order_id                 VARCHAR     NOT NULL COMMENT 'Order business ID',
   r_timestamp              TIMESTAMP   NOT NULL COMMENT 'Record timestamp',
   r_source                 VARCHAR     NOT NULL COMMENT 'Record source',
-  PRIMARY KEY (l_article_price_hashkey)
+  PRIMARY KEY (l_order_customer_hashkey)
 );
