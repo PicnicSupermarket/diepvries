@@ -3,11 +3,11 @@
 from typing import Dict
 
 from . import FIELD_SUFFIX, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
-from .table import Table
+from .table import DataVaultTable
 from .template_sql.sql_formulas import format_fields_for_select
 
 
-class Hub(Table):
+class Hub(DataVaultTable):
     """A hub."""
 
     @property

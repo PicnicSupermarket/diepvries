@@ -12,7 +12,7 @@ from .field import Field
 from .hub import Hub
 from .link import Link
 from .satellite import Satellite
-from .table import Table
+from .table import DataVaultTable
 from .template_sql.sql_formulas import (
     ALIASED_BUSINESS_KEY_SQL_TEMPLATE,
     RECORD_START_TIMESTAMP_SQL_TEMPLATE,
@@ -33,7 +33,7 @@ class DataVaultLoad:
         staging_schema: str,
         staging_table: str,
         extract_start_timestamp: datetime,
-        target_tables: List[Table],
+        target_tables: List[DataVaultTable],
         source: Optional[str] = None,
     ):
         """Instantiate a DataVaultLoad object and calculate additional fields.
@@ -86,7 +86,7 @@ class DataVaultLoad:
         return f"{type(self).__name__}: staging_table={self.staging_table}"
 
     @property
-    def target_tables(self) -> List[Table]:
+    def target_tables(self) -> List[DataVaultTable]:
         """Get target tables.
 
         Returns:
@@ -95,7 +95,7 @@ class DataVaultLoad:
         return self._target_tables
 
     @target_tables.setter
-    def target_tables(self, target_tables: List[Table]):
+    def target_tables(self, target_tables: List[DataVaultTable]):
         """Set target tables.
 
         Perform the following actions:
@@ -239,7 +239,7 @@ class DataVaultLoad:
 
         return data_vault_sql
 
-    def _get_staging_dml_expression(self, field: Field, table: Table) -> str:
+    def _get_staging_dml_expression(self, field: Field, table: DataVaultTable) -> str:
         """Get the SQL expression to represent a field in the staging table.
 
         Args:
@@ -269,7 +269,7 @@ class DataVaultLoad:
         return field.name_in_staging
 
     @lru_cache
-    def _get_target_table(self, target_table_name: str) -> Table:
+    def _get_target_table(self, target_table_name: str) -> DataVaultTable:
         """Get a Table object from target tables.
 
         Args:

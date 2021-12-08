@@ -11,9 +11,34 @@ from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
 
 
 class Table(ABC):
+    """A table.
+
+    Abstract class Table. Holds common properties between all database tables.
+    """
+
+    def __init__(self, schema: str, name: str, *args, **kwargs):
+        self.schema = schema
+        self.name = name.lower()
+
+        self._logger = FixedPrefixLoggerAdapter(logging.getLogger(__name__), str(self))
+
+        self._logger.info("Instance of (%s) created", type(self))
+
+    def __str__(self) -> str:
+        """Representation of a Table object as a string.
+
+        This helps the tracking of logging events per entity.
+
+        Returns:
+            String representation of a Table.
+        """
+        return f"{type(self).__name__}: {self.schema}.{self.name}"
+
+
+class DataVaultTable(Table):
     """A Data Vault table.
 
-    Abstract class Table. It holds common properties between all subclasses:
+    Abstract class DataVaultTable. It holds common properties between all subclasses:
     Hub, Link and Satellite.
     """
 
@@ -41,8 +66,7 @@ class Table(ABC):
             _args: Unused here, useful for children classes.
             _kwargs: Unused here, useful for children classes.
         """
-        self.schema = schema
-        self.name = name.lower()
+        super().__init__(schema=schema, name=name)
         self.fields = fields
 
         # Check if table structure is valid. Each subclass has its own implementation
@@ -52,20 +76,6 @@ class Table(ABC):
         # Variables set in DataVaultLoad
         self.staging_schema = None
         self.staging_table = None
-
-        self._logger = FixedPrefixLoggerAdapter(logging.getLogger(__name__), str(self))
-
-        self._logger.info("Instance of (%s) created", type(self))
-
-    def __str__(self) -> str:
-        """Representation of a Table object as a string.
-
-        This helps the tracking of logging events per entity.
-
-        Returns:
-            String representation of a Table.
-        """
-        return f"{type(self).__name__}: {self.schema}.{self.name}"
 
     @property
     @abstractmethod
