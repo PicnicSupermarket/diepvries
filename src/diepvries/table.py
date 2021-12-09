@@ -20,6 +20,8 @@ class Table(ABC):
     Abstract class Table. Holds common properties between all database tables.
     """
 
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, schema: str, name: str, *_args, **_kwargs):
         """Instantiate a table.
 
@@ -50,6 +52,8 @@ class Table(ABC):
 class StagingTable(Table):
     """A table used for staging."""
 
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, schema: str, name: str, extract_start_timestamp: datetime):
         """Instantiate a StagingTable.
 
@@ -58,7 +62,6 @@ class StagingTable(Table):
              name: Table name.
              extract_start_timestamp: Extract start timestamp.
         """
-
         physical_name = STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
             staging_table=name,
             staging_table_suffix=extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),

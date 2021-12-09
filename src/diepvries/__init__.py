@@ -66,6 +66,7 @@ class FixedPrefixLoggerAdapter(logging.LoggerAdapter):
 
     def process(self, msg, kwargs):
         """Process a message."""
+        # pylint: disable=consider-using-f-string
         return "[(%s)] (%s)" % (self.prefix, msg), kwargs
 
 
