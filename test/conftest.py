@@ -15,6 +15,7 @@ from diepvries.hub import Hub
 from diepvries.link import Link
 from diepvries.role_playing_hub import RolePlayingHub
 from diepvries.satellite import Satellite
+from diepvries.table import StagingTable
 
 # Pytest fixtures that depend on other fixtures defined in the same scope will
 # trigger Pylint (Redefined name from outer scope). While usually valid, this doesn't
@@ -62,6 +63,17 @@ def process_configuration() -> Dict[str, str]:
 
 
 @pytest.fixture
+def staging_table(process_configuration, extract_start_timestamp) -> StagingTable:
+    """Return the staging table"""
+    staging_table = StagingTable(
+        schema=process_configuration["staging_schema"],
+        name=process_configuration["staging_table"],
+        extract_start_timestamp=extract_start_timestamp,
+    )
+    return staging_table
+
+
+@pytest.fixture
 def ls_order_customer_eff_driving_keys() -> List[DrivingKeyField]:
     """Build dictionary of driving keys, indexed by the satellite name."""
     return [
@@ -87,13 +99,13 @@ def ls_order_customer_role_playing_eff_driving_keys() -> List[DrivingKeyField]:
 
 @pytest.fixture
 def h_customer(
-    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+    process_configuration: Dict[str, str], staging_table: StagingTable
 ) -> Hub:
     """Define h_customer test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
-        extract_start_timestamp: Timestamp fixture value.
+        staging_table: Staging table fixture value.
 
     Returns:
         Deserialized hub h_customer.
@@ -135,25 +147,21 @@ def h_customer(
         name="h_customer",
         fields=h_customer_fields,
     )
-    h_customer.staging_schema = "dv_stg"
-    h_customer.staging_table = (
-        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
-    )
+    h_customer.staging_table = staging_table
+
     return h_customer
 
 
 @pytest.fixture
 def h_customer_role_playing(
-    process_configuration: Dict[str, str],
-    h_customer: Hub,
-    extract_start_timestamp: datetime,
+    process_configuration: Dict[str, str], h_customer: Hub, staging_table: StagingTable
 ) -> RolePlayingHub:
     """Define h_customer_role_playing test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
         h_customer: Hub customer fixture value.
-        extract_start_timestamp: Timestamp fixture value.
+        staging_table: Staging table fixture value.
 
     Returns:
         Deserialized role playing hub h_customer_role_playing.
@@ -196,20 +204,18 @@ def h_customer_role_playing(
         fields=h_customer_role_playing_fields,
     )
     h_customer_role_playing.parent_table = h_customer
-    h_customer_role_playing.staging_schema = "dv_stg"
-    h_customer_role_playing.staging_table = (
-        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
-    )
+    h_customer_role_playing.staging_table = staging_table
 
     return h_customer_role_playing
 
 
 @pytest.fixture
-def h_order(process_configuration: Dict[str, str]) -> Hub:
+def h_order(process_configuration: Dict[str, str], staging_table: StagingTable) -> Hub:
     """Define h_order test hub.
 
     Args:
         process_configuration: Process configuration fixture value.
+        staging_table: StagingTable fixture value.
 
     Returns:
         Deserialized hub h_order.
@@ -250,18 +256,19 @@ def h_order(process_configuration: Dict[str, str]) -> Hub:
         name="h_order",
         fields=h_order_fields,
     )
+    h_order.staging_table = staging_table
     return h_order
 
 
 @pytest.fixture
 def l_order_customer(
-    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+    process_configuration: Dict[str, str], staging_table: StagingTable
 ) -> Link:
     """Define l_order_customer test link.
 
     Args:
         process_configuration: Process configuration fixture value.
-        extract_start_timestamp: Timestamp fixture value.
+        staging_table: Staging table fixture value.
 
     Returns:
         Deserialized link l_order_customer.
@@ -339,10 +346,7 @@ def l_order_customer(
         name="l_order_customer",
         fields=l_order_customer_fields,
     )
-    l_order_customer.staging_schema = "dv_stg"
-    l_order_customer.staging_table = (
-        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
-    )
+    l_order_customer.staging_table = staging_table
 
     return l_order_customer
 
@@ -435,13 +439,13 @@ def l_order_customer_role_playing(process_configuration: Dict[str, str]) -> Link
 
 @pytest.fixture
 def hs_customer(
-    process_configuration: Dict[str, str], extract_start_timestamp: datetime
+    process_configuration: Dict[str, str], staging_table: StagingTable
 ) -> Satellite:
     """Define hs_customer test satellite.
 
     Args:
         process_configuration: Process configuration fixture value.
-        extract_start_timestamp: Timestamp fixture value.
+        staging_table: Staging table fixture value.
 
     Returns:
         Deserialized satellite hs_customer.
@@ -606,10 +610,7 @@ def hs_customer(
         name="hs_customer",
         fields=hs_customer_fields,
     )
-    hs_customer.staging_schema = "dv_stg"
-    hs_customer.staging_table = (
-        f"orders_{extract_start_timestamp.strftime('%Y%m%d_%H%M%S')}"
-    )
+    hs_customer.staging_table = staging_table
 
     return hs_customer
 

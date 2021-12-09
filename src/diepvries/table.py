@@ -2,21 +2,33 @@
 
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
 from functools import cached_property
 from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
+from .template_sql.sql_formulas import (
+    HASHKEY_SQL_TEMPLATE,
+    STAGING_PHYSICAL_NAME_SQL_TEMPLATE,
+)
 
 
 class Table(ABC):
-    """A table.
+    """A generic table.
 
     Abstract class Table. Holds common properties between all database tables.
     """
 
-    def __init__(self, schema: str, name: str, *args, **kwargs):
+    def __init__(self, schema: str, name: str, *_args, **_kwargs):
+        """Instantiate a table.
+
+        Args:
+            schema: Data Vault schema name.
+            name: Data Vault table name.
+            _args: Unused, useful for child classes.
+            _kwargs: Unused, useful for child classes.
+        """
         self.schema = schema
         self.name = name.lower()
 
@@ -35,6 +47,32 @@ class Table(ABC):
         return f"{type(self).__name__}: {self.schema}.{self.name}"
 
 
+class StagingTable(Table):
+    """A table used for staging."""
+
+    def __init__(self, schema: str, name: str, extract_start_timestamp: datetime):
+        """Instantiate a StagingTable.
+
+        Args:
+             schema: Schema name.
+             name: Table name.
+             extract_start_timestamp: Extract start timestamp.
+        """
+        super().__init__(schema=schema, name=name)
+        self.extract_start_timestamp: datetime = extract_start_timestamp
+
+    def physical_name(self) -> str:
+        """Get the staging table in the database.
+
+        Returns:
+            Name of the staging table (suffixed with extract_start_timestamp).
+        """
+        return STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
+            staging_table=self.name,
+            staging_table_suffix=self.extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),
+        )
+
+
 class DataVaultTable(Table):
     """A Data Vault table.
 
@@ -47,7 +85,7 @@ class DataVaultTable(Table):
     def __init__(self, schema: str, name: str, fields: List[Field], *_args, **_kwargs):
         """Instantiate a Data Vault table.
 
-        Besides setting each __init__ argument as class attributes, it also performs
+        Besides setting each __init__ argument as instance attributes, it also performs
         the following actions:
 
         - Calculate fields_by_name: dictionary with each Field as values and its name
@@ -60,8 +98,8 @@ class DataVaultTable(Table):
           instances of the subclass).
 
         Args:
-            schema: Data Vault schema name.
-            name: Data Vault table name.
+            schema: Schema name.
+            name: Table name.
             fields: List of fields that this table holds.
             _args: Unused here, useful for children classes.
             _kwargs: Unused here, useful for children classes.
@@ -73,9 +111,8 @@ class DataVaultTable(Table):
         # (with its specific tests + the tests performed in this abstract class).
         self._validate()
 
-        # Variables set in DataVaultLoad
-        self.staging_schema = None
-        self.staging_table = None
+        # Set in DataVaultLoad
+        self.staging_table: StagingTable = None
 
     @property
     @abstractmethod
@@ -164,8 +201,8 @@ class DataVaultTable(Table):
         query_args = {
             "target_schema": self.schema,
             "target_table": self.name,
-            "staging_schema": self.staging_schema,
-            "staging_table": self.staging_table,
+            "staging_schema": self.staging_table.schema,
+            "staging_table": self.staging_table.physical_name(),
             "record_start_timestamp": METADATA_FIELDS["record_start_timestamp"],
             "record_source": METADATA_FIELDS["record_source"],
         }
