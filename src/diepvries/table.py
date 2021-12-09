@@ -26,8 +26,8 @@ class Table(ABC):
         """Instantiate a table.
 
         Args:
-            schema: Data Vault schema name.
-            name: Data Vault table name.
+            schema: Schema name.
+            name: Table name.
             _args: Unused, useful for child classes.
             _kwargs: Unused, useful for child classes.
         """
@@ -95,8 +95,8 @@ class DataVaultTable(Table):
           instances of the subclass).
 
         Args:
-            schema: Schema name.
-            name: Table name.
+            schema: Data Vault schema name.
+            name: Data Vault table name.
             fields: List of fields that this table holds.
             _args: Unused here, useful for children classes.
             _kwargs: Unused here, useful for children classes.
