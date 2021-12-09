@@ -58,19 +58,13 @@ class StagingTable(Table):
              name: Table name.
              extract_start_timestamp: Extract start timestamp.
         """
-        super().__init__(schema=schema, name=name)
-        self.extract_start_timestamp: datetime = extract_start_timestamp
 
-    def physical_name(self) -> str:
-        """Get the staging table in the database.
-
-        Returns:
-            Name of the staging table (suffixed with extract_start_timestamp).
-        """
-        return STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
-            staging_table=self.name,
-            staging_table_suffix=self.extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),
+        physical_name = STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
+            staging_table=name,
+            staging_table_suffix=extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),
         )
+
+        super().__init__(schema=schema, name=physical_name)
 
 
 class DataVaultTable(Table):
@@ -202,7 +196,7 @@ class DataVaultTable(Table):
             "target_schema": self.schema,
             "target_table": self.name,
             "staging_schema": self.staging_table.schema,
-            "staging_table": self.staging_table.physical_name(),
+            "staging_table": self.staging_table.name,
             "record_start_timestamp": METADATA_FIELDS["record_start_timestamp"],
             "record_source": METADATA_FIELDS["record_source"],
         }

@@ -84,9 +84,7 @@ class DataVaultLoad:
         Returns:
             String representation of this DataVaultLoad instance.
         """
-        return (
-            f"{type(self).__name__}: staging_table={self.staging_table.physical_name()}"
-        )
+        return f"{type(self).__name__}: staging_table={self.staging_table.name}"
 
     @property
     def target_tables(self) -> List[DataVaultTable]:
@@ -186,7 +184,7 @@ class DataVaultLoad:
 
         query_args = {
             "staging_schema": self.staging_table.schema,
-            "staging_table": self.staging_table.physical_name(),
+            "staging_table": self.staging_table.name,
             "fields_dml": ", ".join(fields_dml),
             "fields_ddl": ", ".join(fields_ddl),
             "extract_schema_name": self.extract_schema,
@@ -199,7 +197,7 @@ class DataVaultLoad:
 
         self._logger.info(
             "Loading SQL for staging table (%s) generated.",
-            self.staging_table.physical_name(),
+            self.staging_table.name,
         )
         self._logger.debug("\n(%s)", staging_table_create_sql)
 
