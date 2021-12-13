@@ -8,10 +8,7 @@ from typing import Dict, List
 
 from . import HASH_DELIMITER, METADATA_FIELDS, FieldRole, FixedPrefixLoggerAdapter
 from .field import Field
-from .template_sql.sql_formulas import (
-    HASHKEY_SQL_TEMPLATE,
-    STAGING_PHYSICAL_NAME_SQL_TEMPLATE,
-)
+from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
 
 
 class Table(ABC):
@@ -62,10 +59,8 @@ class StagingTable(Table):
              name: Table name.
              extract_start_timestamp: Extract start timestamp.
         """
-        physical_name = STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
-            staging_table=name,
-            staging_table_suffix=extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),
-        )
+        staging_table_suffix = extract_start_timestamp.strftime("%Y%m%d_%H%M%S")
+        physical_name = f"{name}_{staging_table_suffix}"
 
         super().__init__(schema=schema, name=physical_name)
 
