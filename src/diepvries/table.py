@@ -74,6 +74,9 @@ class DataVaultTable(Table):
 
     _fields = None
 
+    # Table used for staging. Set in DataVaultLoad.
+    staging_table: StagingTable
+
     def __init__(self, schema: str, name: str, fields: List[Field], *_args, **_kwargs):
         """Instantiate a Data Vault table.
 
@@ -102,9 +105,6 @@ class DataVaultTable(Table):
         # Check if table structure is valid. Each subclass has its own implementation
         # (with its specific tests + the tests performed in this abstract class).
         self._validate()
-
-        # Set in DataVaultLoad
-        self.staging_table: StagingTable = None
 
     @property
     @abstractmethod
