@@ -3,11 +3,11 @@
 from typing import Dict, List
 
 from . import FIELD_SUFFIX, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
-from .table import Table
+from .table import DataVaultTable
 from .template_sql.sql_formulas import format_fields_for_select
 
 
-class Link(Table):
+class Link(DataVaultTable):
     """A link."""
 
     @property

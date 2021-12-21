@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
 from functools import cached_property
 from typing import Dict, List
 
@@ -11,18 +12,75 @@ from .template_sql.sql_formulas import HASHKEY_SQL_TEMPLATE
 
 
 class Table(ABC):
+    """A generic table.
+
+    Abstract class Table. Holds common properties between all database tables.
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, schema: str, name: str, *_args, **_kwargs):
+        """Instantiate a table.
+
+        Args:
+            schema: Schema name.
+            name: Table name.
+            _args: Unused, useful for child classes.
+            _kwargs: Unused, useful for child classes.
+        """
+        self.schema = schema
+        self.name = name.lower()
+
+        self._logger = FixedPrefixLoggerAdapter(logging.getLogger(__name__), str(self))
+
+        self._logger.info("Instance of (%s) created", type(self))
+
+    def __str__(self) -> str:
+        """Representation of a Table object as a string.
+
+        This helps the tracking of logging events per entity.
+
+        Returns:
+            String representation of a Table.
+        """
+        return f"{type(self).__name__}: {self.schema}.{self.name}"
+
+
+class StagingTable(Table):
+    """A table used for staging."""
+
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, schema: str, name: str, extract_start_timestamp: datetime):
+        """Instantiate a StagingTable.
+
+        Args:
+             schema: Schema name.
+             name: Table name.
+             extract_start_timestamp: Extract start timestamp.
+        """
+        staging_table_suffix = extract_start_timestamp.strftime("%Y%m%d_%H%M%S")
+        physical_name = f"{name}_{staging_table_suffix}"
+
+        super().__init__(schema=schema, name=physical_name)
+
+
+class DataVaultTable(Table):
     """A Data Vault table.
 
-    Abstract class Table. It holds common properties between all subclasses:
+    Abstract class DataVaultTable. It holds common properties between all subclasses:
     Hub, Link and Satellite.
     """
 
     _fields = None
 
+    # Table used for staging. Set in DataVaultLoad.
+    staging_table: StagingTable
+
     def __init__(self, schema: str, name: str, fields: List[Field], *_args, **_kwargs):
         """Instantiate a Data Vault table.
 
-        Besides setting each __init__ argument as class attributes, it also performs
+        Besides setting each __init__ argument as instance attributes, it also performs
         the following actions:
 
         - Calculate fields_by_name: dictionary with each Field as values and its name
@@ -41,31 +99,12 @@ class Table(ABC):
             _args: Unused here, useful for children classes.
             _kwargs: Unused here, useful for children classes.
         """
-        self.schema = schema
-        self.name = name.lower()
+        super().__init__(schema=schema, name=name)
         self.fields = fields
 
         # Check if table structure is valid. Each subclass has its own implementation
         # (with its specific tests + the tests performed in this abstract class).
         self._validate()
-
-        # Variables set in DataVaultLoad
-        self.staging_schema = None
-        self.staging_table = None
-
-        self._logger = FixedPrefixLoggerAdapter(logging.getLogger(__name__), str(self))
-
-        self._logger.info("Instance of (%s) created", type(self))
-
-    def __str__(self) -> str:
-        """Representation of a Table object as a string.
-
-        This helps the tracking of logging events per entity.
-
-        Returns:
-            String representation of a Table.
-        """
-        return f"{type(self).__name__}: {self.schema}.{self.name}"
 
     @property
     @abstractmethod
@@ -154,8 +193,8 @@ class Table(ABC):
         query_args = {
             "target_schema": self.schema,
             "target_table": self.name,
-            "staging_schema": self.staging_schema,
-            "staging_table": self.staging_table,
+            "staging_schema": self.staging_table.schema,
+            "staging_table": self.staging_table.name,
             "record_start_timestamp": METADATA_FIELDS["record_start_timestamp"],
             "record_source": METADATA_FIELDS["record_source"],
         }

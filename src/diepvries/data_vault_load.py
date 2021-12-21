@@ -12,12 +12,11 @@ from .field import Field
 from .hub import Hub
 from .link import Link
 from .satellite import Satellite
-from .table import Table
+from .table import DataVaultTable, StagingTable
 from .template_sql.sql_formulas import (
     ALIASED_BUSINESS_KEY_SQL_TEMPLATE,
     RECORD_START_TIMESTAMP_SQL_TEMPLATE,
     SOURCE_SQL_TEMPLATE,
-    STAGING_PHYSICAL_NAME_SQL_TEMPLATE,
 )
 
 
@@ -33,7 +32,7 @@ class DataVaultLoad:
         staging_schema: str,
         staging_table: str,
         extract_start_timestamp: datetime,
-        target_tables: List[Table],
+        target_tables: List[DataVaultTable],
         source: Optional[str] = None,
     ):
         """Instantiate a DataVaultLoad object and calculate additional fields.
@@ -42,8 +41,7 @@ class DataVaultLoad:
             extract_schema: Schema where the extraction table is stored.
             extract_table: Name of the extraction table.
             staging_schema: Schema where the staging table should be created.
-            staging_table: Name of the staging table (functional name, as the physical
-                name will be calculated in staging_table property getter).
+            staging_table: Name of the staging table.
             extract_start_timestamp: Moment when the extraction started (when we started
                 fetching data from source).
             target_tables: Tables that will be populated by current staging table.
@@ -56,8 +54,11 @@ class DataVaultLoad:
         """
         self.extract_schema = extract_schema
         self.extract_table = extract_table
-        self.staging_schema = staging_schema
-        self.staging_table = staging_table
+        self.staging_table = StagingTable(
+            schema=staging_schema,
+            name=staging_table,
+            extract_start_timestamp=extract_start_timestamp,
+        )
 
         # Check if extract_start_timestamp is timezone-aware.
         if extract_start_timestamp.tzinfo is None:
@@ -83,10 +84,10 @@ class DataVaultLoad:
         Returns:
             String representation of this DataVaultLoad instance.
         """
-        return f"{type(self).__name__}: staging_table={self.staging_table}"
+        return f"{type(self).__name__}: staging_table={self.staging_table.name}"
 
     @property
-    def target_tables(self) -> List[Table]:
+    def target_tables(self) -> List[DataVaultTable]:
         """Get target tables.
 
         Returns:
@@ -95,7 +96,7 @@ class DataVaultLoad:
         return self._target_tables
 
     @target_tables.setter
-    def target_tables(self, target_tables: List[Table]):
+    def target_tables(self, target_tables: List[DataVaultTable]):
         """Set target tables.
 
         Perform the following actions:
@@ -117,7 +118,6 @@ class DataVaultLoad:
             target_tables, key=lambda x: (x.loading_order, x.name)
         )
         for target_table in self._target_tables:
-            target_table.staging_schema = self.staging_schema
             target_table.staging_table = self.staging_table
             if isinstance(target_table, Satellite):
                 try:
@@ -139,27 +139,6 @@ class DataVaultLoad:
                             f"{target_table}: Parent hub '{parent_hub}' missing in "
                             f"target_tables configuration."
                         ) from e
-
-    @property
-    def staging_table(self) -> str:
-        """Get the staging table in the database.
-
-        Returns:
-            Name of the staging table (suffixed with extract_start_timestamp).
-        """
-        return STAGING_PHYSICAL_NAME_SQL_TEMPLATE.format(
-            staging_table=self._staging_table,
-            staging_table_suffix=self.extract_start_timestamp.strftime("%Y%m%d_%H%M%S"),
-        )
-
-    @staging_table.setter
-    def staging_table(self, staging_table: str):
-        """Set the name of the staging table in the database.
-
-        Args:
-            staging_table: The name of the staging table.
-        """
-        self._staging_table = staging_table
 
     @property
     def staging_create_sql_statement(self) -> str:
@@ -204,8 +183,8 @@ class DataVaultLoad:
             fields_ddl.append(field.ddl_in_staging)
 
         query_args = {
-            "staging_schema": self.staging_schema,
-            "staging_table": self.staging_table,
+            "staging_schema": self.staging_table.schema,
+            "staging_table": self.staging_table.name,
             "fields_dml": ", ".join(fields_dml),
             "fields_ddl": ", ".join(fields_ddl),
             "extract_schema_name": self.extract_schema,
@@ -217,7 +196,8 @@ class DataVaultLoad:
         )
 
         self._logger.info(
-            "Loading SQL for staging table (%s) generated.", self.staging_table
+            "Loading SQL for staging table (%s) generated.",
+            self.staging_table.name,
         )
         self._logger.debug("\n(%s)", staging_table_create_sql)
 
@@ -239,7 +219,7 @@ class DataVaultLoad:
 
         return data_vault_sql
 
-    def _get_staging_dml_expression(self, field: Field, table: Table) -> str:
+    def _get_staging_dml_expression(self, field: Field, table: DataVaultTable) -> str:
         """Get the SQL expression to represent a field in the staging table.
 
         Args:
@@ -269,7 +249,7 @@ class DataVaultLoad:
         return field.name_in_staging
 
     @lru_cache
-    def _get_target_table(self, target_table_name: str) -> Table:
+    def _get_target_table(self, target_table_name: str) -> DataVaultTable:
         """Get a Table object from target tables.
 
         Args:

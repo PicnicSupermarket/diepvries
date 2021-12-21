@@ -63,11 +63,6 @@ RECORD_START_TIMESTAMP_SQL_TEMPLATE = (
 # aliased.
 SOURCE_SQL_TEMPLATE = f"'{{source}}' AS {METADATA_FIELDS['record_source']}"
 
-# Name of the staging table created in the database. The suffix corresponds to
-# the extraction timestamp. This physical name will be used as target while creating
-# the staging table, and as source while populating the Data Vault model.
-STAGING_PHYSICAL_NAME_SQL_TEMPLATE = "{staging_table}_{staging_table_suffix}"
-
 
 def format_fields_for_join(
     fields: List[Union[Field, DrivingKeyField]],

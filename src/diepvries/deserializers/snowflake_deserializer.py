@@ -17,7 +17,7 @@ from ..hub import Hub
 from ..link import Link
 from ..role_playing_hub import RolePlayingHub
 from ..satellite import Satellite
-from ..table import Table
+from ..table import DataVaultTable
 from . import DESERIALIZERS_DIR
 
 METADATA_SQL_FILE_PATH = DESERIALIZERS_DIR / "snowflake_model_metadata.sql"
@@ -97,7 +97,7 @@ class SnowflakeDeserializer:
             f"target_tables={';'.join(self.target_tables)}"
         )
 
-    def _deserialize_table(self, target_table_name: str) -> Table:
+    def _deserialize_table(self, target_table_name: str) -> DataVaultTable:
         """Instantiate a DataVault table.
 
         Args:
@@ -203,7 +203,7 @@ class SnowflakeDeserializer:
 
         return fields
 
-    def _get_table_type(self, target_table_name: str) -> Type[Table]:
+    def _get_table_type(self, target_table_name: str) -> Type[DataVaultTable]:
         """Get the type (class) that should be used to instantiate a given target table.
 
         The type is calculated based on the table prefix.
@@ -241,7 +241,7 @@ class SnowflakeDeserializer:
         )
 
     @property
-    def deserialized_target_tables(self) -> List[Table]:
+    def deserialized_target_tables(self) -> List[DataVaultTable]:
         """Deserialize all target tables passed as argument during instance creation.
 
         Returns:

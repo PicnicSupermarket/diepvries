@@ -5,7 +5,7 @@ from typing import Dict, Optional, Union
 from . import FIELD_SUFFIX, HASH_DELIMITER, METADATA_FIELDS, TEMPLATES_DIR, FieldRole
 from .hub import Hub
 from .link import Link
-from .table import Table
+from .table import DataVaultTable
 from .template_sql.sql_formulas import (
     END_OF_TIME_SQL_TEMPLATE,
     HASHDIFF_SQL_TEMPLATE,
@@ -14,7 +14,7 @@ from .template_sql.sql_formulas import (
 )
 
 
-class Satellite(Table):
+class Satellite(DataVaultTable):
     """A Satellite.
 
     A Satellite is a Data Vault table that contains all properties of a link or a
