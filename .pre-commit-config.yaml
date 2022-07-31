@@ -1,0 +1,28 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+    -   id: check-added-large-files
+        files: 'src/diepvries/'        
+-   repo: https://github.com/psf/black
+    rev: '22.6.0'
+    hooks:
+      - id: black
+        args: [--check, "."]
+-   repo: https://github.com/pycqa/flake8
+    rev: '4.0.1'
+    hooks:
+    -   id: flake8
+        additional_dependencies:
+          - darglint
+          - flake8-docstrings
+          - flake8-isort
+        files: 'src/diepvries/'
+-   repo: https://github.com/PyCQA/pylint
+    rev: 'v2.14.5'
+    hooks:
+    -   id: pylint
+        additional_dependencies:
+          - snowflake-connector-python
+        args: [--rcfile=tox.ini]
+        files: 'src/diepvries/' 
