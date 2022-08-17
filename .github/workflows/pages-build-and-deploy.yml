@@ -5,7 +5,7 @@ on:
     branches: [$default-branch]
     tags: [diepvries/*]
 jobs:
-  run-ci:
+  deploy-github-pages:
     runs-on: ubuntu-22.04
 
     environment:
