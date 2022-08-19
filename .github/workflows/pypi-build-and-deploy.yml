@@ -1,9 +1,11 @@
 name: pypi-build-and-deploy
+
+# Only run this workflow when a diepvries/* tag gets pushed
 on:
-  # Only run this workflow when a commit with a diepvries/* tag gets pushed to the default branch
   push:
-    branches: [$default-branch]
-    tags: [diepvries/*]
+    tags:
+      - diepvries/*
+
 jobs:
   deploy-to-pypi:
     runs-on: ubuntu-22.04
