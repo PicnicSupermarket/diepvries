@@ -79,4 +79,13 @@ And then run everything with:
 tox
 ```
 
+To automatically run checks before you commit your changes you should install and run **pre-commit**:
+
+```shell
+pip install -U pre-commit
+pre-commit install
+```
+
+now ```pre-commit``` will run automatically on ```git commit```.
+
 If you have any question or doubt, don't hesitate to open an Issue, we're happy to help!
