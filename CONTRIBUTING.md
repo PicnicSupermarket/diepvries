@@ -79,10 +79,14 @@ And then run everything with:
 tox
 ```
 
-To automatically run checks before you commit your changes you should install and run **pre-commit**:
+To automatically run checks before you commit your changes you should:
 
+* install **pre-commit**
+following the instructions from
+[https://pre-commit.com/#installation](https://pre-commit.com/#installation):
+
+* install the git hook scripts
 ```shell
-pip install -U pre-commit
 pre-commit install
 ```
 
