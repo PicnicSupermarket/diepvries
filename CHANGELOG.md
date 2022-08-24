@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add `StagingTable` class
+- Add `StagingTable` class.
+- Add the pre-commit tool (#34).
 
 ## [0.6.2] - 2021-08-20
 ### Added
