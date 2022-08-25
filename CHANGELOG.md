@@ -5,9 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.3] - 2022-08-25
 ### Added
 - Add `StagingTable` class (#30).
 - Add the pre-commit tool (#34).
+
+### Changed
 - Changed CI/CD from Travis to Github Actions (#33).
 
 ## [0.6.2] - 2021-08-20
