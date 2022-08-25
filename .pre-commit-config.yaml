@@ -1,0 +1,15 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+    -   id: check-added-large-files
+        files: 'src/diepvries/'        
+-   repo: local
+    hooks:
+      - id: tox-lint
+        name: run linting & formatting from tox
+        description: Runs linting and formatting from tox
+        entry: tox -e lint
+        language: system
+        files: ''
+        verbose: true

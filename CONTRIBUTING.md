@@ -79,4 +79,17 @@ And then run everything with:
 tox
 ```
 
+To automatically run checks before you commit your changes you should:
+
+* install **pre-commit**
+following the instructions from
+[https://pre-commit.com/#installation](https://pre-commit.com/#installation):
+
+* install the git hook scripts
+```shell
+pre-commit install
+```
+
+now ```pre-commit``` will run automatically on ```git commit```.
+
 If you have any question or doubt, don't hesitate to open an Issue, we're happy to help!
