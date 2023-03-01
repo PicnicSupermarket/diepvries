@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2023-03-01
+### Added
+- Add support for python 3.10 (#37)
+
+### Changed
+- Update `snowflake-connector-python` to `~=3.0` (#37)
+
 ## [0.6.3] - 2022-08-25
 ### Added
 - Add `StagingTable` class (#30).
