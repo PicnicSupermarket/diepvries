@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.4] - 2023-03-01
 ### Changed
-- Updated `snowflake-connector-python` to `~=3.0` (#37)
+- Update `snowflake-connector-python` to `~=3.0` (#37)
 
 ## [0.6.3] - 2022-08-25
 ### Added
