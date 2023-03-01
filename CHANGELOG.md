@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for python 3.10
 
 ### Changed
-- Updated `snowflake-connector-python` to `~=3.0` (#37)
+- Update `snowflake-connector-python` to `~=3.0` (#37)
 
 ## [0.6.3] - 2022-08-25
 ### Added
