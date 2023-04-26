@@ -43,16 +43,15 @@ class DrivingKeyField:
         )
 
     def _validate(self):
-        """Validate driving key
+        """Validate driving key.
 
         Perform the following checks:
-        1. Satellite name has a prefix within TABLE_PREFIXES[TableType.SATELLITE]
-        2. Parent table name has a prefix within TABLE_PREFIXES[TableType.LINK]
+        1. Satellite name has a prefix within TABLE_PREFIXES[TableType.SATELLITE].
+        2. Parent table name has a prefix within TABLE_PREFIXES[TableType.LINK].
 
         Raises:
             RuntimeError: If one of the checks fails.
         """
-
         satellite_name_prefix = next(
             split_part for split_part in self.satellite_name.split("_")
         )

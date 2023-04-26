@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add validation for driving keys
+- Add validation for driving keys (#41)
 
 ## [0.6.4] - 2023-03-01
 ### Added
