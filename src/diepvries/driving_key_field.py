@@ -14,19 +14,15 @@ class DrivingKeyField:
     defined by a subset of hashkeys.
     """
 
-    def __init__(self, parent_table_name: str, name: str, satellite_name: str):
-        """Instantiate a DrivingKeyField.
+    #: Name of parent table in the database (always a Link).
+    parent_table_name: str
+    #: Column name in the database.
+    name: str
+    #: Name of the satellite where this field represents a driving key.
+    satellite_name: str
 
-        Args:
-            parent_table_name: Name of parent table in the database (always a Link).
-            name: Column name in the database.
-            satellite_name: Name of the satellite where this field
-                represents a driving key.
-        """
-        self.parent_table_name = parent_table_name
-        self.name = name
-        self.satellite_name = satellite_name
-
+    def __post_init__(self):
+        """Validate the driving key."""
         self._validate()
 
     def __str__(self) -> str:

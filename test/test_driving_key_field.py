@@ -1,5 +1,5 @@
 """Unit test for DrivingKeyField."""
-from diepvries import TableType, TABLE_PREFIXES
+from diepvries import TABLE_PREFIXES, TableType
 from diepvries.driving_key_field import DrivingKeyField
 
 
