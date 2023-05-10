@@ -51,19 +51,15 @@ class DrivingKeyField:
         satellite_name_prefix = next(
             split_part for split_part in self.satellite_name.split("_")
         )
-        if satellite_name_prefix not in TABLE_PREFIXES[TableType.SATELLITE]:
-            raise RuntimeError(
-                f"'{self.satellite_name}': Satellite name with incorrect prefix. "
-                f"Got '{satellite_name_prefix}', "
-                f"but expects '{TABLE_PREFIXES[TableType.SATELLITE]}'."
-            )
+        assert satellite_name_prefix in TABLE_PREFIXES[TableType.SATELLITE], \
+            f"'{self.satellite_name}': Satellite name with incorrect prefix. " \
+            f"Got '{satellite_name_prefix}', " \
+            f"but expects '{TABLE_PREFIXES[TableType.SATELLITE]}'."
 
         parent_table_name_prefix = next(
             split_part for split_part in self.parent_table_name.split("_")
         )
-        if parent_table_name_prefix not in TABLE_PREFIXES[TableType.LINK]:
-            raise RuntimeError(
-                f"'{self.satellite_name}': Parent table with incorrect prefix. "
-                f"Got '{parent_table_name_prefix}', "
-                f"but expects '{TABLE_PREFIXES[TableType.LINK]}'."
-            )
+        assert parent_table_name_prefix in TABLE_PREFIXES[TableType.LINK], \
+            f"'{self.satellite_name}': Parent table with incorrect prefix. " \
+            f"Got '{parent_table_name_prefix}', " \
+            f"but expects '{TABLE_PREFIXES[TableType.LINK]}'."

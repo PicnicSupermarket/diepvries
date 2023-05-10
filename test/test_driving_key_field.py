@@ -1,33 +1,38 @@
 """Unit test for DrivingKeyField."""
-from diepvries import TABLE_PREFIXES, TableType
+import pytest
 from diepvries.driving_key_field import DrivingKeyField
 
 
-def test_satellite_name_prefix(ls_order_customer_eff_driving_keys: DrivingKeyField):
-    """Assert correctness of satellite table names prefix in list of driving keys
-    ls_order_customer_eff_driving_keys.
-
-    Args:
-        ls_order_customer_eff_driving_keys: ls_order_customer_eff_driving_keys
-        fixture value.
+def test_valid_driving_key():
+    """Check that no errors are raised when instantiating a
+    DrivingKeyField with valid values.
     """
-    for driving_key in ls_order_customer_eff_driving_keys:
-        table_name_prefix = next(
-            split_part for split_part in driving_key.satellite_name.split("_")
-        )
-        assert table_name_prefix in TABLE_PREFIXES[TableType.SATELLITE]
+    DrivingKeyField(
+        name="h_customer_hashkey",
+        parent_table_name="l_order_customer",
+        satellite_name="ls_order_customer_eff",
+    )
 
 
-def test_parent_table_name_prefix(ls_order_customer_eff_driving_keys: DrivingKeyField):
-    """Assert correctness of parent table names prefix in list of driving keys
-    ls_order_customer_eff_driving_keys.
-
-    Args:
-        ls_order_customer_eff_driving_keys: ls_order_customer_eff_driving_keys
-        fixture value.
+def test_invalid_satellite_name():
+    """Check that an `AssertionError` is raised when an invalid
+    satellite_name is provided.
     """
-    for driving_key in ls_order_customer_eff_driving_keys:
-        table_name_prefix = next(
-            split_part for split_part in driving_key.parent_table_name.split("_")
+    with pytest.raises(AssertionError):
+        DrivingKeyField(
+            name="h_customer_hashkey",
+            parent_table_name="l_order_customer",
+            satellite_name="invalid_satellite_name",
         )
-        assert table_name_prefix in TABLE_PREFIXES[TableType.LINK]
+
+
+def test_invalid_parent_table_name():
+    """Check that an `AssertionError` is raised when an invalid
+    parent_table_name is provided.
+    """
+    with pytest.raises(AssertionError):
+        DrivingKeyField(
+            name="h_customer_hashkey",
+            parent_table_name="invalid_parent_table_name",
+            satellite_name="ls_order_customer_eff",
+        )
