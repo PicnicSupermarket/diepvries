@@ -46,20 +46,22 @@ class DrivingKeyField:
         2. Parent table name has a prefix within TABLE_PREFIXES[TableType.LINK].
 
         Raises:
-            RuntimeError: If one of the checks fails.
+            AssertionError: If one of the checks fails.
         """
         satellite_name_prefix = next(
             split_part for split_part in self.satellite_name.split("_")
         )
-        assert satellite_name_prefix in TABLE_PREFIXES[TableType.SATELLITE], \
-            f"'{self.satellite_name}': Satellite name with incorrect prefix. " \
-            f"Got '{satellite_name_prefix}', " \
+        assert satellite_name_prefix in TABLE_PREFIXES[TableType.SATELLITE], (
+            f"'{self.satellite_name}': Satellite name with incorrect prefix. "
+            f"Got '{satellite_name_prefix}', "
             f"but expects '{TABLE_PREFIXES[TableType.SATELLITE]}'."
+        )
 
         parent_table_name_prefix = next(
             split_part for split_part in self.parent_table_name.split("_")
         )
-        assert parent_table_name_prefix in TABLE_PREFIXES[TableType.LINK], \
-            f"'{self.satellite_name}': Parent table with incorrect prefix. " \
-            f"Got '{parent_table_name_prefix}', " \
+        assert parent_table_name_prefix in TABLE_PREFIXES[TableType.LINK], (
+            f"'{self.satellite_name}': Parent table with incorrect prefix. "
+            f"Got '{parent_table_name_prefix}', "
             f"but expects '{TABLE_PREFIXES[TableType.LINK]}'."
+        )
