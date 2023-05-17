@@ -164,6 +164,13 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                        ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
                                    ),
+          filtered_effectivity_satellite AS (
+          SELECT
+            satellite.*
+          FROM dv_stg.orders_20190806_000000 AS staging
+            INNER JOIN effectivity_satellite AS satellite
+                       ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
+                                            ),
           filtered_staging AS (
           SELECT DISTINCT
             staging.h_customer_hashkey,
@@ -176,9 +183,9 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM effectivity_satellite AS satellite
+                           FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_hashkey = staging.h_customer_hashkey
-                              AND satellite.r_timestamp >= staging.r_timestamp
+                            AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -194,7 +201,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
             staging.r_source
             , staging.dummy_descriptive_field
           FROM filtered_staging AS staging
-            LEFT JOIN effectivity_satellite AS satellite
+            LEFT JOIN filtered_effectivity_satellite AS satellite
                       ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
           WHERE satellite.l_order_customer_hashkey IS NULL
              OR satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
@@ -211,7 +218,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
             satellite.r_source
             , satellite.dummy_descriptive_field
           FROM filtered_staging AS staging
-            INNER JOIN effectivity_satellite AS satellite
+            INNER JOIN filtered_effectivity_satellite AS satellite
                        ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
           WHERE satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
                                                 )
@@ -251,6 +258,13 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
                        ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
                                    ),
+          filtered_effectivity_satellite AS (
+          SELECT
+            satellite.*
+          FROM dv_stg.orders_20190806_000000 AS staging
+            INNER JOIN effectivity_satellite AS satellite
+                       ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+                                            ),
           filtered_staging AS (
           SELECT DISTINCT
             staging.h_customer_role_playing_hashkey,
@@ -263,9 +277,9 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM effectivity_satellite AS satellite
+                           FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey
-                              AND satellite.r_timestamp >= staging.r_timestamp
+                            AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -281,7 +295,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
             staging.r_source
             , staging.dummy_descriptive_field
           FROM filtered_staging AS staging
-            LEFT JOIN effectivity_satellite AS satellite
+            LEFT JOIN filtered_effectivity_satellite AS satellite
                       ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
           WHERE satellite.l_order_customer_role_playing_hashkey IS NULL
              OR satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
@@ -298,7 +312,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
             satellite.r_source
             , satellite.dummy_descriptive_field
           FROM filtered_staging AS staging
-            INNER JOIN effectivity_satellite AS satellite
+            INNER JOIN filtered_effectivity_satellite AS satellite
                        ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
           WHERE satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
                                                 )

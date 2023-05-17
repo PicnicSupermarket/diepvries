@@ -10,6 +10,13 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
                          AND satellite.{record_end_timestamp_name} = {end_of_time})
                                    ),
+          filtered_effectivity_satellite AS (
+          SELECT
+            satellite.*
+          FROM {staging_schema}.{staging_table} AS staging
+            INNER JOIN effectivity_satellite AS satellite
+                       ON ({satellite_driving_key_condition})
+                                            ),
           filtered_staging AS (
           SELECT DISTINCT
             {staging_driving_keys},
@@ -22,9 +29,9 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM effectivity_satellite AS satellite
+                           FROM filtered_effectivity_satellite AS satellite
                            WHERE {satellite_driving_key_condition}
-                              AND satellite.r_timestamp >= staging.r_timestamp
+                            AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -40,7 +47,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             staging.{record_source}
             {staging_descriptive_fields}
           FROM filtered_staging AS staging
-            LEFT JOIN effectivity_satellite AS satellite
+            LEFT JOIN filtered_effectivity_satellite AS satellite
                       ON ({satellite_driving_key_condition})
           WHERE satellite.{hashkey_field} IS NULL
              OR satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
@@ -57,7 +64,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             satellite.{record_source}
             {satellite_descriptive_fields}
           FROM filtered_staging AS staging
-            INNER JOIN effectivity_satellite AS satellite
+            INNER JOIN filtered_effectivity_satellite AS satellite
                        ON ({satellite_driving_key_condition})
           WHERE satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
                                                 )

@@ -26,4 +26,5 @@ def test_data_vault_load_sql(test_path: Path, data_vault_load: DataVaultLoad):
     expected_result = (
         test_path / "sql" / "expected_result_data_vault_load.sql"
     ).read_text()
+    print("\n".join(data_vault_load.sql_load_script))
     assert "\n".join(data_vault_load.sql_load_script) == expected_result
