@@ -68,6 +68,9 @@ MERGE INTO {target_schema}.{target_table} AS satellite
     THEN
     INSERT ({fields})
       VALUES (
-               staging.{hashkey_field}, staging.{staging_hashdiff_field}, staging.{record_start_timestamp},
-               staging.{record_end_timestamp_name}, staging.{record_source}
+               staging.{hashkey_field},
+               staging.{staging_hashdiff_field},
+               staging.{record_start_timestamp},
+               staging.{record_end_timestamp_name},
+               staging.{record_source}
                {staging_descriptive_fields});
