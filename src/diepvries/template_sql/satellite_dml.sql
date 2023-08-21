@@ -24,7 +24,8 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             LEFT JOIN filtered_satellite AS satellite
                       ON (staging.{hashkey_field} = satellite.{hashkey_field})
           WHERE satellite.{hashkey_field} IS NULL
-             OR satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
+             OR (satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
+                AND staging.r_timestamp >= satellite.r_timestamp)
                               ),
           --  Records that will be inserted (don't exist in target table or exist
           --  in the target table but the hashdiff changed). As the r_timestamp is fetched
