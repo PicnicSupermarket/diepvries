@@ -2,7 +2,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
           filtered_satellite AS (
-          SELECT
+          SELECT DISTINCT
             satellite.{hashkey_field},
             satellite.{hashdiff_field},
             satellite.{record_start_timestamp},

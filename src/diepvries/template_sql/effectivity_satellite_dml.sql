@@ -2,7 +2,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
           filtered_effectivity_satellite AS (
-          SELECT
+          SELECT DISTINCT
             {link_driving_keys},
             satellite.*
           FROM {target_schema}.{link_table} AS l

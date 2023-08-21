@@ -2,7 +2,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
         WITH
           filtered_effectivity_satellite AS (
-          SELECT
+          SELECT DISTINCT
             l.h_customer_hashkey,
             satellite.*
           FROM dv.l_order_customer AS l
