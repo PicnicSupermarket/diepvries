@@ -26,44 +26,36 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           WHERE satellite.{hashkey_field} IS NULL
              OR (staging.{staging_hashdiff_field} <> satellite.s_hashdiff
                 AND staging.r_timestamp >= satellite.r_timestamp)
-                              ),
-          --   Records that will be inserted (don't exist in target table or exist
-          --   in the target table but the hashdiff changed). As the r_timestamp is fetched
-          --   from the staging table, these records will always be included in the
-          --   WHEN NOT MATCHED condition of the MERGE command.
-          staging_satellite_affected_records AS (
-          SELECT
-            {staging_driving_keys},
-            staging.{hashkey_field},
-            staging.{staging_hashdiff_field},
-            staging.{record_start_timestamp},
-            staging.{record_source}
-            {staging_descriptive_fields}
-          FROM filtered_staging AS staging
-          UNION ALL
-          --  Records from the target table that will have its r_timestamp_end updated
-          --  (hashkey already exists in target table, but hashdiff changed). As the
-          --  r_timestamp is fetched from the target table, these records will always be
-          --  included in the WHEN MATCHED condition of the MERGE command.
-          SELECT
-            {satellite_driving_keys},
-            satellite.{hashkey_field},
-            satellite.{hashdiff_field} AS {staging_hashdiff_field},
-            satellite.{record_start_timestamp},
-            satellite.{record_source}
-            {satellite_descriptive_fields}
-          FROM filtered_effectivity_satellite AS satellite
-            INNER JOIN filtered_staging AS staging
-                       ON ({satellite_driving_key_condition})
-                                                )
+                              )
+        --   Records that will be inserted (don't exist in target table or exist
+        --   in the target table but the hashdiff changed). As the r_timestamp is fetched
+        --   from the staging table, these records will always be included in the
+        --   WHEN NOT MATCHED condition of the MERGE command.
         SELECT
-          {hashkey_field},
-          {staging_hashdiff_field},
-          {record_start_timestamp},
+          {staging_driving_keys},
+          staging.{hashkey_field},
+          staging.{staging_hashdiff_field},
+          staging.{record_start_timestamp},
+          {end_of_time} AS {record_end_timestamp_name},
+          staging.{record_source}
+          {staging_descriptive_fields}
+        FROM filtered_staging AS staging
+        UNION ALL
+        --  Records from the target table that will have its r_timestamp_end updated
+        --  (hashkey already exists in target table, but hashdiff changed). As the
+        --  r_timestamp is fetched from the target table, these records will always be
+        --  included in the WHEN MATCHED condition of the MERGE command.
+        SELECT
+          {satellite_driving_keys},
+          satellite.{hashkey_field},
+          satellite.{hashdiff_field} AS {staging_hashdiff_field},
+          satellite.{record_start_timestamp},
           {record_end_timestamp_expression},
-          {record_source}
-          {descriptive_fields}
-        FROM staging_satellite_affected_records
+          satellite.{record_source}
+          {satellite_descriptive_fields}
+        FROM filtered_effectivity_satellite AS satellite
+          INNER JOIN filtered_staging AS staging
+                     ON ({satellite_driving_key_condition})
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
     AND satellite.{record_start_timestamp} = staging.{record_start_timestamp})
