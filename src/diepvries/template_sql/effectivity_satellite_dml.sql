@@ -40,7 +40,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             {staging_descriptive_fields}
           FROM filtered_staging AS staging
           UNION ALL
-          --  Records from the target table that will have its {record_end_timestamp_name} updated
+          --  Records from the target table that will have its r_timestamp_end updated
           --  (hashkey already exists in target table, but hashdiff changed). As the
           --  r_timestamp is fetched from the target table, these records will always be
           --  included in the WHEN MATCHED condition of the MERGE command.
