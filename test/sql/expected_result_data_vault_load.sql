@@ -82,7 +82,7 @@ MERGE INTO dv.hs_customer AS satellite
   USING (
         WITH
           filtered_satellite AS (
-          SELECT DISTINCT
+          SELECT
             satellite.h_customer_hashkey,
             satellite.s_hashdiff,
             satellite.r_timestamp,
@@ -154,7 +154,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
         WITH
           filtered_effectivity_satellite AS (
-          SELECT DISTINCT
+          SELECT
             l.h_customer_hashkey,
             satellite.*
           FROM dv.l_order_customer AS l
@@ -228,7 +228,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
         WITH
           filtered_effectivity_satellite AS (
-          SELECT DISTINCT
+          SELECT
             l.h_customer_role_playing_hashkey,
             satellite.*
           FROM dv.l_order_customer_role_playing AS l
