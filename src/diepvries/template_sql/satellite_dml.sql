@@ -53,11 +53,9 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           {hashkey_field},
           {staging_hashdiff_field},
           {record_start_timestamp}                                                     AS {record_start_timestamp},
-          LEAD(DATEADD(MILLISECONDS, - 1, {record_start_timestamp}), 1,
-               CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-               OVER (PARTITION BY {hashkey_field} ORDER BY {record_start_timestamp}) AS {record_end_timestamp_name},
+          {record_end_timestamp_expression},
           {record_source}
-                                                                                         AS {descriptive_fields}
+          {descriptive_fields}
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}

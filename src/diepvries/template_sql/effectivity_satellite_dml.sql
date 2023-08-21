@@ -19,7 +19,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             staging.{staging_hashdiff_field},
             staging.{record_start_timestamp},
             staging.{record_source}
-
+            {staging_descriptive_fields}
           FROM {staging_schema}.{staging_table} AS staging
             LEFT JOIN filtered_effectivity_satellite AS satellite
                       ON ({satellite_driving_key_condition})
@@ -37,7 +37,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             staging.{staging_hashdiff_field},
             staging.{record_start_timestamp},
             staging.{record_source}
-              AS {staging_descriptive_fields}
+            {staging_descriptive_fields}
           FROM filtered_staging AS staging
           UNION ALL
           --  Records from the target table that will have its {record_end_timestamp_name} updated
@@ -50,7 +50,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             satellite.{hashdiff_field} AS {staging_hashdiff_field},
             satellite.{record_start_timestamp},
             satellite.{record_source}
-                                         AS {satellite_descriptive_fields}
+            {satellite_descriptive_fields}
           FROM filtered_effectivity_satellite AS satellite
             INNER JOIN filtered_staging AS staging
                        ON ({satellite_driving_key_condition})
@@ -59,10 +59,9 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           {hashkey_field},
           {staging_hashdiff_field},
           {record_start_timestamp}                                                   AS {record_start_timestamp},
-          LEAD(DATEADD(MILLISECONDS, - 1, {record_start_timestamp}), 1, {end_of_time})
-               OVER (PARTITION BY h_order_hashkey ORDER BY {record_start_timestamp}) AS {record_end_timestamp_name},
+          {record_end_timestamp_expression},
           {record_source}
-
+          {descriptive_fields}
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
@@ -77,4 +76,5 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                staging.{staging_hashdiff_field},
                staging.{record_start_timestamp},
                staging.{record_end_timestamp_name},
-               staging.{record_source});
+               staging.{record_source}
+               {descriptive_fields});
