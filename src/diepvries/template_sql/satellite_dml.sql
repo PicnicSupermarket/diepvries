@@ -66,8 +66,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
     UPDATE SET satellite.{record_end_timestamp_name} = staging.{record_end_timestamp_name}
   WHEN NOT MATCHED
     THEN
-    INSERT ({hashkey_field}, {hashdiff_field}, {record_start_timestamp}, {record_end_timestamp_name},
-            {record_source}, {descriptive_fields})
+    INSERT ({fields})
       VALUES (
                staging.{hashkey_field},
                staging.{staging_hashdiff_field},
