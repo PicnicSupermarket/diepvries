@@ -58,7 +58,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
         SELECT
           {hashkey_field},
           {staging_hashdiff_field},
-          {record_start_timestamp}                                                   AS {record_start_timestamp},
+          {record_start_timestamp},
           {record_end_timestamp_expression},
           {record_source}
           {descriptive_fields}
