@@ -81,6 +81,35 @@ MERGE INTO dv.l_order_customer_role_playing AS target
 MERGE INTO dv.hs_customer AS satellite
   USING (
         WITH
+          -- Calculate minimum record timestamp for records that might be affected in the
+          -- target satellite. This record timestamp will be used to filter the target satellite,
+          -- ensuring the recommended cluster key (r_timestamp :: DATE) on the satellite is used,
+          -- massively reducing the number of records scanned.
+          min_r_timestamp AS (
+          SELECT
+            COALESCE(MIN(r_timestamp), CURRENT_TIMESTAMP()) AS min_r_timestamp
+          FROM dv.hs_customer AS satellite
+          WHERE r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+            AND EXISTS(
+                      SELECT
+                        1
+                      FROM dv_stg.orders_20190806_000000 AS staging
+                      WHERE staging.h_customer_hashkey = satellite.h_customer_hashkey
+                        AND staging.hs_customer_hashdiff <> satellite.s_hashdiff
+                      )
+                             ),
+          -- Filter the target satellite to include only records that might be affected
+          -- during the current load. This filter will be specially effective if the target
+          -- satellite is clustered using r_timestamp :: DATE.
+          filtered_satellite AS (
+          SELECT *
+          FROM dv.hs_customer AS satellite
+          WHERE r_timestamp >= (
+                                              SELECT
+                                                min_r_timestamp
+                                              FROM min_r_timestamp
+                                              )
+                                ),
           filtered_staging AS (
           SELECT DISTINCT
             staging.h_customer_hashkey,
@@ -92,53 +121,46 @@ MERGE INTO dv.hs_customer AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM dv.hs_customer AS satellite
+                           FROM filtered_satellite AS satellite
                            WHERE staging.h_customer_hashkey = satellite.h_customer_hashkey
                              AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.s_hashdiff <> staging.hs_customer_hashdiff
                            )
-                              ),
-          --  Records that will be inserted (don't exist in target table or exist
-          --  in the target table but the hashdiff changed). As the r_timestamp is fetched
-          --  from the staging table, these records will always be included in the
-          --  WHEN NOT MATCHED condition of the MERGE command.
-          staging_satellite_affected_records AS (
-          SELECT
-            staging.h_customer_hashkey,
-            staging.hs_customer_hashdiff,
-            staging.r_timestamp,
-            staging.r_source
-            , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
-          FROM filtered_staging AS staging
-            LEFT OUTER JOIN dv.hs_customer AS satellite
-                            ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
-                              AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-          WHERE satellite.h_customer_hashkey IS NULL
-             OR satellite.s_hashdiff <> staging.hs_customer_hashdiff
-          UNION ALL
-          -- Records from the target table that will have its r_timestamp_end updated
-          -- (hashkey already exists in target table, but hashdiff changed). As the
-          -- r_timestamp is fetched from the target table, these records will always be
-          -- included in the WHEN MATCHED condition of the MERGE command.
-          SELECT
-            satellite.h_customer_hashkey,
-            satellite.s_hashdiff,
-            satellite.r_timestamp,
-            satellite.r_source
-            , satellite.test_string, satellite.test_date, satellite.test_timestamp_ntz, satellite.test_integer, satellite.test_decimal, satellite.x_customer_id, satellite.grouping_key, satellite.test_geography, satellite.test_array, satellite.test_object, satellite.test_variant, satellite.test_timestamp_tz, satellite.test_timestamp_ltz, satellite.test_time, satellite.test_boolean, satellite.test_real
-          FROM dv.hs_customer AS satellite
-            INNER JOIN filtered_staging AS staging
-                       ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
-                         AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-          WHERE staging.hs_customer_hashdiff <> satellite.s_hashdiff
-                                                )
+                              )
+        --  Records that will be inserted (don't exist in target table or exist
+        --  in the target table but the hashdiff changed). As the r_timestamp is fetched
+        --  from the staging table, these records will always be included in the
+        --  WHEN NOT MATCHED condition of the MERGE command.
         SELECT
-          h_customer_hashkey,
-          hs_customer_hashdiff,
-          r_timestamp AS r_timestamp,
-          LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
-          r_source
-          , test_string, test_date, test_timestamp_ntz, test_integer, test_decimal, x_customer_id, grouping_key, test_geography, test_array, test_object, test_variant, test_timestamp_tz, test_timestamp_ltz, test_time, test_boolean, test_real
-        FROM staging_satellite_affected_records
+          staging.h_customer_hashkey,
+          staging.hs_customer_hashdiff,
+          staging.r_timestamp,
+          CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP) AS r_timestamp_end,
+          staging.r_source
+          , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
+        FROM filtered_staging AS staging
+          LEFT OUTER JOIN filtered_satellite AS satellite
+                          ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
+                            AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+        WHERE satellite.h_customer_hashkey IS NULL
+           OR satellite.s_hashdiff <> staging.hs_customer_hashdiff
+        UNION ALL
+        -- Records from the target table that will have its r_timestamp_end updated
+        -- (hashkey already exists in target table, but hashdiff changed). As the
+        -- r_timestamp is fetched from the target table, these records will always be
+        -- included in the WHEN MATCHED condition of the MERGE command.
+        SELECT
+          satellite.h_customer_hashkey,
+          satellite.s_hashdiff,
+          satellite.r_timestamp,
+          DATEADD(NANOSECOND, -1, staging.r_timestamp) AS r_timestamp_end,
+          satellite.r_source
+          , satellite.test_string, satellite.test_date, satellite.test_timestamp_ntz, satellite.test_integer, satellite.test_decimal, satellite.x_customer_id, satellite.grouping_key, satellite.test_geography, satellite.test_array, satellite.test_object, satellite.test_variant, satellite.test_timestamp_tz, satellite.test_timestamp_ltz, satellite.test_time, satellite.test_boolean, satellite.test_real
+        FROM filtered_satellite AS satellite
+          INNER JOIN filtered_staging AS staging
+                     ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
+                       AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+        WHERE staging.hs_customer_hashdiff <> satellite.s_hashdiff
         ) AS staging
   ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
     AND satellite.r_timestamp = staging.r_timestamp)
@@ -167,12 +189,34 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                        ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
                                    ),
-          filtered_effectivity_satellite AS (
+          -- Calculate minimum record timestamp for records that might be affected in the
+          -- target satellite. This record timestamp will be used to filter the target satellite,
+          -- ensuring the recommended cluster key (r_timestamp :: DATE) on the satellite is used,
+          -- massively reducing the number of records scanned.
+          min_r_timestamp AS (
           SELECT
-            satellite.*
-          FROM dv_stg.orders_20190806_000000 AS staging
-            INNER JOIN effectivity_satellite AS satellite
-                       ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
+            COALESCE(MIN(r_timestamp), CURRENT_TIMESTAMP()) AS min_r_timestamp
+          FROM effectivity_satellite AS satellite
+          WHERE r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+            AND EXISTS(
+                      SELECT
+                        1
+                      FROM dv_stg.orders_20190806_000000 AS staging
+                      WHERE satellite.h_customer_hashkey = staging.h_customer_hashkey
+                        AND staging.ls_order_customer_eff_hashdiff <> satellite.s_hashdiff
+                      )
+                             ),
+          -- Filter the target satellite to include only records that might be affected
+          -- during the current load. This filter will be specially effective if the target
+          -- satellite is clustered using r_timestamp :: DATE.
+          filtered_effectivity_satellite AS (
+          SELECT *
+          FROM effectivity_satellite
+          WHERE r_timestamp >= (
+                                              SELECT
+                                                min_r_timestamp
+                                              FROM min_r_timestamp
+                                              )
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -188,51 +232,44 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_hashkey = staging.h_customer_hashkey
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
                            )
-                              ),
-          --   Records that will be inserted (don't exist in target table or exist
-          --   in the target table but the hashdiff changed). As the r_timestamp is fetched
-          --   from the staging table, these records will always be included in the
-          --   WHEN NOT MATCHED condition of the MERGE command.
-          staging_satellite_affected_records AS (
-          SELECT
-            staging.h_customer_hashkey,
-            staging.l_order_customer_hashkey,
-            staging.ls_order_customer_eff_hashdiff,
-            staging.r_timestamp,
-            staging.r_source
-            , staging.dummy_descriptive_field
-          FROM filtered_staging AS staging
-            LEFT JOIN filtered_effectivity_satellite AS satellite
-                      ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
-          WHERE satellite.l_order_customer_hashkey IS NULL
-             OR satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
-          UNION ALL
-          --  Records from the target table that will have its r_timestamp_end updated
-          --  (hashkey already exists in target table, but hashdiff changed). As the
-          --  r_timestamp is fetched from the target table, these records will always be
-          --  included in the WHEN MATCHED condition of the MERGE command.
-          SELECT
-            satellite.h_customer_hashkey,
-            satellite.l_order_customer_hashkey,
-            satellite.s_hashdiff AS ls_order_customer_eff_hashdiff,
-            satellite.r_timestamp,
-            satellite.r_source
-            , satellite.dummy_descriptive_field
-          FROM filtered_staging AS staging
-            INNER JOIN filtered_effectivity_satellite AS satellite
-                       ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
-          WHERE satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
-                                                )
+                              )
+        --   Records that will be inserted (don't exist in target table or exist
+        --   in the target table but the hashdiff changed). As the r_timestamp is fetched
+        --   from the staging table, these records will always be included in the
+        --   WHEN NOT MATCHED condition of the MERGE command.
         SELECT
-          l_order_customer_hashkey,
-          ls_order_customer_eff_hashdiff,
-          r_timestamp AS r_timestamp,
-          LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
-          r_source
-          , dummy_descriptive_field
-        FROM staging_satellite_affected_records
+          staging.h_customer_hashkey,
+          staging.l_order_customer_hashkey,
+          staging.ls_order_customer_eff_hashdiff,
+          staging.r_timestamp,
+          CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP) AS r_timestamp_end,
+          staging.r_source
+          , staging.dummy_descriptive_field
+        FROM filtered_staging AS staging
+          LEFT JOIN filtered_effectivity_satellite AS satellite
+                    ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
+        WHERE satellite.l_order_customer_hashkey IS NULL
+           OR satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
+        UNION ALL
+        --  Records from the target table that will have its r_timestamp_end updated
+        --  (hashkey already exists in target table, but hashdiff changed). As the
+        --  r_timestamp is fetched from the target table, these records will always be
+        --  included in the WHEN MATCHED condition of the MERGE command.
+        SELECT
+          satellite.h_customer_hashkey,
+          satellite.l_order_customer_hashkey,
+          satellite.s_hashdiff                                AS ls_order_customer_eff_hashdiff,
+          satellite.r_timestamp,
+          DATEADD(NANOSECOND, -1, staging.r_timestamp) AS r_timestamp_end,
+          satellite.r_source
+          , satellite.dummy_descriptive_field
+        FROM filtered_staging AS staging
+          INNER JOIN filtered_effectivity_satellite AS satellite
+                     ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
+        WHERE satellite.s_hashdiff <> staging.ls_order_customer_eff_hashdiff
         ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
     AND satellite.r_timestamp = staging.r_timestamp)
@@ -261,12 +298,34 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
                        ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
                                    ),
-          filtered_effectivity_satellite AS (
+          -- Calculate minimum record timestamp for records that might be affected in the
+          -- target satellite. This record timestamp will be used to filter the target satellite,
+          -- ensuring the recommended cluster key (r_timestamp :: DATE) on the satellite is used,
+          -- massively reducing the number of records scanned.
+          min_r_timestamp AS (
           SELECT
-            satellite.*
-          FROM dv_stg.orders_20190806_000000 AS staging
-            INNER JOIN effectivity_satellite AS satellite
-                       ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+            COALESCE(MIN(r_timestamp), CURRENT_TIMESTAMP()) AS min_r_timestamp
+          FROM effectivity_satellite AS satellite
+          WHERE r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+            AND EXISTS(
+                      SELECT
+                        1
+                      FROM dv_stg.orders_20190806_000000 AS staging
+                      WHERE satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey
+                        AND staging.ls_order_customer_role_playing_eff_hashdiff <> satellite.s_hashdiff
+                      )
+                             ),
+          -- Filter the target satellite to include only records that might be affected
+          -- during the current load. This filter will be specially effective if the target
+          -- satellite is clustered using r_timestamp :: DATE.
+          filtered_effectivity_satellite AS (
+          SELECT *
+          FROM effectivity_satellite
+          WHERE r_timestamp >= (
+                                              SELECT
+                                                min_r_timestamp
+                                              FROM min_r_timestamp
+                                              )
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -282,51 +341,44 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
                            )
-                              ),
-          --   Records that will be inserted (don't exist in target table or exist
-          --   in the target table but the hashdiff changed). As the r_timestamp is fetched
-          --   from the staging table, these records will always be included in the
-          --   WHEN NOT MATCHED condition of the MERGE command.
-          staging_satellite_affected_records AS (
-          SELECT
-            staging.h_customer_role_playing_hashkey,
-            staging.l_order_customer_role_playing_hashkey,
-            staging.ls_order_customer_role_playing_eff_hashdiff,
-            staging.r_timestamp,
-            staging.r_source
-            , staging.dummy_descriptive_field
-          FROM filtered_staging AS staging
-            LEFT JOIN filtered_effectivity_satellite AS satellite
-                      ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
-          WHERE satellite.l_order_customer_role_playing_hashkey IS NULL
-             OR satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
-          UNION ALL
-          --  Records from the target table that will have its r_timestamp_end updated
-          --  (hashkey already exists in target table, but hashdiff changed). As the
-          --  r_timestamp is fetched from the target table, these records will always be
-          --  included in the WHEN MATCHED condition of the MERGE command.
-          SELECT
-            satellite.h_customer_role_playing_hashkey,
-            satellite.l_order_customer_role_playing_hashkey,
-            satellite.s_hashdiff AS ls_order_customer_role_playing_eff_hashdiff,
-            satellite.r_timestamp,
-            satellite.r_source
-            , satellite.dummy_descriptive_field
-          FROM filtered_staging AS staging
-            INNER JOIN filtered_effectivity_satellite AS satellite
-                       ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
-          WHERE satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
-                                                )
+                              )
+        --   Records that will be inserted (don't exist in target table or exist
+        --   in the target table but the hashdiff changed). As the r_timestamp is fetched
+        --   from the staging table, these records will always be included in the
+        --   WHEN NOT MATCHED condition of the MERGE command.
         SELECT
-          l_order_customer_role_playing_hashkey,
-          ls_order_customer_role_playing_eff_hashdiff,
-          r_timestamp AS r_timestamp,
-          LEAD(DATEADD(milliseconds, - 1, r_timestamp), 1, CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)) OVER (PARTITION BY h_customer_role_playing_hashkey ORDER BY r_timestamp) AS r_timestamp_end,
-          r_source
-          , dummy_descriptive_field
-        FROM staging_satellite_affected_records
+          staging.h_customer_role_playing_hashkey,
+          staging.l_order_customer_role_playing_hashkey,
+          staging.ls_order_customer_role_playing_eff_hashdiff,
+          staging.r_timestamp,
+          CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP) AS r_timestamp_end,
+          staging.r_source
+          , staging.dummy_descriptive_field
+        FROM filtered_staging AS staging
+          LEFT JOIN filtered_effectivity_satellite AS satellite
+                    ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+        WHERE satellite.l_order_customer_role_playing_hashkey IS NULL
+           OR satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
+        UNION ALL
+        --  Records from the target table that will have its r_timestamp_end updated
+        --  (hashkey already exists in target table, but hashdiff changed). As the
+        --  r_timestamp is fetched from the target table, these records will always be
+        --  included in the WHEN MATCHED condition of the MERGE command.
+        SELECT
+          satellite.h_customer_role_playing_hashkey,
+          satellite.l_order_customer_role_playing_hashkey,
+          satellite.s_hashdiff                                AS ls_order_customer_role_playing_eff_hashdiff,
+          satellite.r_timestamp,
+          DATEADD(NANOSECOND, -1, staging.r_timestamp) AS r_timestamp_end,
+          satellite.r_source
+          , satellite.dummy_descriptive_field
+        FROM filtered_staging AS staging
+          INNER JOIN filtered_effectivity_satellite AS satellite
+                     ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+        WHERE satellite.s_hashdiff <> staging.ls_order_customer_role_playing_eff_hashdiff
         ) AS staging
   ON (satellite.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey
     AND satellite.r_timestamp = staging.r_timestamp)
