@@ -46,10 +46,8 @@ JOIN_CONDITION_SQL_TEMPLATE = (
 # this previous version have to be "closed", with the new timestamp (this execution's
 # extraction start timestamp) minus 1 millisecond.
 RECORD_END_TIMESTAMP_SQL_TEMPLATE = (
-    f"LEAD(DATEADD(milliseconds, - 1, {METADATA_FIELDS['record_start_timestamp']}), 1, "
-    f"{END_OF_TIME_SQL_TEMPLATE}) OVER (PARTITION BY {{key_fields}} "
-    f"ORDER BY {METADATA_FIELDS['record_start_timestamp']}) AS "
-    f"{METADATA_FIELDS['record_end_timestamp']}"
+    f"DATEADD(NANOSECONDS, - 1, staging.{METADATA_FIELDS['record_start_timestamp']}) "
+    f"AS {METADATA_FIELDS['record_end_timestamp']}"
 )
 
 # Formula used to create the record timestamp in staging table.
