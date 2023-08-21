@@ -1,7 +1,7 @@
 MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
-          filtered_effectivity_satellite AS (
+          effectivity_satellite AS (
           SELECT
             {link_driving_keys},
             satellite.*
@@ -9,8 +9,13 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             INNER JOIN {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
                          AND satellite.{record_end_timestamp_name} = {end_of_time})
-            INNER JOIN {staging_schema}.{staging_table} AS staging
-                       ON ({link_driving_key_condition})
+                                   ),
+          filtered_effectivity_satellite AS (
+          SELECT
+            satellite.*
+          FROM {staging_schema}.{staging_table} AS staging
+            INNER JOIN effectivity_satellite AS satellite
+                       ON ({satellite_driving_key_condition})
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -21,16 +26,18 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             staging.{record_source}
             {staging_descriptive_fields}
           FROM {staging_schema}.{staging_table} AS staging
-            LEFT JOIN filtered_effectivity_satellite AS satellite
-                      ON ({satellite_driving_key_condition})
-          WHERE satellite.{hashkey_field} IS NULL
-             OR (staging.{staging_hashdiff_field} <> satellite.s_hashdiff
-                AND staging.r_timestamp >= satellite.r_timestamp)
+          WHERE NOT EXISTS (
+                           SELECT
+                             1
+                           FROM filtered_effectivity_satellite AS satellite
+                           WHERE {satellite_driving_key_condition}
+                            AND satellite.r_timestamp >= staging.r_timestamp
+                           )
                               )
-        --   Records that will be inserted (don't exist in target table or exist
-        --   in the target table but the hashdiff changed). As the r_timestamp is fetched
-        --   from the staging table, these records will always be included in the
-        --   WHEN NOT MATCHED condition of the MERGE command.
+          --   Records that will be inserted (don't exist in target table or exist
+          --   in the target table but the hashdiff changed). As the r_timestamp is fetched
+          --   from the staging table, these records will always be included in the
+          --   WHEN NOT MATCHED condition of the MERGE command.
         SELECT
           {staging_driving_keys},
           staging.{hashkey_field},
@@ -40,6 +47,10 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           staging.{record_source}
           {staging_descriptive_fields}
         FROM filtered_staging AS staging
+          LEFT JOIN filtered_effectivity_satellite AS satellite
+                    ON ({satellite_driving_key_condition})
+        WHERE satellite.{hashkey_field} IS NULL
+           OR satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
         UNION ALL
         --  Records from the target table that will have its r_timestamp_end updated
         --  (hashkey already exists in target table, but hashdiff changed). As the
@@ -53,9 +64,10 @@ MERGE INTO {target_schema}.{target_table} AS satellite
           {record_end_timestamp_expression},
           satellite.{record_source}
           {satellite_descriptive_fields}
-        FROM filtered_effectivity_satellite AS satellite
-          INNER JOIN filtered_staging AS staging
+        FROM filtered_staging AS staging
+          INNER JOIN filtered_effectivity_satellite AS satellite
                      ON ({satellite_driving_key_condition})
+        WHERE satellite.{hashdiff_field} <> staging.{staging_hashdiff_field}
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
     AND satellite.{record_start_timestamp} = staging.{record_start_timestamp})
@@ -70,4 +82,4 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                staging.{record_start_timestamp},
                staging.{record_end_timestamp_name},
                staging.{record_source}
-               {descriptive_fields});
+               {staging_descriptive_fields});
