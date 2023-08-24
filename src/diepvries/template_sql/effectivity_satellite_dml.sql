@@ -21,7 +21,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             INNER JOIN {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
                          AND satellite.{record_end_timestamp_name} = {end_of_time})
-          WHERE satellite.r_timestamp>= $min_timestamp
+          WHERE satellite.{record_start_timestamp} >= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -44,7 +44,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE {satellite_driving_key_condition}
-                             AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.{record_start_timestamp} >= staging.{record_start_timestamp}
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
