@@ -3,8 +3,7 @@ SET min_timestamp = (
                         COALESCE(MIN(satellite.{record_start_timestamp}), CURRENT_TIMESTAMP())
                       FROM {target_schema}.{link_table} AS l
                         INNER JOIN {target_schema}.{target_table} AS satellite
-                                   ON (l.{hashkey_field} = satellite.{hashkey_field}
-                                     AND satellite.{record_end_timestamp_name} = {end_of_time})
+                                   ON (l.{hashkey_field} = satellite.{hashkey_field})
                         INNER JOIN {staging_schema}.{staging_table} AS staging
                                    ON ({satellite_driving_key_condition}
                                      AND satellite.{record_end_timestamp_name} = {end_of_time})
