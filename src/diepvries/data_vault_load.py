@@ -1,5 +1,6 @@
 """Module for a Data Vault load."""
 
+import itertools
 import logging
 from datetime import datetime
 from functools import lru_cache
@@ -213,11 +214,21 @@ class DataVaultLoad:
             SQL script that should be executed to load current Data Vault model - one
                 entry per table to load.
         """
-        data_vault_sql = [self.staging_create_sql_statement] + [
-            table.sql_load_statement for table in self.target_tables
-        ]
+        return itertools.chain.from_iterable(self.sql_load_scripts_by_group)
 
-        return data_vault_sql
+    @property
+    def sql_load_scripts_by_group(self) -> List[List[str]]:
+        """Generate the SQL scripts to load current Data Vault model.
+
+        Scripts are grouped by their loading order. Within a group, queries can be run
+        in parallel.
+        """
+        result = [[self.staging_create_sql_statement]]
+        for _, group in itertools.groupby(
+            self.target_tables, key=lambda x: x.loading_order
+        ):
+            result.append([table.sql_load_statement for table in group])
+        return result
 
     def _get_staging_dml_expression(self, field: Field, table: DataVaultTable) -> str:
         """Get the SQL expression to represent a field in the staging table.
