@@ -1,3 +1,6 @@
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.{record_start_timestamp}), CURRENT_TIMESTAMP())
