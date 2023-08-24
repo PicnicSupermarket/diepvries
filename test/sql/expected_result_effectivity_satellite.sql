@@ -1,3 +1,18 @@
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                      SELECT
+                        COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP())
+                      FROM dv.l_order_customer AS l
+                        INNER JOIN dv.ls_order_customer_eff AS satellite
+                                   ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
+                                      AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+                        INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                   ON (l.h_customer_hashkey = staging.h_customer_hashkey)
+                                     )
+                      );
+
 MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
         WITH
@@ -9,6 +24,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
             INNER JOIN dv.ls_order_customer_eff AS satellite
                        ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+          WHERE satellite.r_timestamp >= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -31,7 +47,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_hashkey = staging.h_customer_hashkey
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -78,7 +94,8 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
-    AND satellite.r_timestamp = staging.r_timestamp)
+    AND satellite.r_timestamp = staging.r_timestamp
+    AND satellite.r_timestamp >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED

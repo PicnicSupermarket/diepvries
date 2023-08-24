@@ -3,6 +3,17 @@ CREATE OR REPLACE TABLE dv_stg.orders_20190806_000000
   SELECT MD5(COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')) AS h_customer_hashkey, CAST('2019-08-06T00:00:00.000000Z' AS TIMESTAMP) AS r_timestamp, 'test' AS r_source, COALESCE(customer_id, 'dv_unknown') AS customer_id, MD5(COALESCE(CAST(customer_role_playing_id AS TEXT), 'dv_unknown')) AS h_customer_role_playing_hashkey, COALESCE(customer_role_playing_id, 'dv_unknown') AS customer_role_playing_id, MD5(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')) AS h_order_hashkey, COALESCE(order_id, 'dv_unknown') AS order_id, MD5(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_hashkey, ck_test_string, ck_test_timestamp, MD5(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(customer_role_playing_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')) AS l_order_customer_role_playing_hashkey, MD5(REGEXP_REPLACE(COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(test_date AS DATE), 'yyyy-mm-dd'), '')||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ntz AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')||'|~~|'||COALESCE(CAST(CAST(test_integer AS NUMBER (38, 0)) AS TEXT), '')||'|~~|'||COALESCE(CAST(CAST(test_decimal AS NUMBER (18, 8)) AS TEXT), '')||'|~~|'||COALESCE(CAST(x_customer_id AS TEXT), '')||'|~~|'||COALESCE(CAST(grouping_key AS TEXT), '')||'|~~|'||COALESCE(ST_ASTEXT(TO_GEOGRAPHY(test_geography)), '')||'|~~|'||COALESCE(CAST(CAST(test_array AS ARRAY) AS TEXT), '')||'|~~|'||COALESCE(CAST(CAST(test_object AS OBJECT) AS TEXT), '')||'|~~|'||COALESCE(CAST(CAST(test_variant AS VARIANT) AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_tz AS TIMESTAMP_TZ), 'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')||'|~~|'||COALESCE(TO_CHAR(CAST(test_timestamp_ltz AS TIMESTAMP_LTZ), 'yyyy-mm-dd hh24:mi:ss.ff9 tzhtzm'), '')||'|~~|'||COALESCE(TO_CHAR(CAST(test_time AS TIME), 'hh24:mi:ss.ff9'), '')||'|~~|'||COALESCE(CAST(CAST(test_boolean AS BOOLEAN) AS TEXT), '')||'|~~|'||COALESCE(CAST(CAST(test_real AS REAL) AS TEXT), ''), '(\\|~~\\|)+$', '')) AS hs_customer_hashdiff, test_string, test_date, test_timestamp_ntz, test_integer, test_decimal, x_customer_id, grouping_key, test_geography, test_array, test_object, test_variant, test_timestamp_tz, test_timestamp_ltz, test_time, test_boolean, test_real, MD5(REGEXP_REPLACE(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(customer_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')||'|~~|'||COALESCE(CAST(dummy_descriptive_field AS TEXT), ''), '(\\|~~\\|)+$', '')) AS ls_order_customer_eff_hashdiff, dummy_descriptive_field, MD5(REGEXP_REPLACE(COALESCE(CAST(order_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(customer_role_playing_id AS TEXT), 'dv_unknown')||'|~~|'||COALESCE(CAST(ck_test_string AS TEXT), '')||'|~~|'||COALESCE(TO_CHAR(CAST(ck_test_timestamp AS TIMESTAMP_NTZ), 'yyyy-mm-dd hh24:mi:ss.ff9'), '')||'|~~|'||COALESCE(CAST(dummy_descriptive_field AS TEXT), ''), '(\\|~~\\|)+$', '')) AS ls_order_customer_role_playing_eff_hashdiff
   FROM dv_extract.extract_orders;
 
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.h_customer AS target
+                                 ON (staging.h_customer_hashkey = target.h_customer_hashkey)
+                    );
+
 MERGE INTO dv.h_customer AS target
   USING (
         SELECT DISTINCT
@@ -10,13 +21,25 @@ MERGE INTO dv.h_customer AS target
           -- If multiple sources for the same hashkey are received, their values
           -- are concatenated using a comma.
           LISTAGG(DISTINCT r_source, ',')
-              WITHIN GROUP (ORDER BY r_source)
-              OVER (PARTITION BY h_customer_hashkey) AS r_source,
+                  WITHIN GROUP (ORDER BY r_source)
+                  OVER (PARTITION BY h_customer_hashkey) AS r_source,
           r_timestamp, customer_id
         FROM dv_stg.orders_20190806_000000
-        ) AS staging ON (target.h_customer_hashkey = staging.h_customer_hashkey)
+        ) AS staging ON (target.h_customer_hashkey = staging.h_customer_hashkey
+    AND target.r_timestamp >= $min_timestamp)
   WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp, r_source, customer_id)
     VALUES (staging.h_customer_hashkey, staging.r_timestamp, staging.r_source, staging.customer_id);
+
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.h_customer AS target
+                                 ON (staging.h_customer_role_playing_hashkey = target.h_customer_hashkey)
+                    );
 
 MERGE INTO dv.h_customer AS target
   USING (
@@ -25,13 +48,25 @@ MERGE INTO dv.h_customer AS target
           -- If multiple sources for the same hashkey are received, their values
           -- are concatenated using a comma.
           LISTAGG(DISTINCT r_source, ',')
-              WITHIN GROUP (ORDER BY r_source)
-              OVER (PARTITION BY h_customer_role_playing_hashkey) AS r_source,
+                  WITHIN GROUP (ORDER BY r_source)
+                  OVER (PARTITION BY h_customer_role_playing_hashkey) AS r_source,
           r_timestamp, customer_role_playing_id
         FROM dv_stg.orders_20190806_000000
-        ) AS staging ON (target.h_customer_hashkey = staging.h_customer_role_playing_hashkey)
+        ) AS staging ON (target.h_customer_hashkey = staging.h_customer_role_playing_hashkey
+    AND target.r_timestamp >= $min_timestamp)
   WHEN NOT MATCHED THEN INSERT (h_customer_hashkey, r_timestamp, r_source, customer_id)
     VALUES (staging.h_customer_role_playing_hashkey, staging.r_timestamp, staging.r_source, staging.customer_role_playing_id);
+
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.h_order AS target
+                                 ON (staging.h_order_hashkey = target.h_order_hashkey)
+                    );
 
 MERGE INTO dv.h_order AS target
   USING (
@@ -40,13 +75,25 @@ MERGE INTO dv.h_order AS target
           -- If multiple sources for the same hashkey are received, their values
           -- are concatenated using a comma.
           LISTAGG(DISTINCT r_source, ',')
-              WITHIN GROUP (ORDER BY r_source)
-              OVER (PARTITION BY h_order_hashkey) AS r_source,
+                  WITHIN GROUP (ORDER BY r_source)
+                  OVER (PARTITION BY h_order_hashkey) AS r_source,
           r_timestamp, order_id
         FROM dv_stg.orders_20190806_000000
-        ) AS staging ON (target.h_order_hashkey = staging.h_order_hashkey)
+        ) AS staging ON (target.h_order_hashkey = staging.h_order_hashkey
+    AND target.r_timestamp >= $min_timestamp)
   WHEN NOT MATCHED THEN INSERT (h_order_hashkey, r_timestamp, r_source, order_id)
     VALUES (staging.h_order_hashkey, staging.r_timestamp, staging.r_source, staging.order_id);
+
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.l_order_customer AS target
+                                 ON (staging.l_order_customer_hashkey = target.l_order_customer_hashkey)
+                    );
 
 MERGE INTO dv.l_order_customer AS target
   USING (
@@ -55,13 +102,25 @@ MERGE INTO dv.l_order_customer AS target
           -- If multiple sources for the same hashkey are received, their values
           -- are concatenated using a comma.
           LISTAGG(DISTINCT r_source, ',')
-              WITHIN GROUP (ORDER BY r_source)
-              OVER (PARTITION BY l_order_customer_hashkey) AS r_source,
+                  WITHIN GROUP (ORDER BY r_source)
+                  OVER (PARTITION BY l_order_customer_hashkey) AS r_source,
           h_order_hashkey, h_customer_hashkey, order_id, customer_id, ck_test_string, ck_test_timestamp, r_timestamp
         FROM dv_stg.orders_20190806_000000
-        ) AS staging ON (target.l_order_customer_hashkey = staging.l_order_customer_hashkey)
+        ) AS staging ON (target.l_order_customer_hashkey = staging.l_order_customer_hashkey
+    AND target.r_timestamp >= $min_timestamp)
   WHEN NOT MATCHED THEN INSERT (l_order_customer_hashkey, h_order_hashkey, h_customer_hashkey, order_id, customer_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source)
     VALUES (staging.l_order_customer_hashkey, staging.h_order_hashkey, staging.h_customer_hashkey, staging.order_id, staging.customer_id, staging.ck_test_string, staging.ck_test_timestamp, staging.r_timestamp, staging.r_source);
+
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.l_order_customer_role_playing AS target
+                                 ON (staging.l_order_customer_role_playing_hashkey = target.l_order_customer_role_playing_hashkey)
+                    );
 
 MERGE INTO dv.l_order_customer_role_playing AS target
   USING (
@@ -70,17 +129,36 @@ MERGE INTO dv.l_order_customer_role_playing AS target
           -- If multiple sources for the same hashkey are received, their values
           -- are concatenated using a comma.
           LISTAGG(DISTINCT r_source, ',')
-              WITHIN GROUP (ORDER BY r_source)
-              OVER (PARTITION BY l_order_customer_role_playing_hashkey) AS r_source,
+                  WITHIN GROUP (ORDER BY r_source)
+                  OVER (PARTITION BY l_order_customer_role_playing_hashkey) AS r_source,
           h_order_hashkey, h_customer_role_playing_hashkey, order_id, customer_role_playing_id, ck_test_string, ck_test_timestamp, r_timestamp
         FROM dv_stg.orders_20190806_000000
-        ) AS staging ON (target.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey)
+        ) AS staging ON (target.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey
+    AND target.r_timestamp >= $min_timestamp)
   WHEN NOT MATCHED THEN INSERT (l_order_customer_role_playing_hashkey, h_order_hashkey, h_customer_role_playing_hashkey, order_id, customer_role_playing_id, ck_test_string, ck_test_timestamp, r_timestamp, r_source)
     VALUES (staging.l_order_customer_role_playing_hashkey, staging.h_order_hashkey, staging.h_customer_role_playing_hashkey, staging.order_id, staging.customer_role_playing_id, staging.ck_test_string, staging.ck_test_timestamp, staging.r_timestamp, staging.r_source);
+
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP())
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.hs_customer AS satellite
+                                 ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
+                                   AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+                    );
 
 MERGE INTO dv.hs_customer AS satellite
   USING (
         WITH
+          filtered_satellite AS (
+          SELECT *
+          FROM dv.hs_customer
+          WHERE r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+            AND r_timestamp >= $min_timestamp
+                                ),
           filtered_staging AS (
           SELECT DISTINCT
             staging.h_customer_hashkey,
@@ -92,7 +170,7 @@ MERGE INTO dv.hs_customer AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM dv.hs_customer AS satellite
+                           FROM filtered_satellite AS satellite
                            WHERE staging.h_customer_hashkey = satellite.h_customer_hashkey
                              AND satellite.r_timestamp >= staging.r_timestamp
                            )
@@ -109,7 +187,7 @@ MERGE INTO dv.hs_customer AS satellite
             staging.r_source
             , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
           FROM filtered_staging AS staging
-            LEFT OUTER JOIN dv.hs_customer AS satellite
+            LEFT OUTER JOIN filtered_satellite AS satellite
                             ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
                               AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
           WHERE satellite.h_customer_hashkey IS NULL
@@ -125,7 +203,7 @@ MERGE INTO dv.hs_customer AS satellite
             satellite.r_timestamp,
             satellite.r_source
             , satellite.test_string, satellite.test_date, satellite.test_timestamp_ntz, satellite.test_integer, satellite.test_decimal, satellite.x_customer_id, satellite.grouping_key, satellite.test_geography, satellite.test_array, satellite.test_object, satellite.test_variant, satellite.test_timestamp_tz, satellite.test_timestamp_ltz, satellite.test_time, satellite.test_boolean, satellite.test_real
-          FROM dv.hs_customer AS satellite
+          FROM filtered_satellite AS satellite
             INNER JOIN filtered_staging AS staging
                        ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
@@ -141,7 +219,8 @@ MERGE INTO dv.hs_customer AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
-    AND satellite.r_timestamp = staging.r_timestamp)
+    AND satellite.r_timestamp = staging.r_timestamp
+    AND satellite.r_timestamp >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
@@ -155,6 +234,21 @@ MERGE INTO dv.hs_customer AS satellite
                staging.r_source
                , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real);
 
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                      SELECT
+                        COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP())
+                      FROM dv.l_order_customer AS l
+                        INNER JOIN dv.ls_order_customer_eff AS satellite
+                                   ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
+                                      AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+                        INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                   ON (l.h_customer_hashkey = staging.h_customer_hashkey)
+                                     )
+                      );
+
 MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
         WITH
@@ -166,6 +260,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
             INNER JOIN dv.ls_order_customer_eff AS satellite
                        ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+          WHERE satellite.r_timestamp >= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -188,7 +283,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_hashkey = staging.h_customer_hashkey
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -235,7 +330,8 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
-    AND satellite.r_timestamp = staging.r_timestamp)
+    AND satellite.r_timestamp = staging.r_timestamp
+    AND satellite.r_timestamp >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
@@ -249,6 +345,21 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
                staging.r_source
                , staging.dummy_descriptive_field);
 
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+SET min_timestamp = (
+                      SELECT
+                        COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP())
+                      FROM dv.l_order_customer_role_playing AS l
+                        INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
+                                   ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
+                                      AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+                        INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                   ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+                                     )
+                      );
+
 MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
         WITH
@@ -260,6 +371,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
             INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
                        ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+          WHERE satellite.r_timestamp >= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -282,7 +394,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -329,7 +441,8 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey
-    AND satellite.r_timestamp = staging.r_timestamp)
+    AND satellite.r_timestamp = staging.r_timestamp
+    AND satellite.r_timestamp >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
