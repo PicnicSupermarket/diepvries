@@ -10,7 +10,6 @@ SET min_timestamp = (
                                       AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
                         INNER JOIN dv_stg.orders_20190806_000000 AS staging
                                    ON (l.h_customer_hashkey = staging.h_customer_hashkey)
-                                     )
                       );
 
 MERGE INTO dv.ls_order_customer_eff AS satellite

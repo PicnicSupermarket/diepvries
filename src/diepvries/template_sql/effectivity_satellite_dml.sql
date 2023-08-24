@@ -10,7 +10,6 @@ SET min_timestamp = (
                                       AND satellite.{record_end_timestamp_name} = {end_of_time})
                         INNER JOIN {staging_schema}.{staging_table} AS staging
                                    ON ({link_driving_key_condition})
-                                     )
                       );
 
 MERGE INTO {target_schema}.{target_table} AS satellite
