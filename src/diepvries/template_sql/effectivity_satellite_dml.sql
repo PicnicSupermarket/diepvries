@@ -1,3 +1,15 @@
+SET min_timestamp = (
+                      SELECT
+                        COALESCE(MIN(satellite.{record_start_timestamp}), CURRENT_TIMESTAMP())
+                      FROM {target_schema}.{link_table} AS l
+                        INNER JOIN {target_schema}.{target_table} AS satellite
+                                   ON (l.{hashkey_field} = satellite.{hashkey_field}
+                                     AND satellite.{record_end_timestamp_name} = {end_of_time})
+                        INNER JOIN {staging_schema}.{staging_table} AS staging
+                                   ON ({satellite_driving_key_condition}
+                                     AND satellite.{record_end_timestamp_name} = {end_of_time})
+                      );
+
 MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
@@ -9,6 +21,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             INNER JOIN {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
                          AND satellite.{record_end_timestamp_name} = {end_of_time})
+          WHERE satellite.r_timestamp>= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -31,7 +44,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE {satellite_driving_key_condition}
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.r_timestamp >= staging.r_timestamp
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -78,7 +91,8 @@ MERGE INTO {target_schema}.{target_table} AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
-    AND satellite.{record_start_timestamp} = staging.{record_start_timestamp})
+    AND satellite.{record_start_timestamp} = staging.{record_start_timestamp}
+    AND satellite.{record_start_timestamp} >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.{record_end_timestamp_name} = staging.{record_end_timestamp_name}
   WHEN NOT MATCHED
