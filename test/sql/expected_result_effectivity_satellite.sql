@@ -3,7 +3,7 @@
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
 SET min_timestamp = (
                       SELECT
-                        COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP())
+                        COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
                       FROM dv.l_order_customer AS l
                         INNER JOIN dv.ls_order_customer_eff AS satellite
                                    ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey

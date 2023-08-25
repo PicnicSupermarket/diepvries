@@ -3,7 +3,7 @@
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP())
+                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.l_order_customer AS target
                                  ON (staging.l_order_customer_hashkey = target.l_order_customer_hashkey)

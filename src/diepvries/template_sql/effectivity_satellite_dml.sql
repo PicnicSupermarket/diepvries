@@ -3,7 +3,7 @@
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
 SET min_timestamp = (
                       SELECT
-                        COALESCE(MIN(satellite.{record_start_timestamp}), CURRENT_TIMESTAMP())
+                        COALESCE(MIN(satellite.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
                       FROM {target_schema}.{link_table} AS l
                         INNER JOIN {target_schema}.{target_table} AS satellite
                                    ON (l.{hashkey_field} = satellite.{hashkey_field}
