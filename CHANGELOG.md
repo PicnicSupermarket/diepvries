@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Add filter to `MERGE` clauses to reduce the number of scanned records.
+
+## [Unreleased]
+### Added
 - Add method `sql_load_scripts_by_group` to `DataVaultLoad`.
 
 ## [0.7.0] - 2023-05-26
