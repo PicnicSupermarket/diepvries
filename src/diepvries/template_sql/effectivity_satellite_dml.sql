@@ -1,3 +1,21 @@
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
+SET min_timestamp = (
+                      SELECT
+                        COALESCE(MIN(satellite.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      FROM {target_schema}.{link_table} AS l
+                        INNER JOIN {target_schema}.{target_table} AS satellite
+                                   ON (l.{hashkey_field} = satellite.{hashkey_field}
+                                      AND satellite.{record_end_timestamp_name} = {end_of_time})
+                        INNER JOIN {staging_schema}.{staging_table} AS staging
+                                   ON ({link_driving_key_condition})
+                      );
+
 MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
@@ -9,6 +27,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
             INNER JOIN {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
                          AND satellite.{record_end_timestamp_name} = {end_of_time})
+          WHERE satellite.{record_start_timestamp} >= $min_timestamp
                                    ),
           filtered_effectivity_satellite AS (
           SELECT
@@ -31,7 +50,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
                              1
                            FROM filtered_effectivity_satellite AS satellite
                            WHERE {satellite_driving_key_condition}
-                            AND satellite.r_timestamp >= staging.r_timestamp
+                             AND satellite.{record_start_timestamp} >= staging.{record_start_timestamp}
                            )
                               ),
           --   Records that will be inserted (don't exist in target table or exist
@@ -78,7 +97,8 @@ MERGE INTO {target_schema}.{target_table} AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
-    AND satellite.{record_start_timestamp} = staging.{record_start_timestamp})
+    AND satellite.{record_start_timestamp} = staging.{record_start_timestamp}
+    AND satellite.{record_start_timestamp} >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.{record_end_timestamp_name} = staging.{record_end_timestamp_name}
   WHEN NOT MATCHED

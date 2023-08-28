@@ -1,6 +1,28 @@
+-- Calculate minimum timestamp that can be affected by the current load.
+-- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
+-- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
+SET min_timestamp = (
+                    SELECT
+                      COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                    FROM dv_stg.orders_20190806_000000 AS staging
+                      INNER JOIN dv.hs_customer AS satellite
+                                 ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
+                                   AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
+                    );
+
 MERGE INTO dv.hs_customer AS satellite
   USING (
         WITH
+          filtered_satellite AS (
+          SELECT *
+          FROM dv.hs_customer
+          WHERE r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+            AND r_timestamp >= $min_timestamp
+                                ),
           filtered_staging AS (
           SELECT DISTINCT
             staging.h_customer_hashkey,
@@ -12,7 +34,7 @@ MERGE INTO dv.hs_customer AS satellite
           WHERE NOT EXISTS (
                            SELECT
                              1
-                           FROM dv.hs_customer AS satellite
+                           FROM filtered_satellite AS satellite
                            WHERE staging.h_customer_hashkey = satellite.h_customer_hashkey
                              AND satellite.r_timestamp >= staging.r_timestamp
                            )
@@ -29,7 +51,7 @@ MERGE INTO dv.hs_customer AS satellite
             staging.r_source
             , staging.test_string, staging.test_date, staging.test_timestamp_ntz, staging.test_integer, staging.test_decimal, staging.x_customer_id, staging.grouping_key, staging.test_geography, staging.test_array, staging.test_object, staging.test_variant, staging.test_timestamp_tz, staging.test_timestamp_ltz, staging.test_time, staging.test_boolean, staging.test_real
           FROM filtered_staging AS staging
-            LEFT OUTER JOIN dv.hs_customer AS satellite
+            LEFT OUTER JOIN filtered_satellite AS satellite
                             ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
                               AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
           WHERE satellite.h_customer_hashkey IS NULL
@@ -45,7 +67,7 @@ MERGE INTO dv.hs_customer AS satellite
             satellite.r_timestamp,
             satellite.r_source
             , satellite.test_string, satellite.test_date, satellite.test_timestamp_ntz, satellite.test_integer, satellite.test_decimal, satellite.x_customer_id, satellite.grouping_key, satellite.test_geography, satellite.test_array, satellite.test_object, satellite.test_variant, satellite.test_timestamp_tz, satellite.test_timestamp_ltz, satellite.test_time, satellite.test_boolean, satellite.test_real
-          FROM dv.hs_customer AS satellite
+          FROM filtered_satellite AS satellite
             INNER JOIN filtered_staging AS staging
                        ON (staging.h_customer_hashkey = satellite.h_customer_hashkey
                          AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
@@ -61,7 +83,8 @@ MERGE INTO dv.hs_customer AS satellite
         FROM staging_satellite_affected_records
         ) AS staging
   ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
-    AND satellite.r_timestamp = staging.r_timestamp)
+    AND satellite.r_timestamp = staging.r_timestamp
+    AND satellite.r_timestamp >= $min_timestamp)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
