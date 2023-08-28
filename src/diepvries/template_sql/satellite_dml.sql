@@ -1,6 +1,10 @@
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(satellite.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))

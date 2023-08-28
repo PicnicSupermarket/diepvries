@@ -6,6 +6,10 @@ CREATE OR REPLACE TABLE dv_stg.orders_20190806_000000
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -33,6 +37,10 @@ MERGE INTO dv.h_customer AS target
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -60,6 +68,10 @@ MERGE INTO dv.h_customer AS target
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -87,6 +99,10 @@ MERGE INTO dv.h_order AS target
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -114,6 +130,10 @@ MERGE INTO dv.l_order_customer AS target
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -141,6 +161,10 @@ MERGE INTO dv.l_order_customer_role_playing AS target
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given hashkey is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
                       COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -237,6 +261,10 @@ MERGE INTO dv.hs_customer AS satellite
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                       SELECT
                         COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
@@ -347,6 +375,10 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
 -- Calculate minimum timestamp that can be affected by the current load.
 -- This timestamp is used in the MERGE statement to reduce the number of records scanned, ensuring
 -- the usage of the recommended clustering key (r_timestamp :: DATE).
+-- If there are no matches between the staging table and the target table, the minimum timestamp is set to the
+-- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
+-- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
+-- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                       SELECT
                         COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
