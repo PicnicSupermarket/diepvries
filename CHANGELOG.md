@@ -5,12 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Add filter to `MERGE` clauses to reduce the number of scanned records. DML queries now consist of two statements, a `SET` and a `MERGE`, instead of just a `MERGE` query.
 
-## [Unreleased]
+## [0.8.0] - 2023-08-28
 ### Added
 - Add method `sql_load_scripts_by_group` to `DataVaultLoad`.
+
+### Changed
+- Add filter to `MERGE` clauses to reduce the number of scanned records. DML queries now
+  consist of two statements, a `SET` and a `MERGE`, instead of just a `MERGE` query.
 
 ## [0.7.0] - 2023-05-26
 ### Added
