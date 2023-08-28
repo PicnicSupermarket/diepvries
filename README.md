@@ -2,8 +2,7 @@
 
 [![PyPI version shields.io](https://img.shields.io/pypi/v/diepvries.svg)](https://pypi.python.org/pypi/diepvries/)
 [![PyPI license](https://img.shields.io/pypi/l/diepvries.svg)](https://pypi.python.org/pypi/diepvries/)
-[![Build](https://img.shields.io/github/actions/workflow/status/PicnicSupermarket/diepvries/pypi-build-and-deploy.yml
-)](https://github.com/PicnicSupermarket/diepvries/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/PicnicSupermarket/diepvries/pypi-build-and-deploy.yml)](https://github.com/PicnicSupermarket/diepvries/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 <img src="doc/static/diepvries.svg" alt="diepvries logo" width=200>
