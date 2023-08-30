@@ -265,36 +265,42 @@ MERGE INTO dv.hs_customer AS satellite
 -- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
 -- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
 -- This is unlikely to happen, but still better to play it on the safe side.
-SET min_timestamp = (
-                      SELECT
-                        COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
-                      FROM dv.l_order_customer AS l
-                        INNER JOIN dv.ls_order_customer_eff AS satellite
-                                   ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
-                                      AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-                        INNER JOIN dv_stg.orders_20190806_000000 AS staging
-                                   ON (l.h_customer_hashkey = staging.h_customer_hashkey)
-                      );
+SET min_timestamp_link = (
+                         SELECT
+                           COALESCE(MIN(l.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                         FROM dv.l_order_customer AS l
+                           INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                      ON (l.h_customer_hashkey = staging.h_customer_hashkey)
+                         );
+
+SET min_timestamp_satellite = (
+                              SELECT
+                                COALESCE(MIN(satellite.r_timestamp),
+                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                              FROM dv.l_order_customer AS l
+                                INNER JOIN dv.ls_order_customer_eff AS satellite
+                                           ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
+                                             AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+                                             AND l.r_timestamp >= $min_timestamp_link)
+                                INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                           ON (l.h_customer_hashkey = staging.h_customer_hashkey)
+                              );
 
 MERGE INTO dv.ls_order_customer_eff AS satellite
   USING (
         WITH
-          effectivity_satellite AS (
+          filtered_effectivity_satellite AS (
           SELECT
             l.h_customer_hashkey,
             satellite.*
-          FROM dv.l_order_customer AS l
+          FROM dv_stg.orders_20190806_000000 AS staging
+            INNER JOIN dv.l_order_customer AS l
+                       ON (l.h_customer_hashkey = staging.h_customer_hashkey
+                         AND l.r_timestamp >= $min_timestamp_link)
             INNER JOIN dv.ls_order_customer_eff AS satellite
                        ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
-                         AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-          WHERE satellite.r_timestamp >= $min_timestamp
-                                   ),
-          filtered_effectivity_satellite AS (
-          SELECT
-            satellite.*
-          FROM dv_stg.orders_20190806_000000 AS staging
-            INNER JOIN effectivity_satellite AS satellite
-                       ON (satellite.h_customer_hashkey = staging.h_customer_hashkey)
+                         AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+                         AND satellite.r_timestamp >= $min_timestamp_satellite)
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -358,7 +364,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
         ) AS staging
   ON (satellite.l_order_customer_hashkey = staging.l_order_customer_hashkey
     AND satellite.r_timestamp = staging.r_timestamp
-    AND satellite.r_timestamp >= $min_timestamp)
+    AND satellite.r_timestamp >= $min_timestamp_satellite)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
@@ -379,36 +385,42 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
 -- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
 -- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
 -- This is unlikely to happen, but still better to play it on the safe side.
-SET min_timestamp = (
-                      SELECT
-                        COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
-                      FROM dv.l_order_customer_role_playing AS l
-                        INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
-                                   ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
-                                      AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-                        INNER JOIN dv_stg.orders_20190806_000000 AS staging
-                                   ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
-                      );
+SET min_timestamp_link = (
+                         SELECT
+                           COALESCE(MIN(l.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                         FROM dv.l_order_customer_role_playing AS l
+                           INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                      ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+                         );
+
+SET min_timestamp_satellite = (
+                              SELECT
+                                COALESCE(MIN(satellite.r_timestamp),
+                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                              FROM dv.l_order_customer_role_playing AS l
+                                INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
+                                           ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
+                                             AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+                                             AND l.r_timestamp >= $min_timestamp_link)
+                                INNER JOIN dv_stg.orders_20190806_000000 AS staging
+                                           ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+                              );
 
 MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
   USING (
         WITH
-          effectivity_satellite AS (
+          filtered_effectivity_satellite AS (
           SELECT
             l.h_customer_role_playing_hashkey,
             satellite.*
-          FROM dv.l_order_customer_role_playing AS l
+          FROM dv_stg.orders_20190806_000000 AS staging
+            INNER JOIN dv.l_order_customer_role_playing AS l
+                       ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey
+                         AND l.r_timestamp >= $min_timestamp_link)
             INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
                        ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey
-                         AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP))
-          WHERE satellite.r_timestamp >= $min_timestamp
-                                   ),
-          filtered_effectivity_satellite AS (
-          SELECT
-            satellite.*
-          FROM dv_stg.orders_20190806_000000 AS staging
-            INNER JOIN effectivity_satellite AS satellite
-                       ON (satellite.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
+                         AND satellite.r_timestamp_end = CAST('9999-12-31T00:00:00.000000Z' AS TIMESTAMP)
+                         AND satellite.r_timestamp >= $min_timestamp_satellite)
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -472,7 +484,7 @@ MERGE INTO dv.ls_order_customer_role_playing_eff AS satellite
         ) AS staging
   ON (satellite.l_order_customer_role_playing_hashkey = staging.l_order_customer_role_playing_hashkey
     AND satellite.r_timestamp = staging.r_timestamp
-    AND satellite.r_timestamp >= $min_timestamp)
+    AND satellite.r_timestamp >= $min_timestamp_satellite)
   WHEN MATCHED THEN
     UPDATE SET satellite.r_timestamp_end = staging.r_timestamp_end
   WHEN NOT MATCHED
