@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Add extra filter on the effectivity satellite's query to reduce the number of scanned records on the parent link.
+
 ## [0.8.0] - 2023-08-28
 ### Added
 - Add method `sql_load_scripts_by_group` to `DataVaultLoad`.
