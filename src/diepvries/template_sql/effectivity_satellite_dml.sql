@@ -5,36 +5,42 @@
 -- current timestamp minus 4 hours. The four hours are subtracted as a "safety net" to avoid the insertion of
 -- duplicate records when the first version of a given driving key is being loaded by two processes running in parallel.
 -- This is unlikely to happen, but still better to play it on the safe side.
-SET min_timestamp = (
-                      SELECT
-                        COALESCE(MIN(satellite.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
-                      FROM {target_schema}.{link_table} AS l
-                        INNER JOIN {target_schema}.{target_table} AS satellite
-                                   ON (l.{hashkey_field} = satellite.{hashkey_field}
-                                      AND satellite.{record_end_timestamp_name} = {end_of_time})
-                        INNER JOIN {staging_schema}.{staging_table} AS staging
-                                   ON ({link_driving_key_condition})
-                      );
+SET min_timestamp_link = (
+                         SELECT
+                           COALESCE(MIN(l.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                         FROM {target_schema}.{link_table} AS l
+                           INNER JOIN {staging_schema}.{staging_table} AS staging
+                                      ON ({link_driving_key_condition})
+                         );
+
+SET min_timestamp_satellite = (
+                              SELECT
+                                COALESCE(MIN(satellite.{record_start_timestamp}),
+                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                              FROM {target_schema}.{link_table} AS l
+                                INNER JOIN {target_schema}.{target_table} AS satellite
+                                           ON (l.{hashkey_field} = satellite.{hashkey_field}
+                                             AND satellite.{record_end_timestamp_name} = {end_of_time}
+                                             AND l.{record_start_timestamp} >= $min_timestamp_link)
+                                INNER JOIN {staging_schema}.{staging_table} AS staging
+                                           ON ({link_driving_key_condition})
+                              );
 
 MERGE INTO {target_schema}.{target_table} AS satellite
   USING (
         WITH
-          effectivity_satellite AS (
+          filtered_effectivity_satellite AS (
           SELECT
             {link_driving_keys},
             satellite.*
-          FROM {target_schema}.{link_table} AS l
+          FROM {staging_schema}.{staging_table} AS staging
+            INNER JOIN {target_schema}.{link_table} AS l
+                       ON ({link_driving_key_condition}
+                         AND l.{record_start_timestamp} >= $min_timestamp_link)
             INNER JOIN {target_schema}.{target_table} AS satellite
                        ON (l.{hashkey_field} = satellite.{hashkey_field}
-                         AND satellite.{record_end_timestamp_name} = {end_of_time})
-          WHERE satellite.{record_start_timestamp} >= $min_timestamp
-                                   ),
-          filtered_effectivity_satellite AS (
-          SELECT
-            satellite.*
-          FROM {staging_schema}.{staging_table} AS staging
-            INNER JOIN effectivity_satellite AS satellite
-                       ON ({satellite_driving_key_condition})
+                         AND satellite.{record_end_timestamp_name} = {end_of_time}
+                         AND satellite.{record_start_timestamp} >= $min_timestamp_satellite)
                                             ),
           filtered_staging AS (
           SELECT DISTINCT
@@ -98,7 +104,7 @@ MERGE INTO {target_schema}.{target_table} AS satellite
         ) AS staging
   ON (satellite.{hashkey_field} = staging.{hashkey_field}
     AND satellite.{record_start_timestamp} = staging.{record_start_timestamp}
-    AND satellite.{record_start_timestamp} >= $min_timestamp)
+    AND satellite.{record_start_timestamp} >= $min_timestamp_satellite)
   WHEN MATCHED THEN
     UPDATE SET satellite.{record_end_timestamp_name} = staging.{record_end_timestamp_name}
   WHEN NOT MATCHED
