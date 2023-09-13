@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2023-09-13
 ### Changed
 - Go back 4 hours in the calculation of minimum record timestamp to avoid issues in concurrent loads.
 
