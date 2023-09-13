@@ -15,7 +15,7 @@ SET min_timestamp_link = (
 
 SET min_timestamp_satellite = (
                               SELECT
-                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))     
+                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))
                               FROM dv.l_order_customer AS l
                                 INNER JOIN dv.ls_order_customer_eff AS satellite
                                            ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
