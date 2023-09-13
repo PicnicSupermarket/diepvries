@@ -7,7 +7,7 @@
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(satellite.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(satellite.{record_start_timestamp}), CURRENT_TIMESTAMP()))
                     FROM {staging_schema}.{staging_table} AS staging
                       INNER JOIN {target_schema}.{target_table} AS satellite
                                  ON (satellite.{hashkey_field} = staging.{hashkey_field}
