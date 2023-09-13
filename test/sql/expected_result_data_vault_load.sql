@@ -12,7 +12,7 @@ CREATE OR REPLACE TABLE dv_stg.orders_20190806_000000
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.h_customer AS target
                                  ON (staging.h_customer_hashkey = target.h_customer_hashkey)
@@ -43,7 +43,7 @@ MERGE INTO dv.h_customer AS target
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.h_customer AS target
                                  ON (staging.h_customer_role_playing_hashkey = target.h_customer_hashkey)
@@ -74,7 +74,7 @@ MERGE INTO dv.h_customer AS target
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.h_order AS target
                                  ON (staging.h_order_hashkey = target.h_order_hashkey)
@@ -105,7 +105,7 @@ MERGE INTO dv.h_order AS target
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.l_order_customer AS target
                                  ON (staging.l_order_customer_hashkey = target.l_order_customer_hashkey)
@@ -136,7 +136,7 @@ MERGE INTO dv.l_order_customer AS target
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(target.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(target.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.l_order_customer_role_playing AS target
                                  ON (staging.l_order_customer_role_playing_hashkey = target.l_order_customer_role_playing_hashkey)
@@ -167,7 +167,7 @@ MERGE INTO dv.l_order_customer_role_playing AS target
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.hs_customer AS satellite
                                  ON (satellite.h_customer_hashkey = staging.h_customer_hashkey
@@ -267,7 +267,7 @@ MERGE INTO dv.hs_customer AS satellite
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp_link = (
                          SELECT
-                           COALESCE(MIN(l.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                           DATEADD(HOUR, -4, COALESCE(MIN(l.r_timestamp), CURRENT_TIMESTAMP()))
                          FROM dv.l_order_customer AS l
                            INNER JOIN dv_stg.orders_20190806_000000 AS staging
                                       ON (l.h_customer_hashkey = staging.h_customer_hashkey)
@@ -275,8 +275,7 @@ SET min_timestamp_link = (
 
 SET min_timestamp_satellite = (
                               SELECT
-                                COALESCE(MIN(satellite.r_timestamp),
-                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))
                               FROM dv.l_order_customer AS l
                                 INNER JOIN dv.ls_order_customer_eff AS satellite
                                            ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
@@ -387,7 +386,7 @@ MERGE INTO dv.ls_order_customer_eff AS satellite
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp_link = (
                          SELECT
-                           COALESCE(MIN(l.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                           DATEADD(HOUR, -4, COALESCE(MIN(l.r_timestamp), CURRENT_TIMESTAMP()))
                          FROM dv.l_order_customer_role_playing AS l
                            INNER JOIN dv_stg.orders_20190806_000000 AS staging
                                       ON (l.h_customer_role_playing_hashkey = staging.h_customer_role_playing_hashkey)
@@ -395,8 +394,7 @@ SET min_timestamp_link = (
 
 SET min_timestamp_satellite = (
                               SELECT
-                                COALESCE(MIN(satellite.r_timestamp),
-                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))
                               FROM dv.l_order_customer_role_playing AS l
                                 INNER JOIN dv.ls_order_customer_role_playing_eff AS satellite
                                            ON (l.l_order_customer_role_playing_hashkey = satellite.l_order_customer_role_playing_hashkey

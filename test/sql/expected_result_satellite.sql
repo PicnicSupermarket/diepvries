@@ -7,7 +7,7 @@
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp = (
                     SELECT
-                      COALESCE(MIN(satellite.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                      DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))
                     FROM dv_stg.orders_20190806_000000 AS staging
                       INNER JOIN dv.hs_customer AS satellite
                                  ON (satellite.h_customer_hashkey = staging.h_customer_hashkey

@@ -7,7 +7,7 @@
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp_link = (
                          SELECT
-                           COALESCE(MIN(l.{record_start_timestamp}), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                           DATEADD(HOUR, -4, COALESCE(MIN(l.{record_start_timestamp}), CURRENT_TIMESTAMP()))
                          FROM {target_schema}.{link_table} AS l
                            INNER JOIN {staging_schema}.{staging_table} AS staging
                                       ON ({link_driving_key_condition})
@@ -15,8 +15,7 @@ SET min_timestamp_link = (
 
 SET min_timestamp_satellite = (
                               SELECT
-                                COALESCE(MIN(satellite.{record_start_timestamp}),
-                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.{record_start_timestamp}), CURRENT_TIMESTAMP()))
                               FROM {target_schema}.{link_table} AS l
                                 INNER JOIN {target_schema}.{target_table} AS satellite
                                            ON (l.{hashkey_field} = satellite.{hashkey_field}
