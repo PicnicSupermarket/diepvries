@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Go back 4 hours in the calculation of minimum record timestamp to avoid issues in concurrent loads.
+
 ## [0.9.0] - 2023-09-04
 ### Changed
 - Add extra filter on the effectivity satellite's query to reduce the number of scanned
