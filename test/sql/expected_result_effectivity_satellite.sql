@@ -7,7 +7,7 @@
 -- This is unlikely to happen, but still better to play it on the safe side.
 SET min_timestamp_link = (
                          SELECT
-                           COALESCE(MIN(l.r_timestamp), DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                           DATEADD(HOUR, -4, COALESCE(MIN(l.r_timestamp), CURRENT_TIMESTAMP()))
                          FROM dv.l_order_customer AS l
                            INNER JOIN dv_stg.orders_20190806_000000 AS staging
                                       ON (l.h_customer_hashkey = staging.h_customer_hashkey)
@@ -15,8 +15,7 @@ SET min_timestamp_link = (
 
 SET min_timestamp_satellite = (
                               SELECT
-                                COALESCE(MIN(satellite.r_timestamp),
-                                         DATEADD(HOUR, -4, CURRENT_TIMESTAMP()))
+                                DATEADD(HOUR, -4, COALESCE(MIN(satellite.r_timestamp), CURRENT_TIMESTAMP()))     
                               FROM dv.l_order_customer AS l
                                 INNER JOIN dv.ls_order_customer_eff AS satellite
                                            ON (l.l_order_customer_hashkey = satellite.l_order_customer_hashkey
