@@ -1,4 +1,5 @@
 """Unit test for Satellite."""
+
 from pathlib import Path
 
 from diepvries import FieldRole

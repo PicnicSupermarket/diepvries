@@ -1,4 +1,5 @@
 """Module for a Data Vault field."""
+
 from typing import Optional
 
 from . import (

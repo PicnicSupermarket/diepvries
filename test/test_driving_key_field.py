@@ -1,4 +1,5 @@
 """Unit test for DrivingKeyField."""
+
 import pytest
 
 from diepvries.driving_key_field import DrivingKeyField

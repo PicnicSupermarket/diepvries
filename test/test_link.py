@@ -1,4 +1,5 @@
 """Unit test for Link."""
+
 from pathlib import Path
 
 from diepvries import FieldRole
