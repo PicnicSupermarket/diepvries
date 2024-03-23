@@ -42,8 +42,17 @@ def fetch_timestamp(engine):
     return min_timestamp
 
 
+def fetch_timestamp_placeholder(engine, params):
+    min_timestamp = engine.execute(
+        """SELECT create_ts from dv_extract.{table}""".format(**params)
+    ).fetchone()
+    return min_timestamp
 
-print(fetch_timestamp(engine=engine))
+
+
+
+params = {"table": "order_customer"}
+print(fetch_timestamp_placeholder(engine=engine, params= params))
 
 
 
