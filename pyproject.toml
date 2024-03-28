@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]~=6.0"]
+requires = ["setuptools>=64", "wheel", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "diepvries"
-version = "0.9.2"
+dynamic = ["version"]
 description = "diepvries - Picnic Data Vault framework"
 readme = {file = "README.md", content-type = "text/markdown"}
 keywords = ["data vault"]
