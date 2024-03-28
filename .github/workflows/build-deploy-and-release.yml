@@ -1,4 +1,4 @@
-name: pypi-build-and-deploy
+name: build-deploy-and-release
 
 # Only run this workflow when a diepvries/* tag gets pushed
 on:
@@ -29,3 +29,26 @@ jobs:
         run: python -m tox -e build
       - name: Run tox upload
         run: python -m tox -e upload
+
+  create-github-release:
+
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Create Github release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
