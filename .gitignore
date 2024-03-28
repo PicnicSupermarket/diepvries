@@ -5,7 +5,7 @@ venv/
 # Python packaging
 build/
 dist/
-src/diepvries.egg-info/
+*.egg-info/
 
 # Python tools
 .tox/
