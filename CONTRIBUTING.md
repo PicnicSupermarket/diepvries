@@ -60,14 +60,14 @@ source ../diepvries-venv/bin/activate
 Once your virtual environment is active, run:
 
 ```shell
-python3 setup.py develop
+python3 -m pip install -e .
 ```
 
 to install this library as a development package.
 
 In this environment, you can now run any script using this framework.
 
- The easiest way to run the test suite and the linters is to install **tox**:
+The easiest way to run the test suite and the linters is to install **tox**:
 
 ```shell
 pip install -U tox
