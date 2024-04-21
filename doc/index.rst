@@ -43,3 +43,5 @@ Developer documentation
 
    development
    API documentation <api/modules>
+   contributing
+   changes
