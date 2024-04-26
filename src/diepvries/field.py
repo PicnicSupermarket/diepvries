@@ -94,7 +94,7 @@ class Field:
 
         1. Cast field to its data type in the DV model.
         2. Produce a consistent string representation of the result of step 1, depending
-        on the field data type.
+            on the field data type.
         3. Ensure the result of step 2 never returns NULL.
 
         Returns:
@@ -109,26 +109,25 @@ class Field:
             if self.data_type != FieldDataType.GEOGRAPHY
             else f"TO_GEOGRAPHY({self.name})"
         )
-
-        if self.data_type in (FieldDataType.TIMESTAMP_LTZ, FieldDataType.TIMESTAMP_TZ):
-            hash_concatenation_sql = (
-                f"TO_CHAR({cast_expression}, "
-                f"'{date_format} {time_format} {timezone_format}')"
-            )
-
-        elif self.data_type == FieldDataType.TIMESTAMP_NTZ:
-            hash_concatenation_sql = (
+        tz_expression = (
+            f"TO_CHAR({cast_expression}, "
+            f"'{date_format} {time_format} {timezone_format}')"
+        )
+        sql_expressions_by_field_type = {
+            FieldDataType.TIMESTAMP_LTZ: tz_expression,
+            FieldDataType.TIMESTAMP_TZ: tz_expression,
+            FieldDataType.TIMESTAMP_NTZ: (
                 f"TO_CHAR({cast_expression}, '{date_format} {time_format}')"
-            )
-        elif self.data_type == FieldDataType.DATE:
-            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{date_format}')"
-        elif self.data_type == FieldDataType.TIME:
-            hash_concatenation_sql = f"TO_CHAR({cast_expression}, '{time_format}')"
-        elif self.data_type == FieldDataType.TEXT:
-            hash_concatenation_sql = cast_expression
-        elif self.data_type == FieldDataType.GEOGRAPHY:
-            hash_concatenation_sql = f"ST_ASTEXT({cast_expression})"
-        else:
+            ),
+            FieldDataType.DATE: f"TO_CHAR({cast_expression}, '{date_format}')",
+            FieldDataType.TIME: f"TO_CHAR({cast_expression}, '{time_format}')",
+            FieldDataType.TEXT: cast_expression,
+            FieldDataType.GEOGRAPHY: f"ST_ASTEXT({cast_expression})",
+        }
+
+        try:
+            hash_concatenation_sql = sql_expressions_by_field_type[self.data_type]
+        except KeyError:
             hash_concatenation_sql = f"CAST({cast_expression} AS TEXT)"
 
         default_value = UNKNOWN if self.role == FieldRole.BUSINESS_KEY else ""
