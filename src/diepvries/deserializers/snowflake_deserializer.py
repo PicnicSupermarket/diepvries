@@ -5,7 +5,7 @@ import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from functools import cached_property
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Literal, Optional, Type
 
 from snowflake.connector import DictCursor, connect
 
