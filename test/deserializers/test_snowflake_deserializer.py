@@ -7,7 +7,10 @@ from unittest.mock import MagicMock, PropertyMock
 import pytest
 from snowflake.connector.cursor import SnowflakeCursor
 
-from diepvries.deserializers.snowflake_deserializer import SnowflakeDeserializer
+from diepvries.deserializers.snowflake_deserializer import (
+    DatabaseConfiguration,
+    SnowflakeDeserializer,
+)
 from diepvries.driving_key_field import DrivingKeyField
 from diepvries.effectivity_satellite import EffectivitySatellite
 from diepvries.field import Field
@@ -194,3 +197,14 @@ def test_deserialized_target_tables(
                 table, RolePlayingHub
             ):
                 compare_tables(table.parent_table, h_customer)
+
+
+def test_database_configuration_with_password_invalid_input():
+    """Test `DatabaseConfiguration` without password, using `password` authenticator."""
+    with pytest.raises(ValueError):
+        _ = DatabaseConfiguration(
+            database="some_db",
+            user="some_user",
+            warehouse="some_warehouse",
+            account="some_account"
+        )
