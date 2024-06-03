@@ -32,7 +32,7 @@ class DatabaseConfiguration:
     warehouse: str
     account: str
     password: Optional[str] = None
-    authenticator: Optional[str] = "password"
+    authenticator: Optional[Literal["password", "externalbrowser"]] = "password"
 
     def __post_init__(self):
         """Validate input for optional attributes."""

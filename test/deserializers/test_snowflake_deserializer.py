@@ -206,5 +206,5 @@ def test_database_configuration_with_password_invalid_input():
             database="some_db",
             user="some_user",
             warehouse="some_warehouse",
-            account="some_account"
+            account="some_account",
         )
