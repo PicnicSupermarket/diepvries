@@ -5,7 +5,7 @@ import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from functools import cached_property
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 from snowflake.connector import DictCursor, connect
 
@@ -29,9 +29,19 @@ class DatabaseConfiguration:
 
     database: str
     user: str
-    password: str
     warehouse: str
     account: str
+    password: Optional[str] = None
+    authenticator: Optional[str] = "password"
+
+    def __post_init__(self):
+        """Validate input for optional attributes."""
+        if self.authenticator == "password" and not self.password:
+            raise ValueError(
+                "Password was not provided. It is a mandatory attribute when the "
+                "authenticator is `password`. Empty passwords are only allowed "
+                "when `authenticator='externalbrowser'`."
+            )
 
 
 class SnowflakeDeserializer:
