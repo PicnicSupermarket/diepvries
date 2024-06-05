@@ -1,6 +1,32 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]~=6.0"]
+requires = ["setuptools>=64", "wheel", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "diepvries"
+dynamic = ["version"]
+description = "diepvries - Picnic Data Vault framework"
+readme = {file = "README.md", content-type = "text/markdown"}
+keywords = ["data vault"]
+license = {file = "LICENSE"}
+authors = [{name = "Picnic Technologies"}]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+]
+dependencies = ["snowflake-connector-python[secure-local-storage]~=3.0"]
+requires-python = ">= 3.8"
+
+[project.optional-dependencies]
+test = ["pytest~=6.2"]
+dev = ["pytest~=6.2", "tox", "pre-commit"]
+
+[project.urls]
+Documentation = "https://diepvries.picnic.tech/"
+"Source Code" = "https://github.com/PicnicSupermarket/diepvries"
+"Issue Tracker" = "https://github.com/PicnicSupermarket/diepvries/issues"
 
 [tool.setuptools_scm]
 tag_regex = "^diepvries/(?P<version>[0-9\\.]+)$"  # backslash needs to be escaped in TOML

@@ -47,4 +47,4 @@ not for regular use.
     cd diepvries
     python3 -m venv venv
     source ./venv/bin/activate
-    python3 setup.py develop
+    python3 -m pip install -e .
