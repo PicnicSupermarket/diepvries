@@ -28,9 +28,6 @@ Documentation = "https://diepvries.picnic.tech/"
 "Source Code" = "https://github.com/PicnicSupermarket/diepvries"
 "Issue Tracker" = "https://github.com/PicnicSupermarket/diepvries/issues"
 
-[tool.setuptools]
-package-dir = {where = "src"}
-
 [tool.setuptools_scm]
 tag_regex = "^diepvries/(?P<version>[0-9\\.]+)$"  # backslash needs to be escaped in TOML
 local_scheme = "no-local-version"
