@@ -5,10 +5,9 @@ import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from functools import cached_property
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Literal, Optional, Type
 
 from snowflake.connector import DictCursor, connect
-from snowflake.connector.network import DEFAULT_AUTHENTICATOR
 
 from .. import TABLE_PREFIXES, FieldDataType, FixedPrefixLoggerAdapter, TableType
 from ..driving_key_field import DrivingKeyField
@@ -33,15 +32,15 @@ class DatabaseConfiguration:
     warehouse: str
     account: str
     password: Optional[str] = None
-    authenticator: Optional[str] = DEFAULT_AUTHENTICATOR
+    authenticator: Optional[Literal["externalbrowser"]] = None
 
     def __post_init__(self):
         """Validate input for optional attributes."""
-        if self.authenticator == DEFAULT_AUTHENTICATOR and not self.password:
+        if self.authenticator is None and not self.password:
             raise ValueError(
-                f"Password was not provided. It is a mandatory attribute when the "
-                f"authenticator is not `{DEFAULT_AUTHENTICATOR}`. Empty passwords are "
-                f"only allowed when `authenticator='externalbrowser'`."
+                "Password was not provided. It is a mandatory attribute when an "
+                "authenticator is not specified. Empty passwords are only allowed "
+                "when `authenticator='externalbrowser'`."
             )
 
 

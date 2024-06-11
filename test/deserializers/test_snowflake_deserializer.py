@@ -200,7 +200,7 @@ def test_deserialized_target_tables(
 
 
 def test_database_configuration_with_password_invalid_input():
-    """Test `DatabaseConfiguration` - no password nor authenticator=externalbrowser."""
+    """Test `DatabaseConfiguration` without password nor an `authenticator`."""
     with pytest.raises(ValueError):
         _ = DatabaseConfiguration(
             database="some_db",
