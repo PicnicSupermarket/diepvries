@@ -32,14 +32,14 @@ class DatabaseConfiguration:
     warehouse: str
     account: str
     password: Optional[str] = None
-    authenticator: Optional[Literal["password", "externalbrowser"]] = "password"
+    authenticator: Optional[Literal["externalbrowser"]] = None
 
     def __post_init__(self):
         """Validate input for optional attributes."""
-        if self.authenticator == "password" and not self.password:
+        if self.authenticator is None and not self.password:
             raise ValueError(
-                "Password was not provided. It is a mandatory attribute when the "
-                "authenticator is `password`. Empty passwords are only allowed "
+                "Password was not provided. It is a mandatory attribute when an "
+                "authenticator is not specified. Empty passwords are only allowed "
                 "when `authenticator='externalbrowser'`."
             )
 
