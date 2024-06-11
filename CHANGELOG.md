@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2024-06-11
 ### Fixed
 - Stop using invalid `password` authenticator.
 
-## [1.0.0]
+## [1.0.0] - 2024-06-05
 ### Added
 - Add support for external browser authentication in `SnowflakeDeserializer`.
 - Add GitHub actions workflow for creating GitHub releases.
