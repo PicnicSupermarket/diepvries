@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Upgrade `snowflake-connector-python` to `~=4.1`.
+
 ## [1.0.1] - 2024-06-11
 ### Fixed
 - Stop using invalid `password` authenticator.
