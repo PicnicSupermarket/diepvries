@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = ["snowflake-connector-python[secure-local-storage]~=4.1"]
-requires-python = ">= 3.9"
+requires-python = ">= 3.10"
 
 [project.optional-dependencies]
 test = ["pytest~=6.2"]

@@ -12,7 +12,7 @@ operator when specifying the version you want to use.
 Python versions
 ---------------
 
-At the moment, ``diepvries`` is compatible with Python 3.9, 3.10, and 3.11.
+At the moment, ``diepvries`` is compatible with Python 3.10 through 3.14.
 
 Installation with pipenv
 ------------------------
