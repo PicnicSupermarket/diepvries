@@ -23,7 +23,7 @@ model to `diepvries`:
 At the moment, `diepvries` is only compatible with
 [Snowflake](https://www.snowflake.com/).
 
-`diepvries` works with Python 3.10 through 3.14.
+`diepvries` works with Python 3.10 through 3.13.
 
 ## Getting started
 
