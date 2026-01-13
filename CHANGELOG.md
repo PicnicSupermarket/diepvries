@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-01-13
 ### Changed
 - Upgrade `snowflake-connector-python` to `~=4.1`.
 - Drop support for Python 3.8 and 3.9; minimum supported Python is now 3.10.
