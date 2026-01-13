@@ -78,7 +78,7 @@ def driving_keys_by_table(
 
 @pytest.fixture
 def driving_keys(
-    driving_keys_by_table: Dict[str, List[DrivingKeyField]]
+    driving_keys_by_table: Dict[str, List[DrivingKeyField]],
 ) -> List[DrivingKeyField]:
     """Build list of `DrivingKeyField`s in the target model."""
     return [
