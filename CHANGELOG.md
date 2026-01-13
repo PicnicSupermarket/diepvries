@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade `snowflake-connector-python` to `~=4.1`.
 - Drop support for Python 3.8 and 3.9; minimum supported Python is now 3.10.
 - Add support for Python 3.11, 3.12, and 3.13.
+- Update GitHub Actions workflow versions for improved security and stability:
+  - `actions/checkout` updated to `v6`
+  - `actions/setup-python` updated to `v6`
+  - `actions/upload-pages-artifact` updated to `v4`
 
 ## [1.0.1] - 2024-06-11
 ### Fixed
