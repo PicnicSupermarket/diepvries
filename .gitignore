@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 venv/
+.venv/
 
 # Python packaging
 build/
