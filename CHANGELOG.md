@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `actions/setup-python` updated to `v6`
   - `actions/upload-pages-artifact` updated to `v4`
 
+### Fixed
+- Quote Python versions in GitHub workflows' YAML files to ensure `3.10` is not interpreted as a number (`3.1`).
+
 ## [1.0.1] - 2024-06-11
 ### Fixed
 - Stop using invalid `password` authenticator.
