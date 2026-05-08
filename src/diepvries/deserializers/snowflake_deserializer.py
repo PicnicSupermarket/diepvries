@@ -33,15 +33,21 @@ class DatabaseConfiguration:
     warehouse: str
     account: str
     password: Optional[str] = None
+    private_key: Optional[str] = None
     authenticator: Optional[str] = DEFAULT_AUTHENTICATOR
 
     def __post_init__(self):
         """Validate input for optional attributes."""
-        if self.authenticator == DEFAULT_AUTHENTICATOR and not self.password:
+        if (
+            self.authenticator == DEFAULT_AUTHENTICATOR
+            and not self.password
+            and not self.private_key
+        ):
             raise ValueError(
-                f"Password was not provided. It is a mandatory attribute when the "
-                f"authenticator is not `{DEFAULT_AUTHENTICATOR}`. Empty passwords are "
-                f"only allowed when `authenticator='externalbrowser'`."
+                f"Password or private key was not provided. It is a mandatory attribute"
+                f"when the authenticator is not `{DEFAULT_AUTHENTICATOR}`. Empty"
+                f"password or private key is only allowed when"
+                f"`authenticator='externalbrowser'`."
             )
 
 
