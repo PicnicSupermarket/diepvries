@@ -13,6 +13,7 @@ def get_load_sql():
         database="diepvries_tutorial",
         user="<YOUR USER>",
         password="<YOUR PASSWORD>",
+        private_key="<YOUR PRIVATE KEY>",
         warehouse="<YOUR WAREHOUSE>",
         account="<YOUR SNOWFLAKE ACCOUNT NAME>",
     )

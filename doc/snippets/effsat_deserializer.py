@@ -10,6 +10,7 @@ def deserialize():
         database="<DB>",
         user="<USER>",
         password="<PASSWORD>",
+        private_key="<PRIVATE_KEY>",
         warehouse="<WAREHOUSE>",
         account="<ACCOUNT>",
     )

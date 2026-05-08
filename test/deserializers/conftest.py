@@ -59,6 +59,7 @@ def database_configuration() -> DatabaseConfiguration:
         database="some_db",
         user="some_user",
         password="some_password",
+        private_key="some_private_key",
         warehouse="some_warehouse",
         account="some_account",
     )
